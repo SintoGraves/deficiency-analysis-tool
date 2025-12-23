@@ -15,54 +15,6 @@
   --danger: #ff4d4d;
 }
 
-.app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(10, 16, 26, 0.55);
-  backdrop-filter: blur(10px);
-}
-
-.app-title h1 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.sub {
-  margin-top: 4px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.app-controls {
-  display: flex;
-  gap: 10px;
-  align-items: end;
-  flex-wrap: wrap;
-}
-
-
-@media (max-width: 760px) {
-  .app-header {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-  }
-
-  .header-left,
-  .header-right {
-    justify-content: center;
-  }
-
-  .logo-optevfor {
-    margin: 6px 0;
-  }
-}
-
-
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
