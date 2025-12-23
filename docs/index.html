@@ -10,7 +10,7 @@
   <header class="app-header">
     <div class="app-title">
       <h1>Deficiency Decision Tool (POC)</h1>
-      <div class="sub">Decision-pack-driven wizard (GitHub Pages /docs)</div>
+      <div class="sub">Question-based wizard (decision packs). Manual on left.</div>
     </div>
 
     <div class="app-controls">
@@ -21,36 +21,60 @@
           <option value="figure2">Figure 2 — Failure Type / OMF</option>
         </select>
       </label>
+
       <button id="btnStartOver" class="btn secondary">Start Over</button>
+      <button id="btnGoReport" class="btn secondary" title="Opens report page">Generate Document</button>
     </div>
   </header>
 
-  <main class="layout">
-    <section class="panel card" aria-label="Wizard Panel">
-      <div id="screen" class="screen">
-        <!-- Rendered by JS -->
+  <main class="layout-2col">
+    <!-- LEFT: Manual (full-height) -->
+    <section class="manual card" aria-label="Manual Panel">
+      <div class="manual-head">
+        <h2>Manual</h2>
+        <div class="manual-sub" id="manualStatus">Loading front matter…</div>
       </div>
-
-      <div class="nav">
-        <button id="btnBack" class="btn secondary" disabled>Back</button>
-        <div class="nav-right">
-          <button id="btnResetTrace" class="btn secondary">Reset Trace</button>
-        </div>
+      <div id="manualBody" class="manual-body">
+        <!-- Filled by JS from /docs/manual/front-matter.html -->
       </div>
     </section>
 
-    <aside class="panel card" aria-label="Decision Trace Panel">
-      <div class="trace-head">
-        <h2>Decision Trace</h2>
-        <div class="trace-meta" id="traceMeta"></div>
-      </div>
-      <pre id="trace" class="trace"></pre>
-    </aside>
+    <!-- RIGHT: Split vertically (questions top / notes bottom) -->
+    <section class="right-col">
+      <section class="wizard card" aria-label="Wizard Panel">
+        <div id="screen" class="screen"></div>
+        <div class="nav">
+          <button id="btnBack" class="btn secondary" disabled>Back</button>
+          <div class="nav-right">
+            <button id="btnReset" class="btn secondary">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="notes card" aria-label="Notes Panel">
+        <div class="notes-head">
+          <h2>Notes / Directives</h2>
+          <div class="notes-sub" id="notesMeta">Context for the current step</div>
+        </div>
+        <div id="notesBody" class="notes-body">
+          <div class="hint">Notes, directives, and “read first” content will appear here as you progress.</div>
+        </div>
+      </section>
+
+      <!-- Debug-only trace container (hidden unless ?debug=1) -->
+      <section id="debugTraceWrap" class="debug card" aria-label="Debug Trace" hidden>
+        <div class="debug-head">
+          <h2>Debug Trace</h2>
+          <div class="debug-sub" id="traceMeta"></div>
+        </div>
+        <pre id="trace" class="trace"></pre>
+      </section>
+    </section>
   </main>
 
   <footer class="app-footer">
     <div class="small">
-      POC: deterministic, auditable routing. Logic lives in JSON decision packs under <code>/docs/decision-trees</code>.
+      This interface is question-based. Underlying flow diagrams and trace are not shown to end users.
     </div>
   </footer>
 
