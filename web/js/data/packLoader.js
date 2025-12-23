@@ -6,9 +6,9 @@
 
 window.DAT = window.DAT || {};
 
-DAT.loadPack = async function loadPack(packFile) {
-  // packFile example: "decision-trees/figure1.json"
-  const url = `/${packFile}`;
+DAT.loadPack = async function loadPack(packPathFromRepoRoot) {
+  // Example: "decision-trees/figure1.json"
+  const url = `/${packPathFromRepoRoot}`;
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed to load ${url} (${res.status})`);
   return await res.json();
