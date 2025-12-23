@@ -1,54 +1,59 @@
-<!-- -------------------------------------------------
-     Web App Scripts (load order matters)
-     1) Data loaders
-     2) State management
-     3) Engine (actions -> decision engine -> validators)
-     4) App UI glue (last)
--------------------------------------------------- -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Deficiency Decision Tool (POC)</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
-
 <body>
-  <main class="app">
-    <header class="app-header">
-      <h1>Deficiency Decision Tool</h1>
-      <div id="caseMeta" class="muted"></div>
-    </header>
+  <header class="app-header">
+    <div class="app-title">
+      <h1>Deficiency Decision Tool (POC)</h1>
+      <div class="sub">Decision-pack-driven wizard (GitHub Pages /docs)</div>
+    </div>
 
-    <section id="screen" class="card" aria-live="polite">
-      <!-- app.js renders here -->
+    <div class="app-controls">
+      <label class="control">
+        Start Pack
+        <select id="packSelect">
+          <option value="figure1" selected>Figure 1 — Classification</option>
+          <option value="figure2">Figure 2 — Failure Type / OMF</option>
+        </select>
+      </label>
+      <button id="btnStartOver" class="btn secondary">Start Over</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel card" aria-label="Wizard Panel">
+      <div id="screen" class="screen">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div class="nav">
+        <button id="btnBack" class="btn secondary" disabled>Back</button>
+        <div class="nav-right">
+          <button id="btnResetTrace" class="btn secondary">Reset Trace</button>
+        </div>
+      </div>
     </section>
 
-    <footer class="app-footer">
-      <div class="footer-left muted" id="statusLine"></div>
-      <div class="footer-right">
-        <button id="btnNew" class="secondary">New Case</button>
-        <button id="btnBack" class="secondary">Back</button>
-        <button id="btnDownload" class="secondary">Download Case JSON</button>
+    <aside class="panel card" aria-label="Decision Trace Panel">
+      <div class="trace-head">
+        <h2>Decision Trace</h2>
+        <div class="trace-meta" id="traceMeta"></div>
       </div>
-    </footer>
+      <pre id="trace" class="trace"></pre>
+    </aside>
   </main>
 
-  <!-- -------------------------------------------------
-       Scripts (load order matters)
-       1) Data loaders
-       2) State management
-       3) Engine (actions -> decision engine -> validators)
-       4) App UI glue (last)
-  -------------------------------------------------- -->
-  <script src="js/data/packLoader.js"></script>
-  <script src="js/state/caseStore.js"></script>
+  <footer class="app-footer">
+    <div class="small">
+      POC: deterministic, auditable routing. Logic lives in JSON decision packs under <code>/docs/decision-trees</code>.
+    </div>
+  </footer>
 
-  <script src="js/engine/actions.js"></script>
-  <script src="js/engine/decisionEngine.js"></script>
-  <script src="js/engine/validators.js"></script>
-
-  <script src="js/app.js"></script>
+  <script src="./js/app.js"></script>
 </body>
 </html>
