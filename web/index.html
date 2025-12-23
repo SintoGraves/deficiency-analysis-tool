@@ -1,0 +1,15 @@
+<!-- -------------------------------------------------
+     Web App Scripts (load order matters)
+     1) Data loaders
+     2) State management
+     3) Engine (actions -> decision engine -> validators)
+     4) App UI glue (last)
+-------------------------------------------------- -->
+<script src="js/data/packLoader.js"></script>
+<script src="js/state/caseStore.js"></script>
+
+<script src="js/engine/actions.js"></script>
+<script src="js/engine/decisionEngine.js"></script>
+<script src="js/engine/validators.js"></script>
+
+<script src="js/app.js"></script>
