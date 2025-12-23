@@ -1,290 +1,264 @@
 {
-  "pack_id": "FIGURE1",
-  "pack_version": "1.0",
-  "title": "Figure 1 — Deficiency Classification (Sheets 1–3)",
-  "entry_node_id": "F1_Q1_INCONVENIENCE_ONLY",
-  "description": "Interactive decision pack derived from Figure 1 (Deficiency Classification Flow Diagram). Presents one YES/NO question at a time and records a deterministic classification, required actions, and routing to downstream packs (Figure 2/3/4) as applicable.",
-  "nodes": [
-    {
-      "id": "F1_Q1_INCONVENIENCE_ONLY",
-      "type": "QUESTION",
-      "question_text": "The deficiency was an inconvenience to the operator and the SUT could be changed or modified in a manner that would improve operations for the operator.",
-      "answers": {
-        "YES": { "next": "F1_I_RECOMMENDATION" },
-        "NO": { "next": "F1_Q2_SUPPORT_SYSTEM" }
+  "packId": "figure1",
+  "title": "Deficiency Flow Start (Classification)",
+  "version": "1.0.0",
+  "entryNodeId": "F1_START",
+  "meta": {
+    "authoritativeSource": "Figure 1 (Sheets 1–3) Deficiency Classification Flow Diagram",
+    "wizard": { "oneQuestionPerScreen": true, "requireAckOnInfoNodes": true }
+  },
+  "caseStateSchema": {
+    "classification": "string",
+    "supportSystem": "boolean",
+    "traceTags": "array"
+  },
+  "nodes": {
+    "F1_START": {
+      "type": "info",
+      "title": "Start",
+      "body": "Begin deficiency classification.",
+      "next": "F1_Q_INCONVENIENCE"
+    },
+
+    "F1_Q_INCONVENIENCE": {
+      "type": "decision",
+      "title": "Operator Inconvenience",
+      "question": "The deficiency was an inconvenience to the operator and the SUT could be changed or modified in a manner that would improve operations for the operator?",
+      "choices": {
+        "yes": "F1_INFO_RECOMMENDATION",
+        "no": "F1_Q_SUPPORT_SYSTEM"
       }
     },
 
-    {
-      "id": "F1_I_RECOMMENDATION",
-      "type": "INSTRUCTION",
-      "instruction_text": "Treat as recommendation. Recommendations can be written to the program office to improve SUT use in the fleet, or written to the fleet to identify work-arounds for SUT operations.",
-      "actions": [
-        { "type": "SET_RESULT", "path": "results.classification", "value": "RECOMMENDATION" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "CLASSIFICATION_RATIONALE" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "RESULTS_PARAGRAPH" },
-        { "type": "MARK_PACK_COMPLETE" }
-      ],
-      "next": null
-    },
-
-    {
-      "id": "F1_Q2_SUPPORT_SYSTEM",
-      "type": "QUESTION",
-      "question_text": "The deficiency was on a support system (i.e., tech-manual tools, parts, materials, supply system, etc.).",
-      "answers": {
-        "YES": { "next": "F1_Q5_SUPPORT_REQ_DIRECT" },
-        "NO": { "next": "F1_Q3_ADDITIONAL_OPERATOR_WORK" }
+    "F1_INFO_RECOMMENDATION": {
+      "type": "info",
+      "title": "Treat as Recommendation",
+      "effects": {
+        "set": { "classification": "Recommendation" },
+        "appendTraceTags": ["classification:recommendation"]
       },
-      "actions_on_answer": {
-        "YES": [
-          { "type": "SET_RESULT", "path": "results.classification", "value": "SUPPORT_SYSTEM_DEFICIENCY" },
-          { "type": "ADD_REQUIRED_SECTION", "value": "CLASSIFICATION_RATIONALE" }
-        ]
+      "body": "Treat as recommendation.\nRecommendations can be written to the program office to improve SUT use in the fleet, or written to the fleet to identify work arounds for SUT operations.",
+      "next": "F1_END_RECOMMENDATION"
+    },
+
+    "F1_END_RECOMMENDATION": {
+      "type": "outcome",
+      "title": "Outcome: Recommendation",
+      "outcome": { "classification": "Recommendation" },
+      "body": "Classification complete: Recommendation."
+    },
+
+    "F1_Q_SUPPORT_SYSTEM": {
+      "type": "decision",
+      "title": "Support System",
+      "question": "The deficiency was on a support system (i.e. tech-manual tools, parts, materials, supply system, etc.)?",
+      "choices": {
+        "yes": "F1_SET_SUPPORT_SYSTEM_TRUE",
+        "no": "F1_Q_ADDITIONAL_WORK"
       }
     },
 
-    {
-      "id": "F1_Q3_ADDITIONAL_OPERATOR_WORK",
-      "type": "QUESTION",
-      "question_text": "Did the deficiency induce additional work or cause the operator to perform tasks that add additional man-hours or steps that were not previously identified in the development phase?",
-      "answers": {
-        "YES": { "next": "F1_I_OPCON" },
-        "NO": { "next": "F1_Q4_COMMANDER_MANEUVER" }
-      }
-    },
-
-    {
-      "id": "F1_Q4_COMMANDER_MANEUVER",
-      "type": "QUESTION",
-      "question_text": "Did the deficiency require the commander to maneuver, or operate their unit for time in a specific manner to ensure mission success?",
-      "answers": {
-        "YES": { "next": "F1_I_TACON" },
-        "NO": { "next": "F1_A_Q6_REQ_LISTED_CPD_CDD_TTP_CONOP" }
-      }
-    },
-
-    {
-      "id": "F1_I_OPCON",
-      "type": "INSTRUCTION",
-      "instruction_text": "Treat as an operational consideration (OPCON). The OPCON should identify how the deficiency affects the operation of the system, and how the operator can mitigate the effects the deficiency has on meeting mission requirements.",
-      "actions": [
-        { "type": "SET_RESULT", "path": "results.classification", "value": "OPERATIONAL_CONSIDERATION_OPCON" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "CLASSIFICATION_RATIONALE" }
-      ],
-      "next": "F1_B_Q8_DATA_QUANTITATIVE"
-    },
-
-    {
-      "id": "F1_I_TACON",
-      "type": "INSTRUCTION",
-      "instruction_text": "Treat as a Tactical Consideration (TACON). The TACON should identify how the deficiency affects the operational mission, and the tactical considerations for the commander which can mitigate the effects the deficiency has on meeting mission requirements.",
-      "actions": [
-        { "type": "SET_RESULT", "path": "results.classification", "value": "TACTICAL_CONSIDERATION_TACON" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "CLASSIFICATION_RATIONALE" }
-      ],
-      "next": "F1_B_Q8_DATA_QUANTITATIVE"
-    },
-
-    {
-      "id": "F1_Q5_SUPPORT_REQ_DIRECT",
-      "type": "QUESTION",
-      "question_text": "Is the deficiency directly related to a requirement that is listed in the CPD, CDD, Life Cycle Sustainment Plan, or system publication, PMS, or other SUT reference document?",
-      "answers": {
-        "YES": { "next": "F1_C_Q11_SUPPORT_DATA_QUANTITATIVE" },
-        "NO": { "next": "F1_D_Q10_DERIVED_REQ_CONCURRED" }
-      }
-    },
-
-    {
-      "id": "F1_A_Q6_REQ_LISTED_CPD_CDD_TTP_CONOP",
-      "type": "QUESTION",
-      "question_text": "Is the deficiency directly related to a requirement that is listed in the CPD, CDD or a tactical listed in a TTP or CONOP?",
-      "answers": {
-        "YES": { "next": "F1_B_Q8_DATA_QUANTITATIVE" },
-        "NO": { "next": "F1_A_Q7_DERIVED_REQ_CONCURRED" }
+    "F1_SET_SUPPORT_SYSTEM_TRUE": {
+      "type": "info",
+      "title": "Support System Path",
+      "effects": {
+        "set": { "supportSystem": true },
+        "appendTraceTags": ["path:support-system"]
       },
-      "actions_on_answer": {
-        "YES": [
-          { "type": "SET_RESULT", "path": "results.classification", "value": "REQUIREMENT_RELATED_DEFICIENCY" },
-          { "type": "ADD_REQUIRED_SECTION", "value": "CLASSIFICATION_RATIONALE" }
-        ]
+      "body": "Support system deficiency path selected.",
+      "next": "F1_Q_SUPPORT_REQ_LISTED"
+    },
+
+    "F1_Q_ADDITIONAL_WORK": {
+      "type": "decision",
+      "title": "Additional Operator Work",
+      "question": "Did the deficiency induce additional work or cause the operator to perform tasks that add additional man-hours or steps that were not previously identified in the development phase?",
+      "choices": {
+        "yes": "F1_INFO_OPCON",
+        "no": "F1_Q_COMMANDER_MANEUVER"
       }
     },
 
-    {
-      "id": "F1_A_Q7_DERIVED_REQ_CONCURRED",
-      "type": "QUESTION",
-      "question_text": "Is the deficiency related to a derived requirement that has been concurred with by the resource sponsor?",
-      "answers": {
-        "YES": { "next": "F1_B_Q8_DATA_QUANTITATIVE" },
-        "NO": { "next": "F1_I_REQ_CONCURRENCE_BLUE_SHEET_AWAITING" }
+    "F1_INFO_OPCON": {
+      "type": "info",
+      "title": "Treat as Operational Consideration (OPCON)",
+      "effects": {
+        "set": { "classification": "OPCON" },
+        "appendTraceTags": ["classification:opcon"]
       },
-      "actions_on_answer": {
-        "YES": [
-          { "type": "SET_RESULT", "path": "results.classification", "value": "REQUIREMENT_RELATED_DEFICIENCY" },
-          { "type": "ADD_REQUIRED_SECTION", "value": "CLASSIFICATION_RATIONALE" }
-        ]
+      "body": "Treat as an operational consideration (OPCON).\nThe OPCON should identify how the deficiency affects the operation of the system, and how the operator can mitigate the effects the deficiency has on meeting mission requirements.",
+      "next": "F1_Q_CAN_QUANT_FOR_OMF"
+    },
+
+    "F1_Q_COMMANDER_MANEUVER": {
+      "type": "decision",
+      "title": "Commander Maneuver / Unit Operation",
+      "question": "Did the deficiency require the commander to maneuver, or operate their unit for more in a specific manner for mission success?",
+      "choices": {
+        "yes": "F1_INFO_TACON",
+        "no": "F1_Q_REQ_OR_TACTIC_LISTED"
       }
     },
 
-    {
-      "id": "F1_B_Q8_DATA_QUANTITATIVE",
-      "type": "QUESTION",
-      "question_text": "Can the data collected concerning the deficiency and the operation of the system be characterized and analyzed quantitatively?",
-      "answers": {
-        "YES": { "next": "F1_I_ROUTE_TO_FIGURE2_QUANT" },
-        "NO": { "next": "F1_B_Q9_DATA_QUALITATIVE" }
+    "F1_INFO_TACON": {
+      "type": "info",
+      "title": "Treat as Tactical Consideration (TACON)",
+      "effects": {
+        "set": { "classification": "TACON" },
+        "appendTraceTags": ["classification:tacon"]
       },
-      "actions_on_answer": {
-        "YES": [
-          { "type": "SET_RESULT", "path": "results.analysis_method", "value": "QUANTITATIVE" }
-        ]
+      "body": "Treat as an Tactical Consideration (TACON).\nThe TACON should identify how the deficiency affects the operational mission, and the tactical considerations for the commander which can mitigate the effects the deficiency has on meeting mission requirements.",
+      "next": "F1_Q_CAN_QUANT_FOR_OMF"
+    },
+
+    "F1_Q_REQ_OR_TACTIC_LISTED": {
+      "type": "decision",
+      "title": "Requirement / Tactic Listed",
+      "question": "Is the deficiency directly related to a requirement that is listed in the CPD, CDD or a tactic listed in a TTP or CONOP?",
+      "choices": {
+        "yes": "F1_Q_CAN_QUANT_FOR_OMF",
+        "no": "F1_Q_DERIVED_REQ_CONCURRED"
       }
     },
 
-    {
-      "id": "F1_B_Q9_DATA_QUALITATIVE",
-      "type": "QUESTION",
-      "question_text": "The data collected concerning the deficiency and the operation of the system will be characterized and analyzed qualitatively.",
-      "answers": {
-        "YES": { "next": "F1_I_ROUTE_TO_FIGURE2_QUAL" },
-        "NO": { "next": "F1_I_ROUTE_TO_FIGURE2_QUAL" }
+    "F1_Q_DERIVED_REQ_CONCURRED": {
+      "type": "decision",
+      "title": "Derived Requirement Concurrence",
+      "question": "Is the deficiency related to a derived requirement that has been concurred with by the resource sponsor?",
+      "choices": {
+        "yes": "F1_Q_CAN_QUANT_FOR_OMF",
+        "no": "F1_ACTION_REQUEST_CONCURRENCE_BLUE_SHEET"
+      }
+    },
+
+    "F1_ACTION_REQUEST_CONCURRENCE_BLUE_SHEET": {
+      "type": "info",
+      "title": "Request Concurrence / Generate Blue Sheet",
+      "effects": {
+        "appendTraceTags": ["action:request-resource-sponsor-concurrence", "action:generate-blue-sheet", "classification:blue-sheet-awaiting-concurrence"]
       },
-      "actions_on_answer": {
-        "YES": [
-          { "type": "SET_RESULT", "path": "results.analysis_method", "value": "QUALITATIVE" }
-        ],
-        "NO": [
-          { "type": "SET_RESULT", "path": "results.analysis_method", "value": "QUALITATIVE" }
-        ]
+      "body": "Request concurrence from the resource sponsor on the derived requirement.\n\nGenerate a Blue sheet for the identified deficiency.\n(Refer to Figure 2 sheet 1 for OMF determination)\nOn the Blue sheet state 'awaiting resource sponsor concurrence'.\n\nGenerate Results paragraph that describes the deficiency.",
+      "next": "F1_END_AWAITING_CONCURRENCE"
+    },
+
+    "F1_END_AWAITING_CONCURRENCE": {
+      "type": "outcome",
+      "title": "Outcome: Awaiting Resource Sponsor Concurrence",
+      "outcome": { "classification": "Blue Sheet (Awaiting Concurrence)" },
+      "body": "Process complete for this path: request concurrence and generate Blue Sheet marked awaiting concurrence."
+    },
+
+    "F1_Q_CAN_QUANT_FOR_OMF": {
+      "type": "decision",
+      "title": "Data Characterization (Quantitative)",
+      "question": "Can the data collected concerning the deficiency and the operation of the system be characterized and analyzed quantitatively?",
+      "choices": {
+        "yes": "F1_HANDOFF_F2_OMF",
+        "no": "F1_Q_CAN_QUAL_FOR_OMF"
       }
     },
 
-    {
-      "id": "F1_I_ROUTE_TO_FIGURE2_QUANT",
-      "type": "ACTION",
-      "action": { "type": "ROUTE_TO_PACK", "value": { "pack_id": "FIGURE2", "entry_hint": "FIGURE2_ENTRY", "analysis_method": "QUANTITATIVE" } },
-      "actions": [
-        { "type": "SET_ANALYSIS_STAGE", "value": "FIGURE2_OMF_DETERMINATION" },
-        { "type": "UNLOCK", "value": { "figure2": true } },
-        { "type": "ADD_REQUIRED_SECTION", "value": "OMF_DETERMINATION" }
-      ],
-      "next": null
-    },
-
-    {
-      "id": "F1_I_ROUTE_TO_FIGURE2_QUAL",
-      "type": "ACTION",
-      "action": { "type": "ROUTE_TO_PACK", "value": { "pack_id": "FIGURE2", "entry_hint": "FIGURE2_ENTRY", "analysis_method": "QUALITATIVE" } },
-      "actions": [
-        { "type": "SET_ANALYSIS_STAGE", "value": "FIGURE2_OMF_DETERMINATION" },
-        { "type": "UNLOCK", "value": { "figure2": true } },
-        { "type": "ADD_REQUIRED_SECTION", "value": "OMF_DETERMINATION" }
-      ],
-      "next": null
-    },
-
-    {
-      "id": "F1_I_REQ_CONCURRENCE_BLUE_SHEET_AWAITING",
-      "type": "INSTRUCTION",
-      "instruction_text": "Request concurrence from the resource sponsor on the derived requirement. Generate a Blue sheet for the identified deficiency (refer to Figure 2 sheet 1 for OMF determination). On the Blue sheet state 'awaiting resource sponsor concurrence'. Generate Results paragraph that describes the deficiency.",
-      "actions": [
-        { "type": "SET_RESULT", "path": "results.blue_sheet_required", "value": true },
-        { "type": "SET_RESULT", "path": "results.blue_sheet_status", "value": "AWAITING_CONCURRENCE" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "BLUE_SHEET" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "RESULTS_PARAGRAPH" },
-        { "type": "UNLOCK", "value": { "figure2": true } },
-        { "type": "SET_ANALYSIS_STAGE", "value": "FIGURE2_OMF_DETERMINATION" }
-      ],
-      "next": "F1_B_Q8_DATA_QUANTITATIVE"
-    },
-
-    {
-      "id": "F1_D_Q10_DERIVED_REQ_CONCURRED",
-      "type": "QUESTION",
-      "question_text": "Is the deficiency related to a derived requirement that has been concurred with by the resource sponsor?",
-      "answers": {
-        "YES": { "next": "F1_C_Q11_SUPPORT_DATA_QUANTITATIVE" },
-        "NO": { "next": "F1_I_REQ_CONCURRENCE_BLUE_SHEET_AWAITING" }
+    "F1_Q_CAN_QUAL_FOR_OMF": {
+      "type": "decision",
+      "title": "Data Characterization (Qualitative)",
+      "question": "The data collected concerning the deficiency and the operation of the system will be characterized and analyzed qualitatively.",
+      "choices": {
+        "yes": "F1_HANDOFF_F2_OMF",
+        "no": "F1_HANDOFF_F2_OMF"
       }
     },
 
-    {
-      "id": "F1_C_Q11_SUPPORT_DATA_QUANTITATIVE",
-      "type": "QUESTION",
-      "question_text": "Can the data collected concerning the deficiency and how the deficiency affected the operation of the system be characterized and analyzed quantitatively?",
-      "answers": {
-        "YES": { "next": "F1_I_ROUTE_TO_FIGURE4_QUANT_BASELINE" },
-        "NO": { "next": "F1_C_Q12_SUPPORT_DATA_QUALITATIVE" }
+    "F1_HANDOFF_F2_OMF": {
+      "type": "handoff",
+      "title": "Handoff: Determine if Deficiency is an OMF",
+      "handoff": {
+        "targetPackId": "figure2",
+        "reason": "Determine if the deficiency is an OMF.",
+        "reference": "Refer to Figure 2 sheet 1 for OMF determination"
       },
-      "actions_on_answer": {
-        "YES": [
-          { "type": "SET_RESULT", "path": "results.analysis_method", "value": "QUANTITATIVE" }
-        ]
+      "effects": { "appendTraceTags": ["handoff:figure2-omf"] },
+      "body": "Proceed to Figure 2 (Failure Type / OMF determination)."
+    },
+
+    "F1_Q_SUPPORT_REQ_LISTED": {
+      "type": "decision",
+      "title": "Support System Requirement Reference",
+      "question": "Is the deficiency directly related to a requirement that is listed in the CPD, CDD, Life Cycle Sustainment Plan, or system publication, PMS, or other SUT reference Document?",
+      "choices": {
+        "yes": "F1_Q_SUPPORT_CAN_QUANT_FOR_BASELINE",
+        "no": "F1_Q_SUPPORT_DERIVED_REQ_CONCURRED"
       }
     },
 
-    {
-      "id": "F1_C_Q12_SUPPORT_DATA_QUALITATIVE",
-      "type": "QUESTION",
-      "question_text": "The data collected concerning the deficiency and how the deficiency affected the operation of the system will be characterized and analyzed qualitatively.",
-      "answers": {
-        "YES": { "next": "F1_I_ROUTE_TO_FIGURE3_QUAL_BASELINE" },
-        "NO": { "next": "F1_I_ROUTE_TO_FIGURE3_QUAL_BASELINE" }
+    "F1_Q_SUPPORT_DERIVED_REQ_CONCURRED": {
+      "type": "decision",
+      "title": "Support System Derived Requirement Concurrence",
+      "question": "Is the deficiency related to a derived requirement that has been concurred with by the resource sponsor?",
+      "choices": {
+        "yes": "F1_Q_SUPPORT_CAN_QUANT_FOR_BASELINE",
+        "no": "F1_ACTION_SUPPORT_REQUEST_CONCURRENCE_BLUE_SHEET"
+      }
+    },
+
+    "F1_ACTION_SUPPORT_REQUEST_CONCURRENCE_BLUE_SHEET": {
+      "type": "info",
+      "title": "Support System: Request Concurrence / Generate Blue Sheet",
+      "effects": {
+        "appendTraceTags": ["path:support-system", "action:request-resource-sponsor-concurrence", "action:generate-blue-sheet", "classification:blue-sheet-awaiting-concurrence"]
       },
-      "actions_on_answer": {
-        "YES": [
-          { "type": "SET_RESULT", "path": "results.analysis_method", "value": "QUALITATIVE" }
-        ],
-        "NO": [
-          { "type": "SET_RESULT", "path": "results.analysis_method", "value": "QUALITATIVE" }
-        ]
+      "body": "Request concurrence from the resource sponsor on the derived requirement.\n\nGenerate a Blue sheet for the identified deficiency.\n(Refer to Figure 2 sheet 1 for OMF determination)\nOn the Blue sheet state 'awaiting resource sponsor concurrence'.\n\nGenerate Results paragraph that describes the deficiency.",
+      "next": "F1_END_SUPPORT_AWAITING_CONCURRENCE"
+    },
+
+    "F1_END_SUPPORT_AWAITING_CONCURRENCE": {
+      "type": "outcome",
+      "title": "Outcome: Support System Awaiting Concurrence",
+      "outcome": { "classification": "Blue Sheet (Support System / Awaiting Concurrence)" },
+      "body": "Process complete for this path: request concurrence and generate Blue Sheet marked awaiting concurrence."
+    },
+
+    "F1_Q_SUPPORT_CAN_QUANT_FOR_BASELINE": {
+      "type": "decision",
+      "title": "Support System Data Characterization (Quantitative)",
+      "question": "Can the data collected concerning the deficiency and how the deficiency affected the operation of the system be characterized and analyzed quantitatively?",
+      "choices": {
+        "yes": "F1_HANDOFF_F4_SUPPORT_BASELINE",
+        "no": "F1_Q_SUPPORT_CAN_QUAL_FOR_BASELINE"
       }
     },
 
-    {
-      "id": "F1_I_ROUTE_TO_FIGURE4_QUANT_BASELINE",
-      "type": "INSTRUCTION",
-      "instruction_text": "Refer to the Quantitative baseline flow diagram (Figure 4 sheet 3 of 4) to assist with determining the Operational Impact and Mission Criticality of the deficiency.",
-      "actions": [
-        { "type": "UNLOCK", "value": { "figure4": true } },
-        { "type": "SET_ANALYSIS_STAGE", "value": "FIGURE4_QUANT_BASELINE" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "SEVERITY_ASSESSMENT" },
-        { "type": "ACTION", "value": { "type": "ROUTE_TO_PACK", "pack_id": "FIGURE4" } }
-      ],
-      "next": null
+    "F1_Q_SUPPORT_CAN_QUAL_FOR_BASELINE": {
+      "type": "decision",
+      "title": "Support System Data Characterization (Qualitative)",
+      "question": "The data collected concerning the deficiency and how the deficiency affected the operation of the system will be characterized and analyzed qualitatively.",
+      "choices": {
+        "yes": "F1_HANDOFF_F3_SUPPORT_BASELINE",
+        "no": "F1_HANDOFF_F3_SUPPORT_BASELINE"
+      }
     },
 
-    {
-      "id": "F1_I_ROUTE_TO_FIGURE3_QUAL_BASELINE",
-      "type": "INSTRUCTION",
-      "instruction_text": "Refer to the Qualitative baseline flow diagram (Figure 3 sheet 3 of 4) to assist with determining the Operational Impact and Mission Criticality of the deficiency.",
-      "actions": [
-        { "type": "UNLOCK", "value": { "figure3": true } },
-        { "type": "SET_ANALYSIS_STAGE", "value": "FIGURE3_QUAL_BASELINE" },
-        { "type": "ADD_REQUIRED_SECTION", "value": "SEVERITY_ASSESSMENT" },
-        { "type": "ACTION", "value": { "type": "ROUTE_TO_PACK", "pack_id": "FIGURE3" } }
-      ],
-      "next": null
+    "F1_HANDOFF_F4_SUPPORT_BASELINE": {
+      "type": "handoff",
+      "title": "Handoff: Quantitative Baseline (Support System)",
+      "handoff": {
+        "targetPackId": "figure4",
+        "reason": "Determine Operational Impact and Mission Criticality using quantitative baseline flow.",
+        "reference": "Refer to the Quantitative baseline flow diagram (Figure 4 sheet 3 of 4)"
+      },
+      "effects": { "appendTraceTags": ["handoff:figure4-quant-support"] },
+      "body": "Proceed to Figure 4 quantitative baseline (support system path)."
+    },
+
+    "F1_HANDOFF_F3_SUPPORT_BASELINE": {
+      "type": "handoff",
+      "title": "Handoff: Qualitative Baseline (Support System)",
+      "handoff": {
+        "targetPackId": "figure3",
+        "reason": "Determine Operational Impact and Mission Criticality using qualitative baseline flow.",
+        "reference": "Refer to the Qualitative baseline flow diagram (Figure 3 sheet 3 of 4)"
+      },
+      "effects": { "appendTraceTags": ["handoff:figure3-qual-support"] },
+      "body": "Proceed to Figure 3 qualitative baseline (support system path)."
     }
-  ],
-
-  "engine_contract": {
-    "answer_values": ["YES", "NO"],
-    "node_types": ["QUESTION", "INSTRUCTION", "ACTION"],
-    "action_types_used": [
-      "SET_RESULT",
-      "ADD_REQUIRED_SECTION",
-      "MARK_PACK_COMPLETE",
-      "SET_ANALYSIS_STAGE",
-      "UNLOCK",
-      "ROUTE_TO_PACK"
-    ],
-    "notes": [
-      "This pack encodes Figure 1 logic and routes to Figure 2 for OMF determination where the diagram specifies it.",
-      "Support-system paths route directly to Figure 3/4 baseline flows per Figure 1 sheet 3 of 3.",
-      "Derived requirement concurrence paths record Blue Sheet requirements and 'awaiting concurrence' status, then proceed into the Figure 2 path as the diagram indicates."
-    ]
   }
 }
