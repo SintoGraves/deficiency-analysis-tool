@@ -5,11 +5,41 @@
      3) Engine (actions -> decision engine -> validators)
      4) App UI glue (last)
 -------------------------------------------------- -->
-<script src="js/data/packLoader.js"></script>
-<script src="js/state/caseStore.js"></script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Deficiency Decision Tool (Prototype)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
 
-<script src="js/engine/actions.js"></script>
-<script src="js/engine/decisionEngine.js"></script>
-<script src="js/engine/validators.js"></script>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <h1>Deficiency Decision Tool</h1>
+      <div id="caseMeta" class="muted"></div>
+    </header>
 
-<script src="js/app.js"></script>
+    <section id="screen" class="card">
+      <!-- app.js renders into here -->
+    </section>
+
+    <footer class="app-footer muted">
+      <span id="statusLine"></span>
+    </footer>
+  </main>
+
+  <!-- -------------------------------------------------
+       Scripts (load order matters)
+  -------------------------------------------------- -->
+  <script src="js/data/packLoader.js"></script>
+  <script src="js/state/caseStore.js"></script>
+
+  <script src="js/engine/actions.js"></script>
+  <script src="js/engine/decisionEngine.js"></script>
+  <script src="js/engine/validators.js"></script>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
