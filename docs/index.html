@@ -7,25 +7,31 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="app-header">
+<header class="app-header">
+  <div class="header-left">
+    <img
+      src="./images/sinto-graves-logo.png"
+      alt="Sinto.Graves"
+      class="logo logo-sinto"
+    />
+  </div>
+
+  <div class="header-center">
+    <img
+      src="./images/optevfor.png"
+      alt="OPTEVFOR"
+      class="logo logo-optevfor"
+    />
+  </div>
+
+  <div class="header-right">
     <div class="app-title">
       <h1>Deficiency Decision Tool (POC)</h1>
-      <div class="sub">Question-based wizard (decision packs). Manual on left.</div>
+      <div class="sub">Question-based wizard</div>
     </div>
+  </div>
+</header>
 
-    <div class="app-controls">
-      <label class="control">
-        Start Pack
-        <select id="packSelect">
-          <option value="figure1" selected>Figure 1 — Classification</option>
-          <option value="figure2">Figure 2 — Failure Type / OMF</option>
-        </select>
-      </label>
-
-      <button id="btnStartOver" class="btn secondary">Start Over</button>
-      <button id="btnGoReport" class="btn secondary" title="Opens report page">Generate Document</button>
-    </div>
-  </header>
 
   <main class="layout-2col">
     <!-- LEFT: Manual (full-height) -->
