@@ -15,45 +15,35 @@
   --danger: #ff4d4d;
 }
 
-/* ===== Header logos ===== */
-
 .app-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 16px;
-}
-
-.header-left,
-.header-center,
-.header-right {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10, 16, 26, 0.55);
+  backdrop-filter: blur(10px);
 }
 
-.header-center {
-  justify-content: center;
+.app-title h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
 }
 
-.header-right {
-  justify-content: flex-end;
-  text-align: right;
+.sub {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
 }
 
-.logo {
-  display: block;
-  max-height: 44px;
-  width: auto;
+.app-controls {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+  flex-wrap: wrap;
 }
 
-.logo-optevfor {
-  max-height: 56px; /* primary logo */
-}
-
-.logo-sinto {
-  max-height: 36px; /* secondary branding */
-  opacity: 0.95;
-}
 
 @media (max-width: 760px) {
   .app-header {
