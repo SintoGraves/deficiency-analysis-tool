@@ -1,25 +1,31 @@
  <!doctype html>
 <html lang="en">
-<header class="app-header">
-  <div class="app-title">
-    <h1>Deficiency Decision Tool</h1>
-    <div class="sub">Question-based wizard</div>
-  </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deficiency Decision Tool (POC)</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-title">
+      <h1>Deficiency Decision Tool (POC)</h1>
+      <div class="sub">Question-based wizard (decision packs). Manual on left.</div>
+    </div>
 
-  <div class="app-controls">
-    <label class="control">
-      Start Pack
-      <select id="packSelect">
-        <option value="figure1" selected>Figure 1 — Classification</option>
-        <option value="figure2">Figure 2 — Failure Type / OMF</option>
-      </select>
-    </label>
+    <div class="app-controls">
+      <label class="control">
+        Start Pack
+        <select id="packSelect">
+          <option value="figure1" selected>Figure 1 — Classification</option>
+          <option value="figure2">Figure 2 — Failure Type / OMF</option>
+        </select>
+      </label>
 
-    <button id="btnStartOver" class="btn secondary">Start Over</button>
-    <button id="btnGoReport" class="btn secondary">Generate Document</button>
-  </div>
-</header>
-
+      <button id="btnStartOver" class="btn secondary">Start Over</button>
+      <button id="btnGoReport" class="btn secondary" title="Opens report page">Generate Document</button>
+    </div>
+  </header>
 
   <main class="layout-2col">
     <!-- LEFT: Manual (full-height) -->
