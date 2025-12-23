@@ -15,6 +15,64 @@
   --danger: #ff4d4d;
 }
 
+/* ===== Header logos ===== */
+
+.app-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left,
+.header-center,
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.header-center {
+  justify-content: center;
+}
+
+.header-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.logo {
+  display: block;
+  max-height: 44px;
+  width: auto;
+}
+
+.logo-optevfor {
+  max-height: 56px; /* primary logo */
+}
+
+.logo-sinto {
+  max-height: 36px; /* secondary branding */
+  opacity: 0.95;
+}
+
+@media (max-width: 760px) {
+  .app-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .header-left,
+  .header-right {
+    justify-content: center;
+  }
+
+  .logo-optevfor {
+    margin: 6px 0;
+  }
+}
+
+
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
