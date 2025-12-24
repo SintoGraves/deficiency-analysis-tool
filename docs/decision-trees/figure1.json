@@ -53,8 +53,8 @@
   "title": "Support System",
   "question": "The deficiency was on a support system (i.e. tech-manual tools, parts, materials, supply system, UPS battery, etc.)?",
   "choices": {
-    "yes": "F1_SET_SUPPORT_SYSTEM_TRUE",
-    "no": "F1_SET_SUPPORT_SYSTEM_FALSE"
+    "yes": "F1_Q_DIRECT_REQ_OR_TACTIC",
+    "no": "F1_Q_ADDITIONAL_WORK"
   }
 },
 
