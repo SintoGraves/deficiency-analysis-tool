@@ -3,7 +3,10 @@
   "title": "Failure Type (Operational Mission Failure Determination)",
   "version": "1.0.0",
   "entryNodeId": "F2_START",
-  "meta": {
+  "start": "F2_START",
+  "startNode": "F2_START",
+  "entry": "F2_START",
+   "meta": {
     "authoritativeSource": "Figure 2 (Sheets 1–3) Operational Mission Failure Flow Diagram",
     "wizard": { "oneQuestionPerScreen": true, "requireAckOnInfoNodes": true }
   },
