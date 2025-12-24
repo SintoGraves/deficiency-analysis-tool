@@ -138,8 +138,13 @@ const rawNodes =
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw err(`Failed to fetch decision pack: ${url} (${res.status})`);
 
-    const raw = await res.json();
-
+    let raw;
+    try {
+    raw = await res.json();
+    } catch (e) {
+    throw err(`Failed to parse JSON in ${url}: ${e.message}`);
+    }
+   
     try {
       return normalizePack(raw, key);
     } catch (e) {
