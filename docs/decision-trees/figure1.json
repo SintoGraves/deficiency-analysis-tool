@@ -2,12 +2,18 @@
   "id": "figure1",
   "packId": "figure1",
   "title": "Figure 1 — Deficiency Classification Flow Diagram",
-  "version": "1.0.1",
+  "version": "1.0.2",
+
+  "entryNodeId": "q_inconvenience",
   "start": "q_inconvenience",
   "startNode": "q_inconvenience",
   "entry": "q_inconvenience",
+
   "nodes": [
-    {
+    ...
+  ]
+}
+
       "id": "q_inconvenience",
       "type": "question",
       "sheet": "1/3",
