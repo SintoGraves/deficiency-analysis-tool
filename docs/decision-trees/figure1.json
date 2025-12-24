@@ -3,11 +3,11 @@
   "title": "Deficiency Classification (Figure 1)",
   "version": "1.0.0",
   "entryNodeId": "F1_START",
-  "meta": {
-    "authoritativeSource": "Figure 1 (Sheets 1–3) Deficiency Classification Flow Diagram",
-    "wizard": { "oneQuestionPerScreen": true, "requireAckOnInfoNodes": true }
-  },
-  "caseStateSchema": {
+  "start": "F1_START",
+  "startNode": "F1_START",
+  "entry": "F1_START",
+   "meta": {
+    "caseStateSchema": {
     "classification": "string",
     "analysisType": "string",
     "awaitingConcurrence": "boolean",
