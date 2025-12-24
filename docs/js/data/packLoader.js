@@ -71,8 +71,14 @@
     const version = String(pack.version ?? "1.0.0");
     const start = pack.start ?? pack.startNode ?? pack.entry ?? null;
 
-    // Nodes may be an object map or an array
-    const rawNodes = pack.nodes ?? pack.steps ?? pack.tree ?? null;
+// Nodes may be an object map or an array
+// Support legacy and nested pack.meta.nodes structures
+const rawNodes =
+  pack.nodes ??
+  pack.steps ??
+  pack.tree ??
+  (pack.meta && pack.meta.nodes) ??
+  null;
 
     let nodesMap = {};
 
