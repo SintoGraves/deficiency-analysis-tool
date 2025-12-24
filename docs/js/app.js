@@ -1,16 +1,15 @@
 /*-------------------------------------------------
  * /docs/js/app.js
  * Deficiency Decision Tool (POC)
- * - Loads modules (no build step, GitHub Pages /docs root)
- * - Loads manual (front-matter) into left panel
- * - Runs wizard in upper-right
- * - Renders node notes/directives/hints into lower-right
- * - Hides trace by default; enable with ?debug=1
- * - "Generate Document" navigates to /docs/report.html
+ * - Robust DOM wiring (supports alternate IDs)
+ * - Manual on left (loads ./manual/front-matter.html)
+ * - Wizard on upper-right
+ * - Notes on lower-right
+ * - Trace hidden unless ?debug=1
  *-------------------------------------------------*/
 (function () {
   const DDT = (window.DDT = window.DDT || {});
-  DDT.version = "0.2.0";
+  DDT.version = "0.2.1";
 
   // ===== Module loading (classic scripts; no bundler) =====
   const modulePaths = [
@@ -38,6 +37,15 @@
   // ===== DOM helpers =====
   function qs(id) { return document.getElementById(id); }
 
+  // Try multiple IDs (supports you renaming buttons over time)
+  function pickId(ids) {
+    for (const id of ids) {
+      const el = qs(id);
+      if (el) return { el, id };
+    }
+    return { el: null, id: null };
+  }
+
   function esc(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
@@ -45,72 +53,10 @@
       .replaceAll(">", "&gt;");
   }
 
-  function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
-    if (!notesMetaEl || !notesBodyEl) return;
-
-    const packId = (meta && meta.packId) ? meta.packId : "-";
-    notesMetaEl.textContent = `Pack: ${packId}  |  Step: ${nodeId || "-"}`;
-
-    // Notes content sources (optional in packs)
-    const notes = Array.isArray(node && node.notes) ? node.notes : [];
-    const directives = Array.isArray(node && node.directives) ? node.directives : [];
-    const hints = Array.isArray(node && node.hints) ? node.hints : [];
-
-    // Also: allow simple string fields for convenience
-    const noteText = (node && typeof node.note === "string") ? node.note.trim() : "";
-    const directiveText = (node && typeof node.directive === "string") ? node.directive.trim() : "";
-    const hintText = (node && typeof node.hint === "string") ? node.hint.trim() : "";
-
-    let html = "";
-
-    // Directives first (most important)
-    if (directives.length || directiveText) {
-      html += `<div class="note-block">
-        <div class="note-kind">Directive</div>
-        <div class="note-title">Required Actions</div>
-        <div class="note-body">${esc(
-          directives.length ? directives.join("\n") : directiveText
-        )}</div>
-      </div>`;
-    }
-
-    // Notes next
-    if (notes.length || noteText) {
-      if (notes.length) {
-        notes.forEach((n) => {
-          const t = (n && n.title) ? n.title : "Note";
-          const b = (n && n.body) ? n.body : "";
-          html += `<div class="note-block">
-            <div class="note-kind">Note</div>
-            <div class="note-title">${esc(t)}</div>
-            <div class="note-body">${esc(b)}</div>
-          </div>`;
-        });
-      } else {
-        html += `<div class="note-block">
-          <div class="note-kind">Note</div>
-          <div class="note-title">Note</div>
-          <div class="note-body">${esc(noteText)}</div>
-        </div>`;
-      }
-    }
-
-    // Hints last
-    if (hints.length || hintText) {
-      html += `<div class="note-block">
-        <div class="note-kind">Hint</div>
-        <div class="note-title">Guidance</div>
-        <div class="note-body">${esc(
-          hints.length ? hints.join("\n") : hintText
-        )}</div>
-      </div>`;
-    }
-
-    if (!html) {
-      html = `<div class="hint">No additional notes for this step.</div>`;
-    }
-
-    notesBodyEl.innerHTML = html;
+  function safeOn(el, evt, fn) {
+    if (!el) return false;
+    el.addEventListener(evt, fn);
+    return true;
   }
 
   async function loadManual(manualStatusEl, manualBodyEl) {
@@ -127,125 +73,150 @@
     }
   }
 
+  function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
+    if (!notesMetaEl || !notesBodyEl) return;
+
+    const packId = (meta && meta.packId) ? meta.packId : "-";
+    notesMetaEl.textContent = `Pack: ${packId}  |  Step: ${nodeId || "-"}`;
+
+    const notes = Array.isArray(node?.notes) ? node.notes : [];
+    const directives = Array.isArray(node?.directives) ? node.directives : [];
+    const hints = Array.isArray(node?.hints) ? node.hints : [];
+
+    const noteText = (typeof node?.note === "string") ? node.note.trim() : "";
+    const directiveText = (typeof node?.directive === "string") ? node.directive.trim() : "";
+    const hintText = (typeof node?.hint === "string") ? node.hint.trim() : "";
+
+    let html = "";
+
+    if (directives.length || directiveText) {
+      html += `<div class="note-block">
+        <div class="note-kind">Directive</div>
+        <div class="note-title">Required Actions</div>
+        <div class="note-body">${esc(directives.length ? directives.join("\n") : directiveText)}</div>
+      </div>`;
+    }
+
+    if (notes.length) {
+      for (const n of notes) {
+        html += `<div class="note-block">
+          <div class="note-kind">Note</div>
+          <div class="note-title">${esc(n?.title || "Note")}</div>
+          <div class="note-body">${esc(n?.body || "")}</div>
+        </div>`;
+      }
+    } else if (noteText) {
+      html += `<div class="note-block">
+        <div class="note-kind">Note</div>
+        <div class="note-title">Note</div>
+        <div class="note-body">${esc(noteText)}</div>
+      </div>`;
+    }
+
+    if (hints.length || hintText) {
+      html += `<div class="note-block">
+        <div class="note-kind">Hint</div>
+        <div class="note-title">Guidance</div>
+        <div class="note-body">${esc(hints.length ? hints.join("\n") : hintText)}</div>
+      </div>`;
+    }
+
+    if (!html) html = `<div class="hint">No additional notes for this step.</div>`;
+    notesBodyEl.innerHTML = html;
+  }
+
   async function main() {
     await loadModules();
 
-    // ===== Debug toggle (trace hidden unless ?debug=1) =====
     const debug = new URLSearchParams(location.search).get("debug") === "1";
 
-    // ===== UI elements =====
+    // ---- Required (core) elements ----
     const elScreen = qs("screen");
-    const elBack = qs("btnBack");
-    const elReset = qs("btnReset");
-    const elStartOver = qs("btnStartOver");
-    const elPackSelect = qs("packSelect");
-    const elGoReport = qs("btnGoReport");
 
-    const elManualStatus = qs("manualStatus");
-    const elManualBody = qs("manualBody");
+    // These IDs sometimes change; support both names.
+    const { el: elPackSelect, id: packIdUsed } = pickId(["packSelect"]);
+    const { el: elStartOver } = pickId(["btnStartOver", "btnRestart", "btnStart"]);
+    const { el: elBack } = pickId(["btnBack"]);
+    const { el: elReset } = pickId(["btnReset", "btnResetTrace", "btnResetCase"]);
 
-    const elNotesMeta = qs("notesMeta");
-    const elNotesBody = qs("notesBody");
+    const { el: elManualStatus } = pickId(["manualStatus"]);
+    const { el: elManualBody } = pickId(["manualBody"]);
 
-    // Debug trace elements (optional on page)
-    const elDebugWrap = qs("debugTraceWrap");
-    const elTrace = qs("trace");
-    const elTraceMeta = qs("traceMeta");
+    const { el: elNotesMeta } = pickId(["notesMeta"]);
+    const { el: elNotesBody } = pickId(["notesBody"]);
+
+    if (!elScreen) {
+      throw new Error("Missing required element #screen in index.html");
+    }
+    if (!elPackSelect) {
+      throw new Error("Missing required element #packSelect in index.html");
+    }
+
+    // ---- Optional elements ----
+    const { el: elGoReport } = pickId(["btnGoReport", "btnReport", "btnGenerate"]);
+    const { el: elDebugWrap } = pickId(["debugTraceWrap"]);
+    const { el: elTrace } = pickId(["trace"]);
+    const { el: elTraceMeta } = pickId(["traceMeta"]);
+
     if (elDebugWrap) elDebugWrap.hidden = !debug;
 
-    // Load manual in left panel
     await loadManual(elManualStatus, elManualBody);
 
-    // Create store + engine
     const store = DDT.createCaseStore();
 
-    // If your decisionEngine.js supports notes targets, we pass them.
-    // If it does not, passing extra options is harmless; we also render notes ourselves on node change.
     const engine = DDT.createDecisionEngine({
       renderTarget: elScreen,
-      notesTarget: elNotesBody,
-      notesMetaTarget: elNotesMeta,
-      debug: debug,
-
-      // Called whenever trace updates; we only display trace if debug enabled and panel exists.
+      notesTarget: elNotesBody,         // harmless if engine ignores
+      notesMetaTarget: elNotesMeta,     // harmless if engine ignores
+      debug,
       onTraceUpdated: () => {
         const meta = store.getMeta();
         if (elBack) elBack.disabled = !store.canGoBack();
 
+        // Debug trace only
         if (debug && elTrace && elTraceMeta) {
           elTrace.textContent = JSON.stringify(store.getTrace(), null, 2);
           elTraceMeta.textContent = `Pack: ${meta.packId || "-"}  |  Node: ${meta.nodeId || "-"}  |  Steps: ${meta.steps || 0}`;
         }
       },
-
-      // Optional hook: if engine exposes onNodeRendered, we will receive it.
       onNodeRendered: (nodeId, node) => {
-        const meta = store.getMeta();
-        renderNotesPanel(nodeId, node, meta, elNotesMeta, elNotesBody);
+        renderNotesPanel(nodeId, node, store.getMeta(), elNotesMeta, elNotesBody);
       }
     });
-
-    // Compatibility: if engine doesn't call onNodeRendered, we will render notes after start/answer/back
-    function renderNotesFromCurrent() {
-      try {
-        const meta = store.getMeta();
-        // pack is internal to engine, so we rely on engine exposing getCurrentNode() if available
-        if (typeof engine.getCurrentNode === "function") {
-          const cur = engine.getCurrentNode();
-          renderNotesPanel(meta.nodeId, cur, meta, elNotesMeta, elNotesBody);
-        } else {
-          // If no accessor exists, leave notes as-is; once you add notes support in engine, it will populate.
-          if (elNotesBody && !elNotesBody.dataset.warned) {
-            elNotesBody.dataset.warned = "1";
-            elNotesBody.innerHTML = `<div class="hint">
-              Notes panel is ready. To populate it automatically, ensure <code>decisionEngine.js</code>
-              passes the current node into <code>onNodeRendered(nodeId, node)</code>.
-            </div>`;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
 
     async function startPack(packId) {
       const pack = await DDT.loadPack(packId);
       store.reset();
       engine.loadPack(pack, store);
       engine.start();
-      renderNotesFromCurrent();
+
+      // If engine doesn't call onNodeRendered, notes will remain static; that’s fine for now.
     }
 
-    // Controls
-    if (elPackSelect) elPackSelect.addEventListener("change", () => startPack(elPackSelect.value));
-    if (elStartOver) elStartOver.addEventListener("click", () => startPack(elPackSelect.value));
+    // Controls (all guarded)
+    safeOn(elPackSelect, "change", () => startPack(elPackSelect.value));
+    safeOn(elStartOver, "click", () => startPack(elPackSelect.value));
+    safeOn(elReset, "click", () => startPack(elPackSelect.value));
+    safeOn(elBack, "click", () => engine.back());
 
-    if (elReset) elReset.addEventListener("click", () => {
-      store.reset();
-      startPack(elPackSelect ? elPackSelect.value : "figure1");
-    });
-
-    if (elBack) elBack.addEventListener("click", () => {
-      engine.back();
-      renderNotesFromCurrent();
-    });
-
-    if (elGoReport) elGoReport.addEventListener("click", () => {
-      // For now, just navigate. Later, report.html will read stored case/trace.
+    safeOn(elGoReport, "click", () => {
       try {
         localStorage.setItem("ddt_last_case", JSON.stringify({
           meta: store.getMeta(),
           state: store.getState(),
           trace: store.getTrace()
         }));
-      } catch (e) {
-        // ignore storage failures
-      }
+      } catch (_) {}
       window.location.href = "./report.html";
     });
 
-    // Start
-    await startPack(elPackSelect ? elPackSelect.value : "figure1");
+    // Start default
+    await startPack(elPackSelect.value);
+
+    // Helpful console note (debug only)
+    if (debug) {
+      console.log(`[DDT] started (packSelect id: ${packIdUsed || "packSelect"})`);
+    }
   }
 
   main().catch((err) => {
@@ -255,8 +226,8 @@
       el.innerHTML = `<div class="screen">
         <div class="node-type">error</div>
         <h2 class="h-title">Load Error</h2>
-        <div class="body">${esc(err && err.message ? err.message : err)}</div>
-        <div class="body">Confirm GitHub Pages is serving from <code>/docs</code> and decision packs exist under <code>/docs/decision-trees</code>.</div>
+        <div class="body">${esc(err?.message || err)}</div>
+        <div class="body">Confirm your IDs exist in <code>/docs/index.html</code> and files are under <code>/docs</code>.</div>
       </div>`;
     }
   });
