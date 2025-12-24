@@ -6,9 +6,12 @@
   "start": "F2_START",
   "startNode": "F2_START",
   "entry": "F2_START",
-   "meta": {
+  "meta": {
     "authoritativeSource": "Figure 2 (Sheets 1–3) Operational Mission Failure Flow Diagram",
-    "wizard": { "oneQuestionPerScreen": true, "requireAckOnInfoNodes": true }
+    "wizard": {
+      "oneQuestionPerScreen": true,
+      "requireAckOnInfoNodes": true
+    }
   },
   "caseStateSchema": {
     "failureType": "string",
@@ -23,14 +26,12 @@
       "body": "Begin failure type determination (Operational Mission Failure flow).",
       "next": "F2_INFO_NOTE1_MISSION_DEFINITION"
     },
-
     "F2_INFO_NOTE1_MISSION_DEFINITION": {
       "type": "info",
       "title": "Ensure the SUT Mission is clearly defined (Note 1)",
       "body": "Ensure the SUT Mission is clearly defined.\n\nNOTE 1: SUT MISSION DETERMINATION\n1. Identify the mission of the System Under Test. (The mission will normally be the primary COI identified when the Integrated Evaluation Framework was generated).\n2. Identify the sub-tasks (sub-missions) that must work to ensure the primary mission can be accomplished.\n3. Identify the areas, components, actions, and events that make the sub-task accomplishment possible.\n\nSome COIs are supportive; when assessing mission effects, analyze both the primary mission and supported mission(s) to determine whether there is an Operational Mission Failure.",
       "next": "F2_Q_SYSTEM_TYPE"
     },
-
     "F2_Q_SYSTEM_TYPE": {
       "type": "decision",
       "title": "SUT Type",
@@ -40,14 +41,12 @@
         "networked_multi_node": "F2_Q_NETWORK_STOP_OPERATING"
       }
     },
-
     "F2_INFO_NOTE2_SYSTEM_TYPES": {
       "type": "info",
       "title": "Note 2: Stand-Alone, Multi-Node, Networked",
       "body": "NOTE 2: STAND-ALONE, MULTI-NODE, NETWORKED\n1. Satellite communication system with receive suites is a multi-node SUT... casualty preventing either node meeting mission requirement is an OMF.\n2. Firecontrol radar suite with three illuminator radars... degraded if one stops; OMF if they all stop.\n3. Networked computer suite with server and satellite computers... server down or satellites reduced past minimum is an OMF.\n4. New computer designed to work on a network is a standalone system that is an OMF if it stopped working.",
       "next": "F2_Q_SYSTEM_TYPE"
     },
-
     "F2_Q_NETWORK_STOP_OPERATING": {
       "type": "decision",
       "title": "Networked/Multi-Node Stopped Operating",
@@ -57,7 +56,6 @@
         "no": "F2_CONNECTOR_F"
       }
     },
-
     "F2_Q_STOP_PREVENT_MISSION": {
       "type": "decision",
       "title": "Stop Prevented Mission",
@@ -67,7 +65,6 @@
         "no": "F2_Q_ENOUGH_INFO_BLUE_SHEET"
       }
     },
-
     "F2_Q_ENOUGH_INFO_BLUE_SHEET": {
       "type": "decision",
       "title": "Enough Information to Generate Blue Sheet",
@@ -77,61 +74,83 @@
         "no": "F2_ACTION_ANNOTATE_ONLY"
       }
     },
-
     "F2_ACTION_ANNOTATE_ONLY": {
       "type": "info",
       "title": "Annotate Only (No Blue Sheet Yet)",
       "effects": {
-        "set": { "blueSheet": false, "omf": false, "failureType": "Annotated Only" },
-        "appendTraceTags": ["failure-type:annotate-only", "action:annotate-results-paragraph", "action:include-reliability-availability-tables"]
+        "set": {
+          "blueSheet": false,
+          "omf": false,
+          "failureType": "Annotated Only"
+        },
+        "appendTraceTags": [
+          "failure-type:annotate-only",
+          "action:annotate-results-paragraph",
+          "action:include-reliability-availability-tables"
+        ]
       },
       "body": "Annotate the conditions and results of the Failure in the results paragraph located in the Data Analysis Report.\n\nInclude in data tables for Reliability and Availability Computations.",
       "next": "F2_END_ANNOTATE_ONLY"
     },
-
     "F2_END_ANNOTATE_ONLY": {
       "type": "outcome",
       "title": "Outcome: Annotate Only",
-      "outcome": { "failureType": "Annotated Only" },
+      "outcome": {
+        "failureType": "Annotated Only"
+      },
       "body": "Outcome: annotate results paragraph and include reliability/availability computations. No Blue Sheet generated at this time."
     },
-
     "F2_ACTION_FAILURE_BLUE_SHEET_NOTE3": {
       "type": "info",
       "title": "Treat as a Failure (Generate Blue Sheet) — Note 3",
       "effects": {
-        "set": { "blueSheet": true, "omf": false, "failureType": "Failure/Fault (Non-OMF)" },
-        "appendTraceTags": ["failure-type:failure-non-omf", "action:generate-blue-sheet", "action:annotate-results-paragraph", "action:include-reliability-availability-tables", "note:3"]
+        "set": {
+          "blueSheet": true,
+          "omf": false,
+          "failureType": "Failure/Fault (Non-OMF)"
+        },
+        "appendTraceTags": [
+          "failure-type:failure-non-omf",
+          "action:generate-blue-sheet",
+          "action:annotate-results-paragraph",
+          "action:include-reliability-availability-tables",
+          "note:3"
+        ]
       },
       "body": "Treat as a Failure.\n(Generate Blue Sheet)\nNote 3\n\nAnnotate the conditions and results of the Failure in the results paragraph located in the Data Analysis Report.\n\nInclude in data tables for Reliability and Availability Computations.",
       "next": "F2_CONNECTOR_G"
     },
-
     "F2_ACTION_OMF_BLUE_SHEET": {
       "type": "info",
       "title": "Treat as an Operational Mission Failure (Generate Blue Sheet)",
       "effects": {
-        "set": { "blueSheet": true, "omf": true, "failureType": "Operational Mission Failure" },
-        "appendTraceTags": ["failure-type:omf", "action:generate-blue-sheet", "action:annotate-results-paragraph", "action:include-reliability-availability-tables"]
+        "set": {
+          "blueSheet": true,
+          "omf": true,
+          "failureType": "Operational Mission Failure"
+        },
+        "appendTraceTags": [
+          "failure-type:omf",
+          "action:generate-blue-sheet",
+          "action:annotate-results-paragraph",
+          "action:include-reliability-availability-tables"
+        ]
       },
       "body": "Treat as an Operational Mission Failure.\n(Generate Blue Sheet)\n\nAnnotate the conditions and results of the Failure in the results paragraph located in the Data Analysis Report.\n\nInclude in data tables for Reliability and Availability Computations.",
       "next": "F2_CONNECTOR_G"
     },
-
     "F2_CONNECTOR_E": {
       "type": "connector",
       "title": "Connector e",
       "body": "Continue to Figure 2 sheet 2 of 3 (e).",
       "next": "F2_Q_PROBLEM_STOP_SYSTEM"
     },
-
     "F2_CONNECTOR_F": {
       "type": "connector",
       "title": "Connector f",
       "body": "Continue to Figure 2 sheet 2 of 3 (f).",
       "next": "F2_Q_PROBLEM_STOP_SYSTEM"
     },
-
     "F2_Q_PROBLEM_STOP_SYSTEM": {
       "type": "decision",
       "title": "Problem Stopped System Operation",
@@ -141,7 +160,6 @@
         "no": "F2_Q_NOT_STOP_DID_PREVENT_MISSION"
       }
     },
-
     "F2_Q_STOP_PREVENT_MISSION_S2": {
       "type": "decision",
       "title": "Stopped Operation Prevented Mission",
@@ -151,7 +169,6 @@
         "no": "F2_Q_ENOUGH_INFO_BLUE_SHEET_S2"
       }
     },
-
     "F2_Q_ENOUGH_INFO_BLUE_SHEET_S2": {
       "type": "decision",
       "title": "Enough Information to Generate Blue Sheet",
@@ -161,7 +178,6 @@
         "no": "F2_ACTION_ANNOTATE_ONLY"
       }
     },
-
     "F2_Q_NOT_STOP_DID_PREVENT_MISSION": {
       "type": "decision",
       "title": "Did Not Stop — Prevented Mission",
@@ -171,14 +187,12 @@
         "no": "F2_ACTION_ANNOTATE_ONLY"
       }
     },
-
     "F2_CONNECTOR_G": {
       "type": "connector",
       "title": "Connector g",
       "body": "Continue to Figure 2 sheet 3 of 3 (g).",
       "next": "F2_Q_CAN_QUANT_BASELINE"
     },
-
     "F2_Q_CAN_QUANT_BASELINE": {
       "type": "decision",
       "title": "Baseline Method (Quantitative)",
@@ -188,7 +202,6 @@
         "no": "F2_Q_CAN_QUAL_BASELINE"
       }
     },
-
     "F2_Q_CAN_QUAL_BASELINE": {
       "type": "decision",
       "title": "Baseline Method (Qualitative)",
@@ -198,7 +211,6 @@
         "no": "F2_HANDOFF_F3_QUAL_BASELINE"
       }
     },
-
     "F2_HANDOFF_F4_QUANT_BASELINE": {
       "type": "handoff",
       "title": "Handoff: Quantitative Baseline Severity Assessment",
@@ -207,10 +219,11 @@
         "reason": "Determine Operational Impact and Mission Criticality using quantitative baseline flow.",
         "reference": "Refer to the Quantitative baseline flow diagram (Figure 4 sheet 1)"
       },
-      "effects": { "appendTraceTags": ["handoff:figure4-quant-baseline"] },
+      "effects": {
+        "appendTraceTags": ["handoff:figure4-quant-baseline"]
+      },
       "body": "Proceed to Figure 4 quantitative baseline flow."
     },
-
     "F2_HANDOFF_F3_QUAL_BASELINE": {
       "type": "handoff",
       "title": "Handoff: Qualitative Baseline Severity Assessment",
@@ -219,7 +232,9 @@
         "reason": "Determine Operational Impact and Mission Criticality using qualitative baseline flow.",
         "reference": "Refer to the Qualitative baseline flow diagram (Figure 3 sheet 1)"
       },
-      "effects": { "appendTraceTags": ["handoff:figure3-qual-baseline"] },
+      "effects": {
+        "appendTraceTags": ["handoff:figure3-qual-baseline"]
+      },
       "body": "Proceed to Figure 3 qualitative baseline flow."
     }
   }
