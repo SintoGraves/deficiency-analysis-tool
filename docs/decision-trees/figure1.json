@@ -7,7 +7,13 @@
   "startNode": "F1_START",
   "entry": "F1_START",
   "meta": {
-    "caseStateSchema": {
+        "authoritativeSource": "Figure 1 (Sheets 1–3) Deficiency Classification Flow Diagram",
+    "wizard": {
+      "oneQuestionPerScreen": true,
+      "requireAckOnInfoNodes": true
+    }
+  },
+"caseStateSchema": {
       "classification": "string",
       "analysisType": "string",
       "awaitingConcurrence": "boolean",
