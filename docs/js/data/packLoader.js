@@ -41,7 +41,7 @@
     const type = String(n.type ?? n.kind ?? "").toLowerCase();
 
     // Normalize primary text field: text | question | prompt
-    const text = n.text ?? n.question ?? n.prompt ?? "";
+    const text = n.text ?? n.question ?? n.prompt ?? n.body ?? "";
 
     // Normalize choices: choices | options | answers
     const rawChoices = n.choices ?? n.options ?? n.answers ?? null;
