@@ -246,7 +246,7 @@
           "classification:blue-sheet-awaiting-concurrence"
         ]
       },
-      "body": "Request concurrence from the resource sponsor on the derived requirement.\n\nGenerate a Blue sheet for the identified deficiency.\n(Refer to Figure 2 sheet 1 for OMF determination.)\nOn the Blue sheet state 'awaiting resource sponsor concurrence'.\n\nGenerate Results paragraph that describes the deficiency.",
+      "body": "Request concurrence from the resource sponsor on the derived requirement.\n\nGenerate Results paragraph that describes the identified deficiency.\n(Continue on Figure 2 sheet 1 for failure type determination.)\nOn the Blue sheet state 'awaiting resource sponsor concurrence'.",
       "next": "F1_END_AWAITING_CONCURRENCE"
     },
 
