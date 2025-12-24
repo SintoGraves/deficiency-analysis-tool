@@ -51,7 +51,7 @@
     "F1_Q_SUPPORT_SYSTEM": {
       "type": "decision",
       "title": "Support System",
-      "question": "The deficiency was on a support system (i.e. tech-manual tools, parts, materials, supply system, etc.)?",
+      "question": "The deficiency was on a support system (i.e. tech-manual tools, parts, materials, supply system, UPS battery, etc.)?",
       "choices": {
         "yes": "F1_SET_SUPPORT_SYSTEM_TRUE",
         "no": "F1_Q_ADDITIONAL_WORK"
