@@ -48,15 +48,15 @@
       "body": "Classification complete: Recommendation."
     },
 
-    "F1_Q_SUPPORT_SYSTEM": {
-      "type": "decision",
-      "title": "Support System",
-      "question": "The deficiency was on a support system (i.e. tech-manual tools, parts, materials, supply system, etc.)?",
-      "choices": {
-        "yes": "F1_SET_SUPPORT_SYSTEM_TRUE",
-        "no": "F1_Q_ADDITIONAL_WORK"
-      }
-    },
+"F1_Q_SUPPORT_SYSTEM": {
+  "type": "decision",
+  "title": "Support System",
+  "question": "The deficiency was on a support system (i.e. tech-manual tools, parts, materials, supply system, UPS battery, etc.)?",
+  "choices": {
+    "yes": "F1_SET_SUPPORT_SYSTEM_TRUE",
+    "no": "F1_SET_SUPPORT_SYSTEM_FALSE"
+  }
+},
 
     "F1_SET_SUPPORT_SYSTEM_TRUE": {
       "type": "info",
@@ -69,6 +69,17 @@
       "next": "F1_Q_DIRECT_REQ_REFERENCE"
     },
 
+"F1_SET_SUPPORT_SYSTEM_FALSE": {
+  "type": "info",
+  "title": "Non-Support System Path",
+  "effects": {
+    "set": { "supportSystem": false },
+    "appendTraceTags": ["path:non-support-system"]
+  },
+  "body": "Non-support system deficiency path selected.",
+  "next": "F1_Q_ADDITIONAL_WORK"
+},
+    
     "F1_Q_ADDITIONAL_WORK": {
       "type": "decision",
       "title": "Additional Operator Work",
@@ -87,9 +98,53 @@
         "appendTraceTags": ["classification:opcon"]
       },
       "body": "Treat as an operational consideration (OPCON).\nThe OPCON should identify how the deficiency affects the operation of the system, and how the operator can mitigate the effects the deficiency has on meeting mission requirements.",
-      "next": "F1_Q_DATA_OP_QUANT"
+      "next": "F1_Q_OPCON_TACON_ESCALATION"
     },
 
+"F1_Q_OPCON_TACON_ESCALATION": {
+  "type": "decision",
+  "title": "OPCON/TACON Escalation Gate",
+  "question": "Did the identified OPCON or TACON also prevent system operation, prevent mission accomplishment, or fail to meet a requirement or measure?",
+  "choices": {
+    "yes": "F1_INFO_DETERMINE_DEFICIENCY_TYPE",
+    "no": "F1_END_NO_FURTHER_PROCESSING"
+  }
+},
+
+ "F1_END_NO_FURTHER_PROCESSING": {
+  "type": "outcome",
+  "title": "Outcome: No Further Processing",
+  "outcome": { "classification": "No Further Processing" },
+  "effects": { "appendTraceTags": ["terminal:no-further-processing"] },
+  "body": "No further processing of the identified problem."
+},
+
+"F1_INFO_DETERMINE_DEFICIENCY_TYPE": {
+  "type": "info",
+  "title": "Determine Deficiency Type / Generate Results Paragraph",
+  "effects": {
+    "appendTraceTags": [
+      "action:determine-deficiency-type",
+      "action:generate-results-paragraph",
+      "reference:figure2-sheet1"
+    ]
+  },
+  "body": "Determine the type of deficiency.\nGenerate results paragraph that describes the deficiency.\nRefer to Figure 2 sheet 1 for Failure type determination.",
+  "next": "F1_HANDOFF_F2_FAILURE_TYPE"
+},
+
+"F1_HANDOFF_F2_FAILURE_TYPE": {
+  "type": "handoff",
+  "title": "Handoff: Failure Type Determination (Figure 2 Sheet 1)",
+  "handoff": {
+    "targetPackId": "figure2",
+    "reason": "Failure type / OMF determination per Figure 2 sheet 1.",
+    "reference": "Refer to Figure 2 sheet 1 of 3."
+  },
+  "effects": { "appendTraceTags": ["handoff:figure2-sheet1"] },
+  "body": "Proceed to Figure 2 (Sheet 1) for failure type determination."
+},
+    
     "F1_Q_COMMANDER_MANEUVER": {
       "type": "decision",
       "title": "Commander Maneuver / Unit Operation",
@@ -108,7 +163,7 @@
         "appendTraceTags": ["classification:tacon"]
       },
       "body": "Treat as a Tactical Consideration (TACON).\nThe TACON should identify how the deficiency affects the operational mission, and the tactical considerations for the commander which can mitigate the effects the deficiency has on meeting mission requirements.",
-      "next": "F1_Q_DATA_OP_QUANT"
+      "next": "F1_Q_OPCON_TACON_ESCALATION"
     },
 
     "F1_Q_DIRECT_REQ_OR_TACTIC": {
