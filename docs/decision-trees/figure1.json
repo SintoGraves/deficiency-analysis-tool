@@ -1,5 +1,5 @@
 {
-  "packId": "figure1",
+   "packId": "figure1",
   "title": "Deficiency Classification (Figure 1)",
   "version": "1.0.0",
   "entryNodeId": "F1_START",
@@ -12,13 +12,14 @@
       "analysisType": "string",
       "awaitingConcurrence": "boolean",
       "blueSheet": "boolean"
-    },
-    "nodes": {
-      "F1_START": {
-        "type": "info",
-        "title": "Start",
-        "body": "Begin deficiency classification (Figure 1).",
-        "next": "F1_Q_INCONVENIENCE"
+    }
+  },
+  "nodes": {
+    "F1_START": {
+      "type": "info",
+      "title": "Start",
+      "body": "Begin deficiency classification (Figure 1).",
+      "next": "F1_Q_INCONVENIENCE"
       },
       "F1_Q_INCONVENIENCE": {
         "type": "question",
