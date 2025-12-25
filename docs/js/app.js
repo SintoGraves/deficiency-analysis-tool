@@ -107,6 +107,9 @@
     const directives = Array.isArray(node?.directives) ? node.directives : [];
     const hints = Array.isArray(node?.hints) ? node.hints : [];
 
+    const panelNotes = Array.isArray(node?.panelNotes) ? node.panelNotes : [];
+    const panelNoteText = (typeof node?.panelNote === "string") ? node.panelNote.trim() : "";
+    
     const noteText = (typeof node?.note === "string") ? node.note.trim() : "";
     const directiveText = (typeof node?.directive === "string") ? node.directive.trim() : "";
     const hintText = (typeof node?.hint === "string") ? node.hint.trim() : "";
@@ -162,7 +165,24 @@
         <div class="note-body">${esc(directives.length ? directives.join("\n") : directiveText)}</div>
       </div>`;
     }
-
+    
+// Expanded panel-only notes (do not affect the main node body)
+if (panelNotes.length) {
+  for (const pn of panelNotes) {
+    html += `<div class="note-block">
+      <div class="note-kind">Reference</div>
+      <div class="note-title">${esc(pn?.title || "Reference Note")}</div>
+      <div class="note-body">${esc(pn?.body || "")}</div>
+    </div>`;
+  }
+} else if (panelNoteText) {
+  html += `<div class="note-block">
+    <div class="note-kind">Reference</div>
+    <div class="note-title">Reference Note</div>
+    <div class="note-body">${esc(panelNoteText)}</div>
+  </div>`;
+}
+    
     // Notes
     if (notes.length) {
       for (const n of notes) {
