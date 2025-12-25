@@ -212,6 +212,7 @@ function findAbbreviationsInNode(node) {
       notesTarget: elNotesBody,         // harmless if engine ignores
       notesMetaTarget: elNotesMeta,     // harmless if engine ignores
       debug,
+
       onTraceUpdated: () => {
         const meta = store.getMeta();
         if (elBack) elBack.disabled = !store.canGoBack();
@@ -219,13 +220,16 @@ function findAbbreviationsInNode(node) {
         // Debug trace only
         if (debug && elTrace && elTraceMeta) {
           elTrace.textContent = JSON.stringify(store.getTrace(), null, 2);
-          elTraceMeta.textContent = `Pack: ${meta.packId || "-"}  |  Node: ${meta.nodeId || "-"}  |  Steps: ${meta.steps || 0}`;
+          elTraceMeta.textContent =
+            `Pack: ${meta.packId || "-"}  |  Node: ${meta.nodeId || "-"}  |  Steps: ${meta.steps || 0}`;
         }
+      },
 
       onNodeRendered: (nodeId, node) => {
         renderNotesPanel(nodeId, node, store.getMeta(), elNotesMeta, elNotesBody);
       }
     });
+
 
     async function startPack(packId) {
       const pack = await DDT.loadPack(packId);
