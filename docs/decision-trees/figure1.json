@@ -37,7 +37,7 @@
         "set": { "classification": "Recommendation" },
         "appendTraceTags": ["classification:recommendation"]
       },
-      "body": "Treat as recommendation.\nRecommendations can be written to the program office to improve SUT use in the fleet, or written to the fleet to identify work arounds for SUT operations.",
+      "body": "Treat as a recommendation.\nRecommendations can be written to the program office to improve SUT use in the fleet, or written to the fleet to identify work arounds for SUT operations.",
       "next": "F1_END_RECOMMENDATION"
     },
 
