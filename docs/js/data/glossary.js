@@ -15,7 +15,7 @@
     TTP:   "Tactics, Techniques, and Procedures",
     CONOP: "Concept of Operations",
     CONOPS:"Concept of Operations",
-    PMS:   "Preventative Maintenance System"
+    PMS:   "Preventative Maintenance System",
     UPS:   "Uninterruptable Power Supply"
   };
 })();
