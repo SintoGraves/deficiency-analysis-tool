@@ -206,6 +206,27 @@ function findAbbreviationsInNode(node) {
     await loadManual(elManualStatus, elManualBody);
 
     const store = DDT.createCaseStore();
+
+        // Notes render fallback (guarded to avoid double-renders/log spam)
+    let currentPack = null;
+    let lastNotesNodeId = null;
+
+    function updateNotesFromStore() {
+      if (!elNotesMeta || !elNotesBody) return;
+
+      const meta = store.getMeta();
+      const nodeId = meta && meta.nodeId;
+      if (!currentPack || !currentPack.nodes || !nodeId) return;
+
+      // Guard: only re-render if node changed
+      if (nodeId === lastNotesNodeId) return;
+      lastNotesNodeId = nodeId;
+
+      const node = currentPack.nodes[nodeId];
+      if (!node) return;
+
+      renderNotesPanel(nodeId, node, meta, elNotesMeta, elNotesBody);
+    }
     
     const engine = DDT.createDecisionEngine({
       renderTarget: elScreen,
@@ -217,27 +238,34 @@ function findAbbreviationsInNode(node) {
         const meta = store.getMeta();
         if (elBack) elBack.disabled = !store.canGoBack();
 
-        // Debug trace only
         if (debug && elTrace && elTraceMeta) {
           elTrace.textContent = JSON.stringify(store.getTrace(), null, 2);
           elTraceMeta.textContent =
             `Pack: ${meta.packId || "-"}  |  Node: ${meta.nodeId || "-"}  |  Steps: ${meta.steps || 0}`;
         }
+
+        updateNotesFromStore();
       },
 
       onNodeRendered: (nodeId, node) => {
+        lastNotesNodeId = nodeId; // keep guard in sync
         renderNotesPanel(nodeId, node, store.getMeta(), elNotesMeta, elNotesBody);
       }
-    });
 
 
     async function startPack(packId) {
       const pack = await DDT.loadPack(packId);
+      currentPack = pack;
+      lastNotesNodeId = null;
 
       store.reset();
       engine.loadPack(pack, store);
       engine.start();
+
+      // Force Notes render for the entry node
+      updateNotesFromStore();
     }
+
 
     // Controls (all guarded)
     safeOn(elPackSelect, "change", () => startPack(elPackSelect.value));
