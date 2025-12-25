@@ -10,6 +10,7 @@
     OMF:   "Operational Mission Failure",
     OPCON: "Operational Consideration",
     TACON: "Tactical Consideration",
+    COI:   "Critical Operational Issue",
     CPD:   "Capability Production Document",
     CDD:   "Capability Development Document",
     TTP:   "Tactics, Techniques, and Procedures",
