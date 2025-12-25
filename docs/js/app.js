@@ -251,7 +251,7 @@ function findAbbreviationsInNode(node) {
         lastNotesNodeId = nodeId; // keep guard in sync
         renderNotesPanel(nodeId, node, store.getMeta(), elNotesMeta, elNotesBody);
       }
-
+    });
 
     async function startPack(packId) {
       const pack = await DDT.loadPack(packId);
@@ -265,7 +265,6 @@ function findAbbreviationsInNode(node) {
       // Force Notes render for the entry node
       updateNotesFromStore();
     }
-
 
     // Controls (all guarded)
     safeOn(elPackSelect, "change", () => startPack(elPackSelect.value));
