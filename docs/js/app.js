@@ -121,9 +121,17 @@ function findAbbreviationsInNode(node) {
         <div class="note-title">Abbreviations</div>
         <div class="note-body">
           ${esc(
-            abbrs
-              .map(a => `${a} — ${(DDT.GLOSSARY || {})[a] || ""}`)
-              .join("\n")
+          abbrs
+          .map(a => {
+          const entry = (DDT.GLOSSARY || {})[a];
+          const label = (typeof entry === "string")
+          ? entry
+          : (entry && typeof entry === "object" && typeof entry.label === "string")
+           ? entry.label
+             : "";
+             return `${a} — ${label}`;
+    })
+            .join("\n")
           )}
         </div>
       </div>`;
