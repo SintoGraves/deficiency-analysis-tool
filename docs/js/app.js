@@ -107,57 +107,27 @@
     const directives = Array.isArray(node?.directives) ? node.directives : [];
     const hints = Array.isArray(node?.hints) ? node.hints : [];
 
-    const panelNotes = Array.isArray(node?.panelNotes) ? node.panelNotes : [];
-    const panelNoteText = (typeof node?.panelNote === "string") ? node.panelNote.trim() : "";
-    
     const noteText = (typeof node?.note === "string") ? node.note.trim() : "";
     const directiveText = (typeof node?.directive === "string") ? node.directive.trim() : "";
     const hintText = (typeof node?.hint === "string") ? node.hint.trim() : "";
 
     let html = "";
 
-    // -----------------------------
-    // Abbreviations (definitions) + Abbreviation Notes (rendered LAST)
-    // Backward compatible glossary entry shapes:
-    //   - "SUT": "System Under Test"
-    //   - "SUT": { label: "System Under Test", note: "..." }
-    // -----------------------------
-
-    // Build Abbreviation definitions
-    const abbrLines = (abbrs || [])
-      .map(a => {
-        const entry = (DDT.GLOSSARY || {})[a];
-        const label =
-          (typeof entry === "string") ? entry :
-          (entry && typeof entry === "object" && typeof entry.label === "string") ? entry.label :
-          "";
-        return `${a} — ${label}`.trim();
-      })
-      .filter(line => line && !line.endsWith("—"));
-
-    // Build Abbreviation notes (ONLY for entries with {note:"..."})
-    // We will append these LAST in the panel.
-    const abbrNoteLines = (abbrs || [])
-      .map(a => {
-        const entry = (DDT.GLOSSARY || {})[a];
-        const note =
-          (entry && typeof entry === "object" && typeof entry.note === "string")
-            ? entry.note.trim()
-            : "";
-        return note ? `${a} — ${note}` : "";
-      })
-      .filter(Boolean);
-
-    // Render Abbreviations (definitions) near the top
-    if (abbrLines.length) {
+    // Abbreviations tied to the currently displayed node/question
+    if (abbrs.length) {
       html += `<div class="note-block">
         <div class="note-kind">Reference</div>
         <div class="note-title">Abbreviations</div>
-        <div class="note-body">${esc(abbrLines.join("\n"))}</div>
+        <div class="note-body">
+          ${esc(
+            abbrs
+              .map(a => `${a} — ${(DDT.GLOSSARY || {})[a] || ""}`)
+              .join("\n")
+          )}
+        </div>
       </div>`;
     }
 
-    // Directives
     if (directives.length || directiveText) {
       html += `<div class="note-block">
         <div class="note-kind">Directive</div>
@@ -165,25 +135,7 @@
         <div class="note-body">${esc(directives.length ? directives.join("\n") : directiveText)}</div>
       </div>`;
     }
-    
-   // Expanded panel-only notes (do not affect the main node body)
-   if (panelNotes.length) {
-    for (const pn of panelNotes) {
-    html += `<div class="note-block">
-      <div class="note-kind">Reference</div>
-      <div class="note-title">${esc(pn?.title || "Reference Note")}</div>
-      <div class="note-body">${esc(pn?.body || "")}</div>
-    </div>`;
-   }
-    } else if (panelNoteText) {
-      html += `<div class="note-block">
-      <div class="note-kind">Reference</div>
-      <div class="note-title">Reference Note</div>
-      <div class="note-body">${esc(panelNoteText)}</div>
-    </div>`;
-   }
-    
-    // Notes
+
     if (notes.length) {
       for (const n of notes) {
         html += `<div class="note-block">
@@ -200,21 +152,11 @@
       </div>`;
     }
 
-    // Hints
     if (hints.length || hintText) {
       html += `<div class="note-block">
         <div class="note-kind">Hint</div>
         <div class="note-title">Guidance</div>
         <div class="note-body">${esc(hints.length ? hints.join("\n") : hintText)}</div>
-      </div>`;
-    }
-
-    // --- Abbreviation Notes must be LAST in the panel ---
-    if (abbrNoteLines.length) {
-      html += `<div class="note-block">
-        <div class="note-kind">Reference</div>
-        <div class="note-title">Abbreviation Notes</div>
-        <div class="note-body">${esc(abbrNoteLines.join("\n"))}</div>
       </div>`;
     }
 
