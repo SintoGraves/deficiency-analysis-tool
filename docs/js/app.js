@@ -143,13 +143,11 @@
       html += `<div class="note-block">
         <div class="note-kind">Reference</div>
         <div class="note-title">Abbreviations</div>
-        <div class="note-body">
-          ${esc(
-            abbrs
-              .map(a => `${a} — ${(DDT.GLOSSARY || {})[a] || ""}`)
-              .join("\n")
-          )}
-        </div>
+        <div class="note-body">${esc(
+           abbrs
+            .map(a => `${a} — ${(DDT.GLOSSARY || {})[a] || ""}`)
+            .join("\n")
+        )}</div>
       </div>`;
     }
 
