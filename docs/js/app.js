@@ -15,6 +15,7 @@
   const modulePaths = [
     "./js/data/packLoader.js",
     "./js/data/glossary.js",
+    "./js/data/notes.js",          // <-- ADDED
     "./js/state/caseStore.js",
     "./js/engine/validators.js",
     "./js/engine/actions.js",
@@ -94,6 +95,29 @@
     return hits;
   }
 
+  // NEW: find NOTE references (NOTE 1, Note 2, (Note 3), Note 4:, etc.)
+  function findNoteRefsInNode(node) {
+    const text = getNodeDisplayText(node);
+    if (!text) return [];
+
+    const re = /\bNOTE\s+(\d+)\b/gi;
+    const refs = [];
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const key = `NOTE ${m[1]}`;
+      if (!refs.includes(key)) refs.push(key);
+    }
+
+    // Deterministic order: NOTE 1, NOTE 2, ...
+    refs.sort((a, b) => {
+      const na = parseInt(a.replace(/\D+/g, ""), 10);
+      const nb = parseInt(b.replace(/\D+/g, ""), 10);
+      return na - nb;
+    });
+
+    return refs;
+  }
+
   // Render Notes Panel
   function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
     if (!notesMetaEl || !notesBodyEl) return;
@@ -102,6 +126,7 @@
     notesMetaEl.textContent = `Pack: ${packId}  |  Step: ${nodeId || "-"}`;
 
     const abbrs = findAbbreviationsInNode(node);
+    const noteRefs = findNoteRefsInNode(node); // <-- NEW
 
     const notes = Array.isArray(node?.notes) ? node.notes : [];
     const directives = Array.isArray(node?.directives) ? node.directives : [];
@@ -128,6 +153,7 @@
       </div>`;
     }
 
+    // Directives
     if (directives.length || directiveText) {
       html += `<div class="note-block">
         <div class="note-kind">Directive</div>
@@ -136,6 +162,21 @@
       </div>`;
     }
 
+    // NEW: Full NOTE content resolved from /docs/js/data/notes.js
+    if (noteRefs.length) {
+      const lib = (DDT.NOTES && typeof DDT.NOTES === "object") ? DDT.NOTES : {};
+      for (const ref of noteRefs) {
+        const entry = lib[ref];
+        if (!entry) continue;
+        html += `<div class="note-block">
+          <div class="note-kind">Reference</div>
+          <div class="note-title">${esc(entry.title || ref)}</div>
+          <div class="note-body">${esc(entry.body || "")}</div>
+        </div>`;
+      }
+    }
+
+    // Existing node notes
     if (notes.length) {
       for (const n of notes) {
         html += `<div class="note-block">
@@ -152,6 +193,7 @@
       </div>`;
     }
 
+    // Hints
     if (hints.length || hintText) {
       html += `<div class="note-block">
         <div class="note-kind">Hint</div>
@@ -166,8 +208,12 @@
 
   async function main() {
     await loadModules();
+
     if (!DDT.GLOSSARY || typeof DDT.GLOSSARY !== "object") {
       console.warn("[DDT] glossary not loaded (DDT.GLOSSARY missing). Check /docs/js/data/glossary.js path and contents.");
+    }
+    if (!DDT.NOTES || typeof DDT.NOTES !== "object") {
+      console.warn("[DDT] notes not loaded (DDT.NOTES missing). Check /docs/js/data/notes.js path and contents.");
     }
 
     const debug = new URLSearchParams(location.search).get("debug") === "1";
@@ -187,12 +233,8 @@
     const { el: elNotesMeta } = pickId(["notesMeta"]);
     const { el: elNotesBody } = pickId(["notesBody"]);
 
-    if (!elScreen) {
-      throw new Error("Missing required element #screen in index.html");
-    }
-    if (!elPackSelect) {
-      throw new Error("Missing required element #packSelect in index.html");
-    }
+    if (!elScreen) throw new Error("Missing required element #screen in index.html");
+    if (!elPackSelect) throw new Error("Missing required element #packSelect in index.html");
 
     // ---- Optional elements ----
     const { el: elGoReport } = pickId(["btnGoReport", "btnReport", "btnGenerate"]);
