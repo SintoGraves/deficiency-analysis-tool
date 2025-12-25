@@ -93,6 +93,8 @@ function findAbbreviationsInNode(node) {
   hits.sort();
   return hits;
 }
+
+// Render Notes Panel
   
   function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
     if (!notesMetaEl || !notesBodyEl) return;
@@ -102,6 +104,11 @@ function findAbbreviationsInNode(node) {
 
     const abbrs = findAbbreviationsInNode(node);
 
+    console.log("[abbr] nodeId:", nodeId);
+    console.log("[abbr] glossary keys:", Object.keys(DDT.GLOSSARY || {}).length);
+    console.log("[abbr] display text:", getNodeDisplayText(node));
+    console.log("[abbr] detected:", abbrs);
+    
     const notes = Array.isArray(node?.notes) ? node.notes : [];
     const directives = Array.isArray(node?.directives) ? node.directives : [];
     const hints = Array.isArray(node?.hints) ? node.hints : [];
