@@ -48,7 +48,7 @@
   }
 
   function esc(s) {
-   return String((s === undefined || s === null) ? "" : s)
+    return String((s === undefined || s === null) ? "" : s)
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;");
@@ -83,19 +83,18 @@
     return parts.join(" ");
   }
 
-function findAbbreviationsInNode(node) {
-  const text = getNodeDisplayText(node).toUpperCase();
-  const hits = [];
-  for (const abbr of Object.keys(DDT.GLOSSARY || {})) {
-    const re = new RegExp("\\b" + abbr + "\\b", "g");
-    if (re.test(text)) hits.push(abbr);
+  function findAbbreviationsInNode(node) {
+    const text = getNodeDisplayText(node).toUpperCase();
+    const hits = [];
+    for (const abbr of Object.keys(DDT.GLOSSARY || {})) {
+      const re = new RegExp("\\b" + abbr + "\\b", "g");
+      if (re.test(text)) hits.push(abbr);
+    }
+    hits.sort(); // deterministic alphabetical order
+    return hits;
   }
-  hits.sort();
-  return hits;
-}
 
-// Render Notes Panel
-  
+  // Render Notes Panel
   function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
     if (!notesMetaEl || !notesBodyEl) return;
 
@@ -114,60 +113,48 @@ function findAbbreviationsInNode(node) {
 
     let html = "";
 
-// -----------------------------
-// DROP-IN SNIPPET (replace your existing Abbreviations block)
-// Location: inside renderNotesPanel(), replacing:
-//   // Abbreviations tied to the currently displayed node/question
-//   if (abbrs.length) { ... }
-// -----------------------------
+    // -----------------------------
+    // Abbreviations (definitions) + Abbreviation Notes (rendered LAST)
+    // Backward compatible glossary entry shapes:
+    //   - "SUT": "System Under Test"
+    //   - "SUT": { label: "System Under Test", note: "..." }
+    // -----------------------------
 
-// Build Abbreviation definitions (backward compatible: string OR {label, note})
-const abbrLines = (abbrs || [])
-  .map(a => {
-    const entry = (DDT.GLOSSARY || {})[a];
-    const label =
-      (typeof entry === "string") ? entry :
-      (entry && typeof entry === "object" && typeof entry.label === "string") ? entry.label :
-      "";
-    return `${a} — ${label}`.trim();
-  })
-  .filter(line => line && !line.endsWith("—"));
+    // Build Abbreviation definitions
+    const abbrLines = (abbrs || [])
+      .map(a => {
+        const entry = (DDT.GLOSSARY || {})[a];
+        const label =
+          (typeof entry === "string") ? entry :
+          (entry && typeof entry === "object" && typeof entry.label === "string") ? entry.label :
+          "";
+        return `${a} — ${label}`.trim();
+      })
+      .filter(line => line && !line.endsWith("—"));
 
-// Build Abbreviation notes (ONLY for entries with {note:"..."})
-// IMPORTANT: We do NOT render these here; we append them LAST (see below).
-const abbrNoteLines = (abbrs || [])
-  .map(a => {
-    const entry = (DDT.GLOSSARY || {})[a];
-    const note =
-      (entry && typeof entry === "object" && typeof entry.note === "string") ? entry.note.trim() : "";
-    return note ? `${a} — ${note}` : "";
-  })
-  .filter(Boolean);
+    // Build Abbreviation notes (ONLY for entries with {note:"..."})
+    // We will append these LAST in the panel.
+    const abbrNoteLines = (abbrs || [])
+      .map(a => {
+        const entry = (DDT.GLOSSARY || {})[a];
+        const note =
+          (entry && typeof entry === "object" && typeof entry.note === "string")
+            ? entry.note.trim()
+            : "";
+        return note ? `${a} — ${note}` : "";
+      })
+      .filter(Boolean);
 
-// Render Abbreviations (definitions) near the top (same place you had it)
-if (abbrLines.length) {
-  html += `<div class="note-block">
-    <div class="note-kind">Reference</div>
-    <div class="note-title">Abbreviations</div>
-    <div class="note-body">${esc(abbrLines.join("\n"))}</div>
-  </div>`;
-}
+    // Render Abbreviations (definitions) near the top
+    if (abbrLines.length) {
+      html += `<div class="note-block">
+        <div class="note-kind">Reference</div>
+        <div class="note-title">Abbreviations</div>
+        <div class="note-body">${esc(abbrLines.join("\n"))}</div>
+      </div>`;
+    }
 
-/*
-  DROP-IN CONTINUATION (append this at the VERY END of renderNotesPanel(),
-  immediately before the line where you do: notesBodyEl.innerHTML = html;
-
-  This guarantees abbreviation NOTES are LAST in the panel.
-*/
-if (abbrNoteLines.length) {
-  html += `<div class="note-block">
-    <div class="note-kind">Reference</div>
-    <div class="note-title">Abbreviation Notes</div>
-    <div class="note-body">${esc(abbrNoteLines.join("\n"))}</div>
-  </div>`;
-}
-
-
+    // Directives
     if (directives.length || directiveText) {
       html += `<div class="note-block">
         <div class="note-kind">Directive</div>
@@ -176,6 +163,7 @@ if (abbrNoteLines.length) {
       </div>`;
     }
 
+    // Notes
     if (notes.length) {
       for (const n of notes) {
         html += `<div class="note-block">
@@ -192,11 +180,21 @@ if (abbrNoteLines.length) {
       </div>`;
     }
 
+    // Hints
     if (hints.length || hintText) {
       html += `<div class="note-block">
         <div class="note-kind">Hint</div>
         <div class="note-title">Guidance</div>
         <div class="note-body">${esc(hints.length ? hints.join("\n") : hintText)}</div>
+      </div>`;
+    }
+
+    // --- Abbreviation Notes must be LAST in the panel ---
+    if (abbrNoteLines.length) {
+      html += `<div class="note-block">
+        <div class="note-kind">Reference</div>
+        <div class="note-title">Abbreviation Notes</div>
+        <div class="note-body">${esc(abbrNoteLines.join("\n"))}</div>
       </div>`;
     }
 
@@ -209,7 +207,7 @@ if (abbrNoteLines.length) {
     if (!DDT.GLOSSARY || typeof DDT.GLOSSARY !== "object") {
       console.warn("[DDT] glossary not loaded (DDT.GLOSSARY missing). Check /docs/js/data/glossary.js path and contents.");
     }
-    
+
     const debug = new URLSearchParams(location.search).get("debug") === "1";
 
     // ---- Required (core) elements ----
@@ -246,7 +244,7 @@ if (abbrNoteLines.length) {
 
     const store = DDT.createCaseStore();
 
-        // Notes render fallback (guarded to avoid double-renders/log spam)
+    // Notes render fallback (guarded to avoid double-renders/log spam)
     let currentPack = null;
     let lastNotesNodeId = null;
 
@@ -266,11 +264,11 @@ if (abbrNoteLines.length) {
 
       renderNotesPanel(nodeId, node, meta, elNotesMeta, elNotesBody);
     }
-    
+
     const engine = DDT.createDecisionEngine({
       renderTarget: elScreen,
-      notesTarget: elNotesBody,         // harmless if engine ignores
-      notesMetaTarget: elNotesMeta,     // harmless if engine ignores
+      notesTarget: elNotesBody,      // harmless if engine ignores
+      notesMetaTarget: elNotesMeta,  // harmless if engine ignores
       debug,
 
       onTraceUpdated: () => {
