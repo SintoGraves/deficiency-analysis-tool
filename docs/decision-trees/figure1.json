@@ -98,7 +98,7 @@
         "appendTraceTags": ["classification:opcon"]
       },
       "body": "Treat as an operational consideration (OPCON).\nThe OPCON should identify how the deficiency affects the operation of the system, and how the operator can mitigate the effects the deficiency has on meeting mission requirements.",
-      "next": "F1_Q_OPCON_TACON_ESCALATION"
+      "next": "F1_Q_DATA_OP_QUANT"
     },
 
 "F1_Q_OPCON_TACON_ESCALATION": {
@@ -163,7 +163,7 @@
         "appendTraceTags": ["classification:tacon"]
       },
       "body": "Treat as a Tactical Consideration (TACON).\nThe TACON should identify how the deficiency affects the operational mission, and the tactical considerations for the commander which can mitigate the effects the deficiency has on meeting mission requirements.",
-      "next": "F1_Q_OPCON_TACON_ESCALATION"
+      "next": "F1_Q_DATA_OP_QUANT"
     },
 
     "F1_Q_DIRECT_REQ_OR_TACTIC": {
