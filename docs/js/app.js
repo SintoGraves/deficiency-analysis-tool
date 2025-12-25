@@ -207,22 +207,6 @@ function findAbbreviationsInNode(node) {
 
     const store = DDT.createCaseStore();
     
-    // Keep a reference to the active pack so we can render Notes even if the engine
-    // does not call onNodeRendered.
-    let currentPack = null;
-
-    function updateNotesFromStore() {
-      if (!elNotesMeta || !elNotesBody) return;
-      const meta = store.getMeta();
-      const nodeId = meta && meta.nodeId;
-      if (!currentPack || !currentPack.nodes || !nodeId) return;
-
-      const node = currentPack.nodes[nodeId];
-      if (!node) return;
-
-      renderNotesPanel(nodeId, node, meta, elNotesMeta, elNotesBody);
-    }
-
     const engine = DDT.createDecisionEngine({
       renderTarget: elScreen,
       notesTarget: elNotesBody,         // harmless if engine ignores
@@ -249,14 +233,10 @@ function findAbbreviationsInNode(node) {
 
     async function startPack(packId) {
       const pack = await DDT.loadPack(packId);
-      currentPack = pack;
 
       store.reset();
       engine.loadPack(pack, store);
       engine.start();
-
-      // Force Notes render for the first node (even if engine doesn't call onNodeRendered)
-      updateNotesFromStore();
     }
 
     // Controls (all guarded)
