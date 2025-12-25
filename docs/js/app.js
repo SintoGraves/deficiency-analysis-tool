@@ -115,9 +115,15 @@ function findAbbreviationsInNode(node) {
     // Abbreviations tied to the currently displayed node/question
     if (abbrs.length) {
       html += `<div class="note-block">
-        <div class="note-kind">Directive</div>
+        <div class="note-kind">Reference</div>
         <div class="note-title">Abbreviations</div>
-        <div class="note-body">${esc(abbrs.map(a => `${a} — ${DDT_GLOSSARY[a]}`).join("\n"))}</div>
+        <div class="note-body">
+          ${esc(
+            abbrs
+              .map(a => `${a} — ${(DDT.GLOSSARY || {})[a] || ""}`)
+              .join("\n")
+          )}
+        </div>
       </div>`;
     }
 
