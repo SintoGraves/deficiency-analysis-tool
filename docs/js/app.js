@@ -48,7 +48,7 @@
   }
 
   function esc(s) {
-    return String(s ?? "")
+   return String((s === undefined || s === null) ? "" : s)
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;");
