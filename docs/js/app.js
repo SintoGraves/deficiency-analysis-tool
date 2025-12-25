@@ -165,7 +165,10 @@ function findAbbreviationsInNode(node) {
 
   async function main() {
     await loadModules();
-
+    if (!DDT.GLOSSARY || typeof DDT.GLOSSARY !== "object") {
+      console.warn("[DDT] glossary not loaded (DDT.GLOSSARY missing). Check /docs/js/data/glossary.js path and contents.");
+    }
+    
     const debug = new URLSearchParams(location.search).get("debug") === "1";
 
     // ---- Required (core) elements ----
