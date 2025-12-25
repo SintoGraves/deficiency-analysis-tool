@@ -63,14 +63,14 @@
       "question": "When the system stopped operation did it also prevent the mission from being accomplished?",
       "choices": {
         "yes": "F2_ACTION_OMF_BLUE_SHEET",
-        "no": "F2_Q_ENOUGH_INFO_BLUE_SHEET"
+        "no": "F2_Q_WORK_AROUND_DURING_OPERATIONS"
       }
     },
 
-    "F2_Q_ENOUGH_INFO_BLUE_SHEET": {
+    "F2_Q_WORK_AROUND_DURING_OPERATIONS": {
       "type": "decision",
-      "title": "Enough Information to Generate Blue Sheet",
-      "question": "Is enough information about the casualty available to generate a Blue Sheet?",
+      "title": "Work Around During Operations",
+      "question": "Did the fault or failure happen more than once or cause the operator to perform some type of work around to continue system operation?",
       "choices": {
         "yes": "F2_ACTION_FAILURE_BLUE_SHEET_NOTE3",
         "no": "F2_ACTION_ANNOTATE_ONLY"
