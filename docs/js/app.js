@@ -14,6 +14,7 @@
   // ===== Module loading (classic scripts; no bundler) =====
   const modulePaths = [
     "./js/data/packLoader.js",
+    "./js/data/glossary.js",
     "./js/state/caseStore.js",
     "./js/engine/validators.js",
     "./js/engine/actions.js",
@@ -73,20 +74,6 @@
     }
   }
 
-  // ===== Notes/Directives: Abbreviation glossary (static meaning) =====
-  // Meanings MUST NOT change by context; only the displayed subset changes per node.
-  const DDT_GLOSSARY = {
-    SUT:  "System Under Test",
-    OMF:  "Operational Mission Failure",
-    OPCON:"Operational Consideration",
-    TACON:"Tactical Consideration",
-    CPD:  "Capability Production Document",
-    CDD:  "Capability Development Document",
-    TTP:  "Tactics, Techniques, and Procedures",
-    CONOP:"Concept of Operations",
-    PMS:  "Preventative Maintenance System"
-  };
-
   function getNodeDisplayText(node) {
     if (!node) return "";
     const parts = [];
@@ -96,16 +83,16 @@
     return parts.join(" ");
   }
 
-  function findAbbreviationsInNode(node) {
-    const text = getNodeDisplayText(node).toUpperCase();
-    const hits = [];
-    for (const abbr of Object.keys(DDT_GLOSSARY)) {
-      const re = new RegExp("\\b" + abbr + "\\b", "g");
-      if (re.test(text)) hits.push(abbr);
-    }
-    hits.sort();
-    return hits;
+function findAbbreviationsInNode(node) {
+  const text = getNodeDisplayText(node).toUpperCase();
+  const hits = [];
+  for (const abbr of Object.keys(DDT.GLOSSARY || {})) {
+    const re = new RegExp("\\b" + abbr + "\\b", "g");
+    if (re.test(text)) hits.push(abbr);
   }
+  hits.sort();
+  return hits;
+}
   
   function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
     if (!notesMetaEl || !notesBodyEl) return;
