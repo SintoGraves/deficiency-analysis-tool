@@ -73,11 +73,47 @@
     }
   }
 
+  // ===== Notes/Directives: Abbreviation glossary (static meaning) =====
+  // Meanings MUST NOT change by context; only the displayed subset changes per node.
+  const DDT_GLOSSARY = {
+    SUT:  "System Under Test",
+    OMF:  "Operational Mission Failure",
+    OPCON:"Operational Consideration",
+    TACON:"Tactical Consideration",
+    CPD:  "Capability Production Document",
+    CDD:  "Capability Development Document",
+    TTP:  "Tactics, Techniques, and Procedures",
+    CONOP:"Concept of Operations",
+    PMS:  "Preventative Maintenance System"
+  };
+
+  function getNodeDisplayText(node) {
+    if (!node) return "";
+    const parts = [];
+    if (node.title) parts.push(node.title);
+    if (node.question) parts.push(node.question);
+    if (node.body) parts.push(node.body);
+    return parts.join(" ");
+  }
+
+  function findAbbreviationsInNode(node) {
+    const text = getNodeDisplayText(node).toUpperCase();
+    const hits = [];
+    for (const abbr of Object.keys(DDT_GLOSSARY)) {
+      const re = new RegExp("\\b" + abbr + "\\b", "g");
+      if (re.test(text)) hits.push(abbr);
+    }
+    hits.sort();
+    return hits;
+  }
+  
   function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
     if (!notesMetaEl || !notesBodyEl) return;
 
     const packId = (meta && meta.packId) ? meta.packId : "-";
     notesMetaEl.textContent = `Pack: ${packId}  |  Step: ${nodeId || "-"}`;
+
+    const abbrs = findAbbreviationsInNode(node);
 
     const notes = Array.isArray(node?.notes) ? node.notes : [];
     const directives = Array.isArray(node?.directives) ? node.directives : [];
@@ -88,6 +124,15 @@
     const hintText = (typeof node?.hint === "string") ? node.hint.trim() : "";
 
     let html = "";
+
+    // Abbreviations tied to the currently displayed node/question
+    if (abbrs.length) {
+      html += `<div class="note-block">
+        <div class="note-kind">Directive</div>
+        <div class="note-title">Abbreviations</div>
+        <div class="note-body">${esc(abbrs.map(a => `${a} — ${DDT_GLOSSARY[a]}`).join("\n"))}</div>
+      </div>`;
+    }
 
     if (directives.length || directiveText) {
       html += `<div class="note-block">
