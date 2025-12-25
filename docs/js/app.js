@@ -114,28 +114,59 @@ function findAbbreviationsInNode(node) {
 
     let html = "";
 
-    // Abbreviations tied to the currently displayed node/question
-    if (abbrs.length) {
-      html += `<div class="note-block">
-        <div class="note-kind">Reference</div>
-        <div class="note-title">Abbreviations</div>
-        <div class="note-body">
-          ${esc(
-          abbrs
-          .map(a => {
-          const entry = (DDT.GLOSSARY || {})[a];
-          const label = (typeof entry === "string")
-          ? entry
-          : (entry && typeof entry === "object" && typeof entry.label === "string")
-           ? entry.label
-             : "";
-             return `${a} — ${label}`;
-    })
-            .join("\n")
-          )}
-        </div>
-      </div>`;
-    }
+// -----------------------------
+// DROP-IN SNIPPET (replace your existing Abbreviations block)
+// Location: inside renderNotesPanel(), replacing:
+//   // Abbreviations tied to the currently displayed node/question
+//   if (abbrs.length) { ... }
+// -----------------------------
+
+// Build Abbreviation definitions (backward compatible: string OR {label, note})
+const abbrLines = (abbrs || [])
+  .map(a => {
+    const entry = (DDT.GLOSSARY || {})[a];
+    const label =
+      (typeof entry === "string") ? entry :
+      (entry && typeof entry === "object" && typeof entry.label === "string") ? entry.label :
+      "";
+    return `${a} — ${label}`.trim();
+  })
+  .filter(line => line && !line.endsWith("—"));
+
+// Build Abbreviation notes (ONLY for entries with {note:"..."})
+// IMPORTANT: We do NOT render these here; we append them LAST (see below).
+const abbrNoteLines = (abbrs || [])
+  .map(a => {
+    const entry = (DDT.GLOSSARY || {})[a];
+    const note =
+      (entry && typeof entry === "object" && typeof entry.note === "string") ? entry.note.trim() : "";
+    return note ? `${a} — ${note}` : "";
+  })
+  .filter(Boolean);
+
+// Render Abbreviations (definitions) near the top (same place you had it)
+if (abbrLines.length) {
+  html += `<div class="note-block">
+    <div class="note-kind">Reference</div>
+    <div class="note-title">Abbreviations</div>
+    <div class="note-body">${esc(abbrLines.join("\n"))}</div>
+  </div>`;
+}
+
+/*
+  DROP-IN CONTINUATION (append this at the VERY END of renderNotesPanel(),
+  immediately before the line where you do: notesBodyEl.innerHTML = html;
+
+  This guarantees abbreviation NOTES are LAST in the panel.
+*/
+if (abbrNoteLines.length) {
+  html += `<div class="note-block">
+    <div class="note-kind">Reference</div>
+    <div class="note-title">Abbreviation Notes</div>
+    <div class="note-body">${esc(abbrNoteLines.join("\n"))}</div>
+  </div>`;
+}
+
 
     if (directives.length || directiveText) {
       html += `<div class="note-block">
