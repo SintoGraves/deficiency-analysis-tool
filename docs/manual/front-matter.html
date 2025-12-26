@@ -1,39 +1,131 @@
-<div class="manual"><style data-generated="manual-nav">
-/* Generated: manual navigation helpers */
-.manual-toc { margin: 12px 0 18px; padding: 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; }
+<style data-generated="manual-nav">
+/* ================================
+   Manual Navigation Helpers
+   ================================ */
+.manual-toc {
+  margin: 12px 0 18px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+}
 .manual-toc ul { margin: 6px 0 0 18px; }
 .manual-toc li { margin: 4px 0; }
-.manual-toc a { text-decoration: none; border-bottom: 1px dotted currentColor; }
+.manual-toc a {
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+}
 .manual-toc a:hover { text-decoration: underline; }
+
 .back-to-toc { margin: 12px 0 18px; }
-.back-to-toc a { font-size: 12px; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.back-to-toc a {
+  font-size: 12px;
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+}
 .back-to-toc a:hover { text-decoration: underline; }
 
-/* Link styling for dark background */
-.manual a, .manual-toc a, #manualBody a {
-  color: tan;
-}
-.manual a:hover, .manual-toc a:hover, #manualBody a:hover {
-  color: khaki;
+/* ================================
+   Manual Color System
+   ================================ */
+:root {
+  --manual-heading: #8ecbff;   /* light blue */
+  --manual-subhead: #b6dcff;
+  --manual-accent: #ffd27d;    /* tan / highlight */
+  --manual-note: #9fd3a6;      /* green */
+  --manual-warning: #ff9a9a;   /* red */
+  --manual-muted: #a9b6c8;
 }
 
-/* Inline Back to TOC next to headings */
-h3, h4 {
+/* ================================
+   Headings
+   ================================ */
+.manual h1,
+.manual h2,
+.manual h3,
+.manual h4,
+.manual h5 {
+  color: var(--manual-heading);
+  font-weight: 700;
+}
+
+.manual h4,
+.manual h5 {
+  color: var(--manual-subhead);
+}
+
+/* Inline Back-to-TOC layout (SCOPED) */
+.manual h3,
+.manual h4 {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
 }
+
 .heading-toc-link a {
   font-size: 0.8em;
-  color: tan;
+  color: var(--manual-accent);
   text-decoration: none;
 }
 .heading-toc-link a:hover {
-  color: khaki;
   text-decoration: underline;
 }
 
-/* Page-width constraint for readability (approx 8.5 x 11) */
+/* ================================
+   Links
+   ================================ */
+.manual a,
+.manual-toc a,
+#manualBody a {
+  color: var(--manual-accent);
+}
+.manual a:hover,
+.manual-toc a:hover,
+#manualBody a:hover {
+  color: khaki;
+}
+
+/* ================================
+   Emphasis Utilities (use in text)
+   ================================ */
+.manual .term {
+  color: var(--manual-accent);
+  font-weight: 600;
+}
+
+.manual .note-inline {
+  color: var(--manual-note);
+  font-weight: 600;
+}
+
+.manual .warning-inline {
+  color: var(--manual-warning);
+  font-weight: 700;
+}
+
+.manual .muted {
+  color: var(--manual-muted);
+  font-size: 0.95em;
+}
+
+/* ================================
+   Accessibility / Anchor Helpers
+   ================================ */
+/* Use for hidden anchors like Table of Contents */
+.manual .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ================================
+   Page Width (8.5 x 11 feel)
+   ================================ */
 .manual {
   max-width: 850px;
   margin-left: auto;
@@ -41,16 +133,17 @@ h3, h4 {
   padding: 0 24px;
 }
 </style>
+
 <div class="manual-top">
 <h1 id="deficiency-flow-diagram-manual">Deficiency Flow Diagram Manual</h1>
 <div class="manual-meta">Front Matter (REV 2)</div>
 </div><div class="manual-toc"><a id="toc"></a><h2>Table of Contents</h2><ul><li><a href="#deficiency-flow-diagram-manual">Deficiency Flow Diagram Manual</a><ul><li><a href="#table-of-contents">Table of Contents</a><ul><li><a href="#1-1-introduction">1-1 Introduction</a><ul><li><a href="#1-1-1-flow-diagrams">1-1.1 Flow Diagrams</a></li><li><a href="#1-1-2-definitions">1-1.2 Definitions</a></li><li><a href="#1-1-3-notes-in-this-document">1-1.3 Notes in this document</a></li></ul></li><li><a href="#1-2-deficiency-analysis-process">1-2 Deficiency Analysis Process</a><ul><li><a href="#1-2-1-classification">1-2.1 Classification</a><ul><li><a href="#1-2-1-1-recommendation">1-2.1.1 Recommendation</a></li></ul></li><li><a href="#figure-1-2-1-sample-recommendation">Figure 1-2 .1 Sample Recommendation</a><ul><li><a href="#1-2-1-2-support-system">1-2.1.2 Support System</a></li><li><a href="#1-2-1-3-operational-consideration">1-2.1.3 Operational Consideration</a></li></ul></li><li><a href="#figure-1-2-2-sample-operational-consideration-opcon">Figure 1-2 .2 Sample Operational Consideration (OPCON)</a><ul><li><a href="#1-2-1-4-tactical-consideration">1-2.1.4 Tactical Consideration</a></li></ul></li><li><a href="#figure-1-2-3-sample-tactical-consideration-tacon">Figure 1-2 .3 Sample Tactical Consideration (TACON)</a><ul><li><a href="#1-2-1-5-deficiency-classification-flow-diagram">1-2.1.5 Deficiency Classification Flow Diagram</a></li></ul></li><li><a href="#1-2-2-failure-type">1-2.2 Failure Type</a><ul><li><a href="#1-2-2-1-failure-type-flow-diagram">1-2.2.1 Failure Type Flow Diagram</a></li></ul></li><li><a href="#1-2-3-severity-assessment">1-2.3 Severity Assessment</a><ul><li><a href="#1-2-3-1-qualitative-baseline-flow-diagram">1-2.3.1 Qualitative Baseline Flow Diagram</a></li><li><a href="#1-2-3-2-quantitative-baseline-flow-diagram">1-2.3.2 Quantitative Baseline Flow Diagram</a></li><li><a href="#1-2-3-3-support-equipment-baseline-flow-diagram">1-2.3.3 Support Equipment Baseline Flow Diagram</a></li></ul></li><li><a href="#1-2-4-deficiency-roll-up">1-2.4 Deficiency Roll-up</a></li><li><a href="#1-2-5-binning-deficiencies">1-2.5 Binning Deficiencies</a></li></ul></li><li><a href="#2-1-deficiency-roll-up">2-1 Deficiency Roll-up</a><ul><li><a href="#2-1-1-deficiency-roll-up-numbering">2-1.1 Deficiency Roll-up Numbering</a></li><li><a href="#figure-2-1-1">Figure 2-1.1 Sample Blue Sheet Roll-Up Paragraph 1</a></li><li><a href="#figure-2-1-3">Figure 2-1.3 Sample Blue Sheet Roll-Up Paragraph 3</a></li><li><a href="#figure-2-1-4">Figure 2-1.4 Sample Blue Sheet Roll-Up Paragraph 4</a></li><li><a href="#figure-2-1-5">Figure 2-1.5 Sample Blue Sheet Roll-Up Paragraph 5</a></li><li><a href="#figure-2-1-2">Figure 2-1.2 Sample Blue Sheet Roll-up Paragraph 2</a></li><li><a href="#figure-2-1-3">Figure 2-1.3 Sample Blue Sheet Roll-up Paragraph 3</a></li><li><a href="#figure-2-1-4">Figure 2-1.4 Sample Blue Sheet Roll-up Paragraph 4</a></li><li><a href="#figure-2-1-5">Figure 2-1.5 Sample Blue Sheet Roll-up Paragraph 5</a></li></ul></li></ul></li></ul></li></ul></div>
-<p>Proposed</p>
-<p>Revision 2</p>
-<p>Clinton Hargraves</p>
-<p>Hargraves_clinton@bah.com</p>
-<p>(757)634-4430 (c)</p>
 <h2 id="table-of-contents">Table of Contents</h2>
+<p class="muted">Proposed</p>
+<p class="muted">Revision 2</p>
+<p class="muted">Clinton Hargraves</p>
+<p class="muted">Hargraves_clinton@bah.com</p>
+<p class="muted">(757)634-4430 (c)</p>
 <h3 id="1-1-introduction"><span class="heading-text">1-1 Introduction</span><span class="heading-toc-link"><a href="#toc">Back to TOC</a></span></h3>
 <p>This document is comprised of five flow diagrams designed to help the test team determine how to handle an observed deficiency.   In simple terms, a deficiency is anything observed that prevents or delays the operator/maintainer in performing the operation and or maintenance of the System Under Test (SUT).</p>
 <p>The deficiency may result in a recommendation, Operational Consideration (OPCON), Tactical Consideration (TACON), Blue Sheet (SUT Deficiency), Gold Sheet (System of System (SoS)  Deficiency), and or an Operational Notation (OPNOTE) within the Commander's Report.</p>
