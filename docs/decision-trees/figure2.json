@@ -33,7 +33,7 @@
       "title": "SUT Type",
       "question": "Is the System Under test a Stand alone SUT or is it a networked or multi-node SUT? (Note 2)",
       "choices": {
-      "standalone": "F2_CONNECTOR_E",
+      "standalone": "F2_Q_PROBLEM_STOP_SYSTEM",
       "networked_multi_node": "F2_Q_NETWORK_STOP_OPERATING"
      }
 
@@ -53,7 +53,7 @@
       "question": "Did the whole network or multi-node system stop operating?",
       "choices": {
         "yes": "F2_Q_STOP_PREVENT_MISSION",
-        "no": "F2_CONNECTOR_F"
+        "no": "F2_Q_ENOUGH_INFO_BLUE_SHEET_S2"
       }
     },
 
@@ -103,7 +103,7 @@
         "appendTraceTags": ["failure-type:failure-non-omf", "action:generate-blue-sheet", "action:annotate-results-paragraph", "action:include-reliability-availability-tables", "note:3"]
       },
       "body": "Treat as a Failure.\n(Generate Blue Sheet)\nNote 3\n\nAnnotate the conditions and results of the Failure in the results paragraph located in the Data Analysis Report.\n\nInclude in data tables for Reliability and Availability Computations.",
-      "next": "F2_CONNECTOR_G"
+      "next": "F2_Q_CAN_QUANT_BASELINE"
     },
 
     "F2_ACTION_OMF_BLUE_SHEET": {
@@ -114,7 +114,7 @@
         "appendTraceTags": ["failure-type:omf", "action:generate-blue-sheet", "action:annotate-results-paragraph", "action:include-reliability-availability-tables"]
       },
       "body": "Treat as an Operational Mission Failure.\n(Generate Blue Sheet)\n\nAnnotate the conditions and results of the Failure in the results paragraph located in the Data Analysis Report.\n\nInclude in data tables for Reliability and Availability Computations.",
-      "next": "F2_CONNECTOR_G"
+      "next": "F2_Q_CAN_QUANT_BASELINE"
     },
 
     "F2_CONNECTOR_E": {
