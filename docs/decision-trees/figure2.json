@@ -24,7 +24,7 @@
     "F2_INFO_NOTE1_MISSION_DEFINITION": {
       "type": "info",
       "title": "Ensure the SUT Mission is clearly defined (Note 1)",
-      "body": "Ensure the SUT Mission is clearly defined.\n\nNOTE 1: SUT MISSION DETERMINATION\n1. Identify the mission of the System Under Test. (The mission will normally be the primary COI identified when the Integrated Evaluation Framework was generated).\n2. Identify the sub-tasks (sub-missions) that must work to ensure the primary mission can be accomplished.\n3. Identify the areas, components, actions, and events that make the sub-task accomplishment possible.\n\nSome COIs are supportive; when assessing mission effects, analyze both the primary mission and supported mission(s) to determine whether there is an Operational Mission Failure.",
+      "body": "Ensure the SUT Mission is clearly defined.\n\nNOTE 1: SUT MISSION DETERMINATION\n1. Identify the mission of the System Under Test. \n2. Identify the sub-tasks (sub-missions) that must work to ensure the primary mission can be accomplished.\n3. Identify the areas, components, actions, and events that make the sub-task accomplishment possible.\n\nSome COIs are supportive; when assessing mission effects, analyze both the primary mission and supported mission(s) to determine whether there is an Operational Mission Failure.",
       "next": "F2_INFO_NOTE2_SYSTEM_TYPES"
     },
 
