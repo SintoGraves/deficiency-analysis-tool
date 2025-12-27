@@ -56,10 +56,6 @@
       "next": "F3_S1_Q_MISSION_CANNOT_EXECUTE_IPR"
     },
 
-    /* =========================
-       STEP 1 — NEW PATH
-       ========================= */
-
     "F3_S1_Q_MISSION_CANNOT_EXECUTE_NEW": {
       "type": "decision",
       "title": "Mission Cannot Be Executed (NEW)",
@@ -182,10 +178,6 @@
       "outcome": { "qualImpactLevel": "as-set", "nextPlannedStep": "step2" },
       "body": "Step 1 impact classification is complete (NEW path). Step 2 will determine the initial deficiency severity rating."
     },
-
-    /* =========================
-       STEP 1 — IPR PATH
-       ========================= */
 
     "F3_S1_Q_MISSION_CANNOT_EXECUTE_IPR": {
       "type": "decision",
