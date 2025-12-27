@@ -29,7 +29,7 @@
       "title": "Capability Context",
       "question": "Is the System Under Test a new capability for the fleet? (A capability that is not replacing an existing less capable capability?)",
       "choices": {
-        "yes": "F3_S0_INFO_NEW_CAPABILITY",
+        "yes": "F3_S1_Q_MISSION_CANNOT_EXECUTE",
         "no": "F3_S0_INFO_IMPROVED_CAPABILITY"
       }
     },
@@ -59,7 +59,7 @@
     "F3_S1_Q_MISSION_CANNOT_EXECUTE": {
       "type": "decision",
       "title": "Mission Cannot Be Executed",
-      "question": "The mission cannot be executed or the mission must be aborted before reaching successful conclusion.",
+      "question": "The mission cannot be executed or the mission must be aborted before reaching successful conclusion. (Note 4)",
       "choices": {
         "yes": "F3_S1_IMPACT_SEVERE",
         "no": "F3_S1_Q_REQUIRES_WORKAROUND"
@@ -80,7 +80,7 @@
     "F3_S1_Q_REQUIRES_WORKAROUND": {
       "type": "decision",
       "title": "Workaround Required",
-      "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion.",
+      "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion. (Note 5)",
       "choices": {
         "yes": "F3_S1_IMPACT_CRITICAL",
         "no": "F3_S1_Q_MISSION_TAKES_LONGER"
@@ -101,7 +101,7 @@
     "F3_S1_Q_MISSION_TAKES_LONGER": {
       "type": "decision",
       "title": "Mission Takes Longer Than Planned",
-      "question": "The mission can be executed, but expected mission completion time is delayed.",
+      "question": "The mission can be executed, but expected mission completion time is delayed. (Note 7)",
       "choices": {
         "yes": "F3_S1_IMPACT_SERIOUS",
         "no": "F3_S1_Q_PLANNING_DELAY_START_DELAY"
@@ -122,7 +122,7 @@
     "F3_S1_Q_PLANNING_DELAY_START_DELAY": {
       "type": "decision",
       "title": "Planning Delay With Start Delay",
-      "question": "Planning for the mission is delayed causing a delay in mission execution, but the mission can be successfully completed.",
+      "question": "Planning for the mission is delayed causing a delay in mission execution, but the mission can be successfully completed. (Note 8)",
       "choices": {
         "yes": "F3_S1_IMPACT_MODERATE",
         "no": "F3_S1_Q_PLANNING_DELAY_NO_START_DELAY"
@@ -143,16 +143,16 @@
     "F3_S1_Q_PLANNING_DELAY_NO_START_DELAY": {
       "type": "decision",
       "title": "Planning Delay Without Start Delay",
-      "question": "Planning for the mission is delayed, but the mission can be executed on time, and reach its successful conclusion.",
+      "question": "Planning for the mission is delayed, but the mission can be executed on time, and reach its successful conclusion. (Note 9)",
       "choices": {
-        "yes": "F3_S1_IMPACT_NONE",
-        "no": "F3_S1_IMPACT_NONE"
+        "yes": "F3_S1_IMPACT_MINOR",
+        "no": "F3_S1_IMPACT_MINOR"
       }
     },
 
-    "F3_S1_IMPACT_NONE": {
+    "F3_S1_IMPACT_MINOR": {
       "type": "info",
-      "title": "No Impact",
+      "title": "Minor Impact",
       "effects": {
         "set": { "qualImpactLevel": "none" },
         "appendTraceTags": ["f3:step1:impact=none", "note:9"]
