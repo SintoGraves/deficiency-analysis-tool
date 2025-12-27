@@ -60,7 +60,7 @@
       "type": "decision",
       "title": "Mission Cannot Be Executed (NEW)",
       "question": "The mission cannot be executed or the mission must be aborted before reaching successful conclusion.",
-      "notes": "Note 4: Use this path when the mission cannot be executed at all, or when the mission must be aborted before successful conclusion due to the deficiency.",
+      "note": "Note 4: Use this path when the mission cannot be executed at all, or when the mission must be aborted before successful conclusion due to the deficiency.",
       "choices": {
         "yes": "F3_S1_IMPACT_SEVERE_NEW",
         "no": "F3_S1_Q_REQUIRES_WORKAROUND_NEW"
@@ -82,7 +82,7 @@
       "type": "decision",
       "title": "Workaround Required (NEW)",
       "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion.",
-      "notes": "Note 5/6: Select YES when a workaround is required to successfully conclude the mission. A workaround is not part of the intended system operation and may impose additional operator actions, procedures, or burden.",
+      "note": "Note 5/6: Select YES when a workaround is required to successfully conclude the mission. A workaround is not part of the intended system operation and may impose additional operator actions, procedures, or burden.",
       "choices": {
         "yes": "F3_S1_IMPACT_CRITICAL_NEW",
         "no": "F3_S1_Q_MISSION_TAKES_LONGER_NEW"
@@ -104,7 +104,7 @@
       "type": "decision",
       "title": "Mission Takes Longer Than Planned (NEW)",
       "question": "The mission can be executed, but expected mission completion time is delayed.",
-      "notes": "Note 7: Select YES when mission execution completes successfully but the completion time is delayed relative to the planned/expected completion time.",
+      "note": "Note 7: Select YES when mission execution completes successfully but the completion time is delayed relative to the planned/expected completion time.",
       "choices": {
         "yes": "F3_S1_IMPACT_SERIOUS_NEW",
         "no": "F3_S1_Q_PLANNING_DELAY_START_DELAY_NEW"
@@ -126,7 +126,7 @@
       "type": "decision",
       "title": "Planning Delay With Start Delay (NEW)",
       "question": "Planning for the mission is delayed causing a delay in mission execution, but the mission can be successfully completed.",
-      "notes": "Note 8: Select YES when mission planning/preparation delays cause a delay in mission start/execution, but the mission remains executable and can be successfully completed.",
+      "note": "Note 8: Select YES when mission planning/preparation delays cause a delay in mission start/execution, but the mission remains executable and can be successfully completed.",
       "choices": {
         "yes": "F3_S1_IMPACT_MODERATE_NEW",
         "no": "F3_S1_INFO_PLANNING_DELAY_NO_START_DELAY_NEW"
@@ -149,7 +149,7 @@
       "title": "Planning Delay Without Start Delay (NEW)",
       "effects": { "appendTraceTags": ["f3:path=new", "note:9"] },
       "body": "Planning for the mission is delayed, but the mission can be executed on time, and reach its successful conclusion.",
-      "notes": "Note 9: Select this path when planning/preparation is delayed but does not delay mission start time and does not prevent successful mission conclusion.",
+      "note": "Note 9: Select this path when planning/preparation is delayed but does not delay mission start time and does not prevent successful mission conclusion.",
       "next": "F3_S1_IMPACT_NONE_NEW"
     },
 
@@ -183,7 +183,7 @@
       "type": "decision",
       "title": "Mission Cannot Be Executed (IPR)",
       "question": "The mission cannot be executed or the mission must be aborted before reaching successful conclusion.",
-      "notes": "Note 4: Use this path when the mission cannot be executed at all, or when the mission must be aborted before successful conclusion due to the deficiency.",
+      "note": "Note 4: Use this path when the mission cannot be executed at all, or when the mission must be aborted before successful conclusion due to the deficiency.",
       "choices": {
         "yes": "F3_S1_IMPACT_SEVERE_IPR",
         "no": "F3_S1_Q_REQUIRES_WORKAROUND_IPR"
@@ -205,7 +205,7 @@
       "type": "decision",
       "title": "Workaround Required (IPR)",
       "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion.",
-      "notes": "Note 5/6: Select YES when a workaround is required to successfully conclude the mission. A workaround is not part of the intended system operation and may impose additional operator actions, procedures, or burden.",
+      "note": "Note 5/6: Select YES when a workaround is required to successfully conclude the mission. A workaround is not part of the intended system operation and may impose additional operator actions, procedures, or burden.",
       "choices": {
         "yes": "F3_S1_IMPACT_CRITICAL_IPR",
         "no": "F3_S1_Q_MISSION_TAKES_LONGER_IPR"
@@ -227,7 +227,7 @@
       "type": "decision",
       "title": "Mission Takes Longer Than Planned (IPR)",
       "question": "The mission can be executed, but expected mission completion time is delayed.",
-      "notes": "Note 7: Select YES when mission execution completes successfully but the completion time is delayed relative to the planned/expected completion time.",
+      "note": "Note 7: Select YES when mission execution completes successfully but the completion time is delayed relative to the planned/expected completion time.",
       "choices": {
         "yes": "F3_S1_IMPACT_SERIOUS_IPR",
         "no": "F3_S1_Q_PLANNING_DELAY_START_DELAY_IPR"
@@ -249,7 +249,7 @@
       "type": "decision",
       "title": "Planning Delay With Start Delay (IPR)",
       "question": "Planning for the mission is delayed causing a delay in mission execution, but the mission can be successfully completed.",
-      "notes": "Note 8: Select YES when mission planning/preparation delays cause a delay in mission start/execution, but the mission remains executable and can be successfully completed.",
+      "note": "Note 8: Select YES when mission planning/preparation delays cause a delay in mission start/execution, but the mission remains executable and can be successfully completed.",
       "choices": {
         "yes": "F3_S1_IMPACT_MODERATE_IPR",
         "no": "F3_S1_INFO_PLANNING_DELAY_NO_START_DELAY_IPR"
@@ -272,7 +272,7 @@
       "title": "Planning Delay Without Start Delay (IPR)",
       "effects": { "appendTraceTags": ["f3:path=ipr", "note:9"] },
       "body": "Planning for the mission is delayed, but the mission can be executed on time, and reach its successful conclusion.",
-      "notes": "Note 9: Select this path when planning/preparation is delayed but does not delay mission start time and does not prevent successful mission conclusion.",
+      "note": "Note 9: Select this path when planning/preparation is delayed but does not delay mission start time and does not prevent successful mission conclusion.",
       "next": "F3_S1_IMPACT_NONE_IPR"
     },
 
