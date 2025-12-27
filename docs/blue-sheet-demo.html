@@ -1,3 +1,6 @@
+<!-- File: /docs/demo.html  (or /docs/blue-sheet-demo.html if you prefer)
+     Option A implemented: numeric selects + built-in definitions shown inline.
+-->
 <!doctype html>
 <html lang="en">
 <head>
@@ -33,6 +36,19 @@
     }
     button.primary { background: #111; color: #fff; border-color: #111; }
     .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.35; }
+
+    /* Built-in definition display */
+    .risk-def {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafafa;
+      font-size: 12px;
+      color: rgba(0,0,0,.75);
+      line-height: 1.35;
+    }
+    .risk-def strong { display: inline-block; margin-bottom: 6px; }
 
     /* Preview */
     .preview { font-family: "Times New Roman", Times, serif; }
@@ -145,7 +161,14 @@
         </div>
       </div>
 
-      <div class="row">
+      <!-- Option A: Inline definitions -->
+      <div class="risk-def" id="riskHelp">
+        <strong>Selected Risk Definitions (Built-in)</strong><br />
+        <span id="riskCText"></span><br />
+        <span id="riskLText"></span>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
         <div>
           <label for="coiPrimary">Primary COI</label>
           <input id="coiPrimary" placeholder="S-7, Training / Supportability" />
@@ -281,7 +304,35 @@ The data indicated that routine maintenance actions, while infrequent, resulted 
     }
   };
 
+  // --- Risk matrix definitions (Built-in demo scale) ---
+  const RISK_DEFS = {
+    consequence: {
+      1: "Consequence 1 (Insignificant): Minimal impact; no meaningful disruption; no workaround required.",
+      2: "Consequence 2 (Minor): Small impact; brief disruption; simple workaround available.",
+      3: "Consequence 3 (Moderate): Noticeable impact; delays or rework required; workaround increases workload.",
+      4: "Consequence 4 (Major): Significant operational impact; mission thread degraded; frequent workarounds required.",
+      5: "Consequence 5 (Catastrophic): Mission thread cannot be completed or failure causes severe loss of capability."
+    },
+    likelihood: {
+      1: "Likelihood 1 (Rare): Not expected; exceptional circumstances only.",
+      2: "Likelihood 2 (Unlikely): Could occur but not expected in normal operations.",
+      3: "Likelihood 3 (Possible): Might occur sometimes; observed intermittently.",
+      4: "Likelihood 4 (Likely): Expected to occur often under normal conditions.",
+      5: "Likelihood 5 (Almost Certain): Expected to occur frequently or repeatedly."
+    }
+  };
+
+  function updateRiskHelp() {
+    const c = String($("riskC")?.value || "");
+    const l = String($("riskL")?.value || "");
+    const cEl = $("riskCText");
+    const lEl = $("riskLText");
+    if (cEl) cEl.textContent = RISK_DEFS.consequence[c] || "";
+    if (lEl) lEl.textContent = RISK_DEFS.likelihood[l] || "";
+  }
+
   // ---- Read sample from query string (demo only) ----
+  // Supported: ?sample=sample1 or ?sample=sample2
   const params = new URLSearchParams(window.location.search);
   const sample = params.get("sample");
   if (sample && (sample === "sample1" || sample === "sample2")) {
@@ -300,13 +351,13 @@ The data indicated that routine maintenance actions, while infrequent, resulted 
 
   function setForm(data) {
     fields.forEach(k => {
-      if (data[k] !== undefined) $(k).value = data[k];
+      if (data[k] !== undefined && $(k)) $(k).value = data[k];
     });
   }
 
   function getForm() {
     const d = {};
-    fields.forEach(k => d[k] = $(k).value.trim());
+    fields.forEach(k => d[k] = ($(k)?.value || "").trim());
     return d;
   }
 
@@ -375,39 +426,55 @@ The data indicated that routine maintenance actions, while infrequent, resulted 
 
   // --- Behavior ---
   function loadSelectedSample() {
-    const key = $("sampleSelect").value;
+    const key = $("sampleSelect")?.value;
+    if (!key) return;
     if (key === "custom") return; // do not overwrite
     setForm(samples[key]);
+    updateRiskHelp();
   }
 
   function generate() {
     const d = getForm();
-    $("previewHost").innerHTML = renderPreview(d);
+    const host = $("previewHost");
+    if (host) host.innerHTML = renderPreview(d);
   }
 
-  $("sampleSelect").addEventListener("change", () => {
+  // Event wiring
+  $("sampleSelect")?.addEventListener("change", () => {
     loadSelectedSample();
     generate();
   });
 
-  $("btnGenerate").addEventListener("click", (e) => {
-    e.preventDefault();
+  $("riskC")?.addEventListener("change", () => {
+    updateRiskHelp();
     generate();
   });
 
-  $("btnReset").addEventListener("click", (e) => {
+  $("riskL")?.addEventListener("change", () => {
+    updateRiskHelp();
+    generate();
+  });
+
+  $("btnGenerate")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    updateRiskHelp();
+    generate();
+  });
+
+  $("btnReset")?.addEventListener("click", (e) => {
     e.preventDefault();
     loadSelectedSample();
     generate();
   });
 
-  $("btnPrint").addEventListener("click", (e) => {
+  $("btnPrint")?.addEventListener("click", (e) => {
     e.preventDefault();
     window.print();
   });
 
-  // Initialize
+  // Initialize (order matters)
   loadSelectedSample();
+  updateRiskHelp();
   generate();
 })();
 </script>
