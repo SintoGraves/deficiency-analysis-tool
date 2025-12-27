@@ -622,71 +622,161 @@
       return "M";
     }
 
-    /* ============================================================
-       SUBSECTION: DEMO GUIDANCE + EXAMPLE TEXT (MFD / LCAC)
-       - Pink italics are “instructions”
-       - Black text is the example context
-       - This content disappears on Generate Preview
-       ============================================================ */
-    const GUIDANCE = {
-      mfd: {
-        sutName: "Network Multifunction Device (MFD) — Office Copier/Printer/Scanner (Network + USB)",
-        p1: {
-          g: "State the issue in one sentence using past tense. Only address one issue per sheet. Do not include operational impact in Paragraph 1.",
-          x: "The Network Multifunction Device (MFD) experienced intermittent failures to complete Scan-to-Network jobs to approved network destinations during operational use."
-        },
-        p2: {
-          g: "Establish the test conditions (what vignette/mission/task was being performed), present the data/results, then analyze/evaluate the data, all in past tense. Include any workaround and its impact.",
-          x:
+/* ============================================================
+   SUBSECTION: DEMO GUIDANCE + EXAMPLE TEXT (MFD / LCAC)
+   - Pink italics are “instructions” (expanded, full guidance)
+   - Black text is the example context/sample narrative (unchanged)
+   - This content disappears on Generate Preview
+   ============================================================ */
+const GUIDANCE = {
+  mfd: {
+    sutName: "Network Multifunction Device (MFD) — Office Copier/Printer/Scanner (Network + USB)",
+
+    p1: {
+      g:
+`Paragraph 1, Problem or Issue Description (past tense).
+State the issue. Describe the problem/issue concisely in one sentence using past tense.
+Only address one issue/problem per Blue/Gold Sheet.
+Do not address/include the operational impact in paragraph 1; the operational impact is discussed in paragraph 2 of the Blue/Gold Sheet.
+Be consistent: the same problem statement context/meaning must appear in Paragraph 3 (Mission Relation) and Paragraph 5 (Conclusion).`,
+      x:
+"The Network Multifunction Device (MFD) experienced intermittent failures to complete Scan-to-Network jobs to approved network destinations during operational use."
+    },
+
+    p2: {
+      g:
+`Paragraph 2, Test Conditions, Results, and Analysis (past tense). Paragraph 2 has three parts:
+
+Part 1 — Establish the Test Conditions (past tense):
+Establish the test conditions in one or two sentences and focus on what testing was being conducted when the problem was discovered.
+Describe what vignette, mission, or task/subtask was being performed.
+Use the test plan to frame what was being accomplished.
+State what was being evaluated and how the evaluation was performed, as well as any pertinent conditions that bound the problem and support repeatability.
+The “what” is closely related to the deficiency stated in paragraph 1.
+
+Part 2 — Present Data (past tense):
+Present only data related to the issue. The sheet must stand alone; do not reference the data analysis summary memorandum.
+Pull the specific data/results needed to make the case to the reader.
+Photos, screen shots, figures, and tables with detailed annotation are encouraged.
+When annotating figures/photos/screenshots, use the same wording as in paragraph 2 text to help the reader follow.
+State what data were collected; include quantitative and/or qualitative results.
+Include a description of any work-around (using the SUT) if used by operators to overcome the issue.
+Present the data from a third-person, objective point of view; focus on results, not test method.
+
+Part 3 — Analyze/Evaluate the Data (past tense):
+Analyze/evaluate the data. Use the data and results presented to explain the impact upon the operator, mission, or task/subtask.
+What does the data indicate?
+Evaluation may include comparison to legacy systems.
+Evaluate how any work-around mitigates the issue and the resulting impact on mission accomplishment both before and after the work-around.`,
+      x:
 `The MFD’s ability to print from a networked workstation, scan to approved network destinations, scan to a directly connected workstation, and perform copy operations was assessed during routine office operations over a five-day period using standard user accounts, approved network shares, and mixed document types. During this period, the MFD intermittently failed to complete Scan-to-Network jobs, while Print-from-Network, Scan-to-PC, and Copy functions operated normally.
 
 Scan-to-Network failures occurred in 9 of 50 scan attempts and resulted in job termination with an on-panel error message and no file written to the destination share. In 6 of the 9 failed attempts, users repeated the scan job without modifying settings and achieved successful completion on a subsequent attempt. As a workaround, users performed Scan-to-PC via USB connection and manually transferred files to the network, increasing task steps and time to completion.
 
 The data indicated that the MFD’s Scan-to-Network function reliability was inconsistent under normal operational loads. While a workaround existed, the workaround increased user workload, introduced additional opportunities for error, and reduced confidence that scanned products were reliably captured and distributed.`
-        },
-        p3: {
-          g: "Mission relation (“so what”) appears in Paragraph 3 and must build on Paragraph 2. Use future tense and normally 1–2 sentences.",
-          x: "During routine administrative document processing, intermittent Scan-to-Network failures will delay dissemination of scanned products and increase the likelihood of incomplete or misrouted documentation, resulting in degraded office workflow and delayed completion of time-sensitive administrative actions."
-        },
-        p4: {
-          g: "Mitigation assessment in present tense. Address likelihood of correction/mitigation prior to the next relevant test window.",
-          x: "Based on coordination with the system administrator and vendor support, the technical solution is being investigated and is believed to involve network authentication handling and destination share configuration during Scan-to-Network operations. Proposed mitigation actions include firmware updates, standardized destination configurations, and service account policy alignment. Limited time is available prior to the next operational demonstration to fully validate a permanent fix. It is assessed there is a moderate possibility Scan-to-Network reliability will not be fully corrected prior to the next test event."
-        },
-        p5: {
-          g: "Conclusion uses present tense and should restate the problem consistently. It should express the risk/deficiency level or closure status.",
-          x: "The MFD’s intermittent failures to complete Scan-to-Network jobs are of moderate consequence and moderate likelihood to occur. Additionally, there is a moderate possibility the failures will not be corrected or substantially mitigated prior to the next operational demonstration event. If this risk is unmitigated, it will potentially be a Major 3 deficiency."
-        }
-      },
+    },
 
-      lcac: {
-        sutName: "Landing Craft Air Cushion (LCAC) — Demonstration Alternate Example",
-        p1: {
-          g: "State the issue in one sentence using past tense. Only address one issue per sheet. Do not include operational impact in Paragraph 1.",
-          x: "The LCAC experienced intermittent loss of navigation display updates during high-vibration operations."
-        },
-        p2: {
-          g: "Establish the test conditions, present the data/results, then analyze/evaluate the data, all in past tense. Include any workaround and its impact.",
-          x:
+    p3: {
+      g:
+`Paragraph 3, Mission Relation (future tense).
+This is the “so what.”
+Paragraph 3 must build upon the data, results, analysis, and evaluation presented in paragraph 2.
+Describe the impact to the Fleet, operator, or mission of the problem described in paragraph 1.
+Ensure the problem is included in the mission relation and stated in the same context/meaning as paragraph 1.
+Present the mission relation paragraph in future tense.
+Mission relation should normally be no more than one sentence, and rarely over two sentences.
+A boilerplate for mission relation is typically provided in report templates and its use is strongly encouraged.`,
+      x:
+"During routine administrative document processing, intermittent Scan-to-Network failures will delay dissemination of scanned products and increase the likelihood of incomplete or misrouted documentation, resulting in degraded office workflow and delayed completion of time-sensitive administrative actions."
+    },
+
+    p4: {
+      g:
+`Paragraph 4, Mitigation Assessment (present tense).
+Describe mitigation actions, their status, and the assessed likelihood the issue will be corrected or sufficiently mitigated prior to the next relevant test window.
+Focus on current mitigations, planned mitigations, and the realistic schedule/constraints that affect whether mitigation will be in place when needed.`,
+      x:
+"Based on coordination with the system administrator and vendor support, the technical solution is being investigated and is believed to involve network authentication handling and destination share configuration during Scan-to-Network operations. Proposed mitigation actions include firmware updates, standardized destination configurations, and service account policy alignment. Limited time is available prior to the next operational demonstration to fully validate a permanent fix. It is assessed there is a moderate possibility Scan-to-Network reliability will not be fully corrected prior to the next test event."
+    },
+
+    p5: {
+      g:
+`Paragraph 5, Conclusion (present tense).
+The conclusion is typically one simple sentence where the subject is the problem and the predicate is the level of the risk or deficiency (Severe, Major 1, 2, 3, or Minor).
+Ensure the problem is restated in the same context as in paragraph 1 (and consistent with paragraph 3).
+For revised sheets where the level has been mitigated/elevated, state the updated deficiency level.
+For issues verified corrected, state the issue was corrected and the risk/deficiency is closed.
+For issues administratively closed, state the issue is administratively closed.`,
+      x:
+"The MFD’s intermittent failures to complete Scan-to-Network jobs are of moderate consequence and moderate likelihood to occur. Additionally, there is a moderate possibility the failures will not be corrected or substantially mitigated prior to the next operational demonstration event. If this risk is unmitigated, it will potentially be a Major 3 deficiency."
+    }
+  },
+
+  lcac: {
+    sutName: "Landing Craft Air Cushion (LCAC) — Demonstration Alternate Example",
+
+    p1: {
+      g:
+`Paragraph 1, Problem or Issue Description (past tense).
+State the issue in one sentence using past tense.
+Only address one issue/problem per sheet.
+Do not include operational impact in paragraph 1; impact belongs in paragraph 2.
+Be consistent across Paragraph 1, Paragraph 3, and Paragraph 5 when describing the problem.`,
+      x:
+"The LCAC experienced intermittent loss of navigation display updates during high-vibration operations."
+    },
+
+    p2: {
+      g:
+`Paragraph 2, Test Conditions, Results, and Analysis (past tense). Paragraph 2 has three parts:
+
+Part 1 — Establish the Test Conditions (past tense):
+Describe what mission/task/subtask was being performed and what conditions bound the problem for repeatability.
+
+Part 2 — Present Data (past tense):
+Present only data related to the issue. The sheet stands alone; do not reference other memoranda.
+Include qualitative/quantitative results and any operator workaround.
+
+Part 3 — Analyze/Evaluate the Data (past tense):
+Explain what the data indicate and how it impacts the operator/mission.
+Evaluate effectiveness and mission impact of any workaround both before/after application.`,
+      x:
 `The LCAC’s navigation subsystem was assessed during a mission profile including transit, approach, and beaching evolutions in Sea State 3 conditions. During multiple high-vibration segments, the navigation display intermittently stopped updating position and heading data while other bridge systems remained operational.
 
 Navigation display update loss occurred in 3 of 12 high-vibration segments and required the operator to cycle display power to restore updates. As a workaround, the crew relied on alternate instruments and verbal cross-checks, increasing workload and slowing maneuver decision-making.
 
 The data indicated the navigation display update reliability was inconsistent under expected environmental conditions and increased reliance on procedural mitigations, which elevated crew workload and reduced margin for error during maneuvering.`
-        },
-        p3: {
-          g: "Mission relation (“so what”) uses future tense and builds on Paragraph 2. Normally 1–2 sentences.",
-          x: "During high-demand maneuvering, intermittent loss of navigation display updates will increase crew workload and delay corrective action, resulting in degraded navigation safety and reduced confidence in maneuver execution."
-        },
-        p4: {
-          g: "Mitigation assessment in present tense. Address the likelihood the issue will be corrected prior to the next window.",
-          x: "The vendor and maintenance activity are evaluating display update loss conditions and potential wiring and mounting improvements. Interim mitigations include procedural cross-checks and pre-mission verification of connectors. It is assessed there is a moderate possibility the display update loss will not be fully corrected prior to the next operational event."
-        },
-        p5: {
-          g: "Conclusion uses present tense and restates the problem consistently; states the risk/deficiency level or closure status.",
-          x: "The LCAC’s intermittent loss of navigation display updates is of moderate consequence and low to moderate likelihood to occur. Additionally, there is a moderate possibility the issue will not be corrected prior to the next operational event. If unmitigated, the risk will potentially be categorized as a Major 3 deficiency."
-        }
-      }
-    };
+    },
+
+    p3: {
+      g:
+`Paragraph 3, Mission Relation (future tense).
+Build directly on paragraph 2 results/analysis.
+Include the problem in the same context/meaning as paragraph 1.
+Use future tense; normally 1–2 sentences.`,
+      x:
+"During high-demand maneuvering, intermittent loss of navigation display updates will increase crew workload and delay corrective action, resulting in degraded navigation safety and reduced confidence in maneuver execution."
+    },
+
+    p4: {
+      g:
+`Paragraph 4, Mitigation Assessment (present tense).
+Describe what mitigation is being done now, what is planned, and the realistic likelihood it will be corrected or mitigated prior to the next relevant test window.`,
+      x:
+"The vendor and maintenance activity are evaluating display update loss conditions and potential wiring and mounting improvements. Interim mitigations include procedural cross-checks and pre-mission verification of connectors. It is assessed there is a moderate possibility the display update loss will not be fully corrected prior to the next operational event."
+    },
+
+    p5: {
+      g:
+`Paragraph 5, Conclusion (present tense).
+Restate the problem consistently with paragraph 1 and 3.
+State the level of risk/deficiency or closure status (corrected/closed/administratively closed).`,
+      x:
+"The LCAC’s intermittent loss of navigation display updates is of moderate consequence and low to moderate likelihood to occur. Additionally, there is a moderate possibility the issue will not be corrected prior to the next operational event. If unmitigated, the risk will potentially be categorized as a Major 3 deficiency."
+    }
+  }
+};
+
 
     /* ============================================================
        SUBSECTION: FORM FIELD LIST (ALL INPUTS)
