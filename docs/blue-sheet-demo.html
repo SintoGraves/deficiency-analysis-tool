@@ -397,9 +397,17 @@ The data indicated that routine maintenance actions, while infrequent, resulted 
     window.print();
   });
 
-  // Initialize
-  loadSelectedSample();
-  generate();
+// ---- Read sample from query string (demo only) ----
+const params = new URLSearchParams(window.location.search);
+const sample = params.get("sample");
+if (sample && (sample === "sample1" || sample === "sample2")) {
+  const sel = $("sampleSelect");
+  if (sel) sel.value = sample;
+}
+
+// Initialize
+loadSelectedSample();
+generate();
 })();
 </script>
 </body>
