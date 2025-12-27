@@ -312,15 +312,22 @@
     safeOn(elBack, "click", () => engine.back());
 
     safeOn(elGoReport, "click", () => {
-      try {
-        localStorage.setItem("ddt_last_case", JSON.stringify({
-          meta: store.getMeta(),
-          state: store.getState(),
-          trace: store.getTrace()
-        }));
-      } catch (_) {}
-      window.location.href = "./report.html";
-    });
+  // Persist last case (optional, but good for demo credibility later)
+  try {
+    localStorage.setItem("ddt_last_case", JSON.stringify({
+      meta: store.getMeta(),
+      state: store.getState(),
+      trace: store.getTrace()
+    }));
+  } catch (_) {}
+
+  // Demo: route to the deficiency sheet builder page
+  // Map pack -> sample for a "connected" feel without full linkage.
+  const packId = (store.getMeta()?.packId || elPackSelect?.value || "").toLowerCase();
+  const sample = packId.includes("figure2") ? "sample2" : "sample1";
+
+  window.location.href = `./blue-sheet-demo.html?sample=${encodeURIComponent(sample)}`;
+});
 
     // Start default
     await startPack(elPackSelect.value);
