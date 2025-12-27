@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Blue Sheet Builder (Demo)</title>
+  <style>
+    :root { --border: rgba(0,0,0,.12); --muted: rgba(0,0,0,.65); }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; }
+    header { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+    header h1 { margin: 0 0 6px; font-size: 18px; }
+    header p { margin: 0; color: var(--muted); font-size: 13px; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px 18px; }
+    .grid { display: grid; grid-template-columns: 420px 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+    .card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: #fff; }
+    .card h2 { margin: 0 0 10px; font-size: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input, select, textarea {
+      width: 100%; box-sizing: border-box;
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; font-size: 13px; background: #fff;
+    }
+    textarea { min-height: 86px; resize: vertical; }
+    .btnbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    button {
+      border: 1px solid var(--border);
+      background: #f7f7f7; border-radius: 10px;
+      padding: 10px 12px; font-size: 13px; cursor: pointer;
+    }
+    button.primary { background: #111; color: #fff; border-color: #111; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.35; }
+
+    /* Preview */
+    .preview { font-family: "Times New Roman", Times, serif; }
+    .sheet { max-width: 860px; margin: 0 auto; }
+    .topline { text-align: center; font-weight: 700; }
+    .subline { text-align: center; margin-top: 2px; }
+    .meta { display:flex; justify-content: space-between; margin: 10px 0 14px; font-size: 12px; }
+    .sect { margin: 12px 0; }
+    .sect h3 { margin: 0 0 6px; font-size: 14px; }
+    .sect p { margin: 0 0 8px; font-size: 13px; line-height: 1.35; }
+    .mini { font-size: 12px; margin-top: 6px; }
+    .muted { color: rgba(0,0,0,.65); }
+    .hr { border-top: 1px solid var(--border); margin: 12px 0; }
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
+    @media print {
+      header, .left, .btnbar { display: none !important; }
+      .wrap { padding: 0; }
+      .card { border: none; }
+      .sheet { max-width: 100%; }
+      body { margin: 0; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Blue Sheet Builder (Demo)</h1>
+  <p>Demonstration of a structured data-entry workflow generating a 6PP-style Blue Sheet preview.</p>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+    <!-- LEFT: Data entry -->
+    <div class="card left">
+      <h2>Inputs</h2>
+
+      <div class="sect">
+        <label for="sampleSelect">Demo selection</label>
+        <select id="sampleSelect">
+          <option value="sample1">Sample 1 — Scan-to-Network Reliability</option>
+          <option value="sample2">Sample 2 — Maintenance-Driven Downtime</option>
+          <option value="custom">Custom (manual entry)</option>
+        </select>
+        <div class="hint">
+          Use the dropdown to auto-fill realistic data. Select <span class="kbd">Custom</span> to edit freely.
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="row">
+        <div>
+          <label for="tein">TEIN</label>
+          <input id="tein" placeholder="TEIN-DEMO" />
+        </div>
+        <div>
+          <label for="issueNo">Issue #</label>
+          <input id="issueNo" placeholder="001" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="rev">Revision</label>
+          <input id="rev" placeholder="0" />
+        </div>
+        <div>
+          <label for="date">Date (DD Mmm YYYY)</label>
+          <input id="date" placeholder="26 Dec 2025" />
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="sect">
+        <label for="sutName">SUT name</label>
+        <input id="sutName" placeholder="Network Multifunction Device (MFD)" />
+      </div>
+
+      <div class="sect">
+        <label for="p1Problem">1. Problem statement (past tense, one sentence)</label>
+        <textarea id="p1Problem"></textarea>
+      </div>
+
+      <div class="row3">
+        <div>
+          <label for="riskC">Consequence (1–5)</label>
+          <select id="riskC">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div>
+          <label for="riskL">Likelihood (1–5)</label>
+          <select id="riskL">
+            <option value="1">1</option><option value="2">2</option>
+            <option value="3">3</option><option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div>
+          <label for="pmMit">PM mitigation (H/M/L)</label>
+          <select id="pmMit">
+            <option value="High">High</option>
+            <option value="Moderate" selected>Moderate</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="coiPrimary">Primary COI</label>
+          <input id="coiPrimary" placeholder="S-7, Training / Supportability" />
+        </div>
+        <div>
+          <label for="coiOther">Other COI(s)</label>
+          <input id="coiOther" placeholder="C-3, Network Integration" />
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <div class="sect">
+        <label for="p2">2. Test Conditions, Results, and Analysis (past tense)</label>
+        <textarea id="p2"></textarea>
+      </div>
+
+      <div class="sect">
+        <label for="p3">3. Mission Relation (future tense, 1–2 sentences)</label>
+        <textarea id="p3"></textarea>
+      </div>
+
+      <div class="sect">
+        <label for="p4">4. Mitigation Assessment (present tense)</label>
+        <textarea id="p4"></textarea>
+      </div>
+
+      <div class="sect">
+        <label for="p5">5. Conclusion (present tense; 3 sentences preferred)</label>
+        <textarea id="p5"></textarea>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="recommendation">6. Recommendation</label>
+          <select id="recommendation">
+            <option>Correct prior to IOT&amp;E.</option>
+            <option selected>Correct as soon as possible.</option>
+            <option>Correct to achieve full mission capability.</option>
+          </select>
+        </div>
+        <div>
+          <label for="sheetType">Sheet type</label>
+          <select id="sheetType">
+            <option selected>Blue Sheet</option>
+            <option>Gold Sheet (Demo label only)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btnbar">
+        <button class="primary" id="btnGenerate">Generate Preview</button>
+        <button id="btnReset">Reset to Selected Sample</button>
+        <button id="btnPrint">Print</button>
+      </div>
+
+      <div class="hint">
+        Demo intent: show structured data entry producing a standards-shaped product (6PP layout) without full decision-tree linkage.
+      </div>
+    </div>
+
+    <!-- RIGHT: Preview -->
+    <div class="card preview">
+      <h2>Generated Blue Sheet Preview</h2>
+      <div id="previewHost"></div>
+      <div class="hint muted">
+        Note: This is a demo preview layout; final formatting can be aligned to your official Word template in the full build.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  // --- Demo datasets (two samples) ---
+  const samples = {
+    sample1: {
+      tein: "TEIN-DEMO",
+      issueNo: "001",
+      rev: "0",
+      date: "26 Dec 2025",
+      sheetType: "Blue Sheet",
+      sutName: "Network Multifunction Device (MFD)",
+      p1Problem: "The Network Multifunction Device (MFD) experienced intermittent failures to complete Scan-to-Network jobs to approved network destinations during operational use.",
+      riskC: "3",
+      riskL: "3",
+      pmMit: "Moderate",
+      coiPrimary: "S-7, Training / Supportability",
+      coiOther: "C-3, Network Integration",
+      p2:
+`The MFD’s ability to print from a networked workstation, scan to approved network destinations, scan to a directly connected workstation, and perform copy operations was assessed during routine office operations over a five-day period using standard user accounts, approved network shares, and mixed document types. During this period, the MFD intermittently failed to complete Scan-to-Network jobs, while Print-from-Network, Scan-to-PC, and Copy functions operated normally.
+
+Scan-to-Network failures occurred in 9 of 50 scan attempts and resulted in job termination with an on-panel error message and no file written to the destination share. In 6 of the 9 failed attempts, users repeated the scan job without modifying settings and achieved successful completion on a subsequent attempt. As a workaround, users performed Scan-to-PC via USB connection and manually transferred files to the network, increasing task steps and time to completion.
+
+The data indicated that the MFD’s Scan-to-Network function reliability was inconsistent under normal operational loads. While a workaround existed, the workaround increased user workload, introduced additional opportunities for error, and reduced confidence that scanned products were reliably captured and distributed.`,
+      p3:
+"During routine administrative document processing, intermittent Scan-to-Network failures will delay dissemination of scanned products and increase the likelihood of incomplete or misrouted documentation, resulting in degraded office workflow and delayed completion of time-sensitive administrative actions.",
+      p4:
+"Based on communication with the system administrator and vendor support, the technical solution is being investigated and is believed to involve network authentication handling and destination share configuration during Scan-to-Network operations. Proposed mitigation actions include firmware updates, standardized destination configurations, and service account policy alignment. Limited time is available prior to the next operational demonstration to fully validate a permanent fix. It is assessed there is a moderate possibility Scan-to-Network reliability will not be fully corrected prior to the next test event.",
+      p5:
+"The MFD’s intermittent failures to complete Scan-to-Network jobs are of moderate consequence and moderate likelihood to occur. Additionally, there is a moderate possibility the failures will not be corrected or substantially mitigated prior to the next operational demonstration event. If this risk is unmitigated, it will potentially be a Major 3 deficiency.",
+      recommendation: "Correct as soon as possible."
+    },
+
+    sample2: {
+      tein: "TEIN-DEMO",
+      issueNo: "002",
+      rev: "0",
+      date: "26 Dec 2025",
+      sheetType: "Blue Sheet",
+      sutName: "Network Multifunction Device (MFD)",
+      p1Problem: "The Network Multifunction Device (MFD) required extended downtime to complete routine maintenance actions, including toner and drum replacement, exceeding expected recovery times during operational use.",
+      riskC: "2",
+      riskL: "3",
+      pmMit: "Moderate",
+      coiPrimary: "S-4, Logistics / Maintainability",
+      coiOther: "S-7, Training / Supportability",
+      p2:
+`The MFD’s maintainability and ability to return to service following routine maintenance actions were assessed during normal office operations over a two-week period. Maintenance actions evaluated included toner replacement, drum unit replacement, and post-maintenance calibration using manufacturer-provided procedures.
+
+Toner replacement actions required between 10 and 15 minutes to complete. Drum unit replacement actions required between 35 and 50 minutes to complete due to extended calibration cycles and multiple system restarts. During drum replacement events, the MFD was unavailable for printing, scanning, or copying functions. Users delayed maintenance when possible to avoid extended downtime, increasing the risk of print quality degradation or sudden loss of service.
+
+The data indicated that routine maintenance actions, while infrequent, resulted in longer-than-expected operational downtime and incentivized deferred maintenance. Deferred maintenance increased the likelihood of degraded output quality and unplanned service interruptions during peak usage periods.`,
+      p3:
+"During sustained administrative operations, extended downtime associated with routine maintenance actions will reduce system availability and delay document production, resulting in degraded office support and increased reliance on alternate devices.",
+      p4:
+"Based on coordination with the vendor and system administrator, maintenance procedures and recovery timelines are known and inherent to the current system design. Potential mitigation actions include user training to schedule maintenance during low-demand periods and pre-positioning consumables to reduce downtime impact. No technical modification is planned prior to the next operational demonstration. It is assessed there is a moderate possibility extended maintenance-related downtime will not be reduced prior to the next test event.",
+      p5:
+"The MFD’s extended downtime during routine maintenance actions is of moderate consequence and low to moderate likelihood to occur. Additionally, there is a moderate possibility the downtime will not be reduced or substantially mitigated prior to the next operational demonstration event. If this risk is unmitigated, it will potentially be a Major 3 deficiency.",
+      recommendation: "Correct as soon as possible."
+    }
+  };
+
+  // --- Read/write form ---
+  const fields = [
+    "tein","issueNo","rev","date","sutName",
+    "p1Problem","riskC","riskL","pmMit",
+    "coiPrimary","coiOther",
+    "p2","p3","p4","p5",
+    "recommendation","sheetType"
+  ];
+
+  function setForm(data) {
+    fields.forEach(k => {
+      if (data[k] !== undefined) $(k).value = data[k];
+    });
+  }
+
+  function getForm() {
+    const d = {};
+    fields.forEach(k => d[k] = $(k).value.trim());
+    return d;
+  }
+
+  // --- Rendering ---
+  function esc(s) {
+    return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function para(text) {
+    const parts = (text || "").split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
+    return parts.map(p => `<p>${esc(p)}</p>`).join("");
+  }
+
+  function renderPreview(d) {
+    const riskTag = `((${esc(d.riskC)}x${esc(d.riskL)}) ${esc(d.pmMit)})`;
+    const pendingRiskNo = `${esc(d.tein)}-${esc(d.issueNo)} (Rev ${esc(d.rev)})`;
+
+    return `
+      <div class="sheet">
+        <div class="topline">DRAFT</div>
+        <div class="subline"><strong>COMMANDER, OPERATIONAL TEST AND EVALUATION FORCE</strong></div>
+        <div class="subline"><strong>PENDING RISK NO.</strong> ${pendingRiskNo}</div>
+        <div class="subline"><strong>${esc(d.sheetType || "Blue Sheet")}</strong></div>
+
+        <div class="meta">
+          <div><span class="muted">Date:</span> ${esc(d.date || "DD Mmm YYYY")}</div>
+          <div><span class="muted">SUT:</span> ${esc(d.sutName)}</div>
+        </div>
+
+        <div class="sect">
+          <h3>1. SYSTEM UNDER TEST PENDING RISK.</h3>
+          <p>${esc(d.p1Problem)} ${riskTag}</p>
+          <div class="mini">
+            <div><span class="muted">a. Primary COI:</span> ${esc(d.coiPrimary || "")}</div>
+            <div><span class="muted">b. Other COI(s):</span> ${esc(d.coiOther || "")}</div>
+            <div><span class="muted">c. Previously Identified:</span> ${esc(d.previouslyIdentified || "No.")}</div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <h3>2. (*) TEST CONDITIONS, RESULTS, AND ANALYSIS.</h3>
+          ${para(d.p2)}
+        </div>
+
+        <div class="sect">
+          <h3>3. MISSION RELATION.</h3>
+          ${para(d.p3)}
+        </div>
+
+        <div class="sect">
+          <h3>4. MITIGATION ASSESSMENT FOR INITIAL OPERATIONAL TEST AND EVALUATION (IOT&amp;E).</h3>
+          ${para(d.p4)}
+        </div>
+
+        <div class="sect">
+          <h3>5. CONCLUSION.</h3>
+          ${para(d.p5)}
+        </div>
+
+        <div class="sect">
+          <h3>6. RECOMMENDATION.</h3>
+          <p>${esc(d.recommendation)}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  // --- Behavior ---
+  function loadSelectedSample() {
+    const key = $("sampleSelect").value;
+    if (key === "custom") return; // do not overwrite
+    setForm(samples[key]);
+  }
+
+  function generate() {
+    const d = getForm();
+    $("previewHost").innerHTML = renderPreview(d);
+  }
+
+  $("sampleSelect").addEventListener("change", () => {
+    loadSelectedSample();
+    generate();
+  });
+
+  $("btnGenerate").addEventListener("click", (e) => {
+    e.preventDefault();
+    generate();
+  });
+
+  $("btnReset").addEventListener("click", (e) => {
+    e.preventDefault();
+    loadSelectedSample();
+    generate();
+  });
+
+  $("btnPrint").addEventListener("click", (e) => {
+    e.preventDefault();
+    window.print();
+  });
+
+  // Initialize
+  loadSelectedSample();
+  generate();
+})();
+</script>
+</body>
+</html>
