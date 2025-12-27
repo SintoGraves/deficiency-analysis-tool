@@ -397,17 +397,50 @@ The data indicated that routine maintenance actions, while infrequent, resulted 
     window.print();
   });
 
-// ---- Read sample from query string (demo only) ----
-const params = new URLSearchParams(window.location.search);
-const sample = params.get("sample");
-if (sample && (sample === "sample1" || sample === "sample2")) {
-  const sel = $("sampleSelect");
-  if (sel) sel.value = sample;
-}
+  // ---- Read sample from query string (demo only) ----
+  const params = new URLSearchParams(window.location.search);
+  const sample = params.get("sample");
+  if (sample && (sample === "sample1" || sample === "sample2")) {
+    const sel = $("sampleSelect");
+    if (sel) sel.value = sample;
+  }
 
-// Initialize
-loadSelectedSample();
-generate();
+  // --- Behavior ---
+  function loadSelectedSample() {
+    const key = $("sampleSelect").value;
+    if (key === "custom") return; // do not overwrite
+    setForm(samples[key]);
+  }
+
+  function generate() {
+    const d = getForm();
+    $("previewHost").innerHTML = renderPreview(d);
+  }
+
+  $("sampleSelect").addEventListener("change", () => {
+    loadSelectedSample();
+    generate();
+  });
+
+  $("btnGenerate").addEventListener("click", (e) => {
+    e.preventDefault();
+    generate();
+  });
+
+  $("btnReset").addEventListener("click", (e) => {
+    e.preventDefault();
+    loadSelectedSample();
+    generate();
+  });
+
+  $("btnPrint").addEventListener("click", (e) => {
+    e.preventDefault();
+    window.print();
+  });
+
+  // Initialize
+  loadSelectedSample();
+  generate();
 })();
 </script>
 </body>
