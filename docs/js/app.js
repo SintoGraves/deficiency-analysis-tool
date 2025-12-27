@@ -326,7 +326,7 @@
   const packId = (store.getMeta()?.packId || elPackSelect?.value || "").toLowerCase();
   const sample = packId.includes("figure2") ? "sample2" : "sample1";
 
-  window.location.href = `./blue-sheet-demo.html?sample=${encodeURIComponent(sample)}`;
+  window.location.href = `./demo.html?sample=${encodeURIComponent(sample)}`;
 });
 
     // Start default
