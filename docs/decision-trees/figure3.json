@@ -29,20 +29,9 @@
       "title": "Capability Context",
       "question": "Is the System Under Test a new capability for the fleet? (A capability that is not replacing an existing less capable capability?)",
       "choices": {
-        "yes": "F3_S0_INFO_NEW_CAPABILITY",
+        "yes": "F3_S1_Q_MISSION_CANNOT_EXECUTE",
         "no": "F3_S0_INFO_IMPROVED_CAPABILITY"
       }
-    },
-
-    "F3_S0_INFO_NEW_CAPABILITY": {
-      "type": "info",
-      "title": "New Capability",
-      "effects": {
-        "set": { "qualCapabilityContext": "new" },
-        "appendTraceTags": ["f3:context:capability=new"]
-      },
-      "body": "The System Under Test is a new capability for the fleet and is not replacing an existing less capable capability.",
-      "next": "F3_S1_Q_MISSION_CANNOT_EXECUTE"
     },
 
     "F3_S0_INFO_IMPROVED_CAPABILITY": {
