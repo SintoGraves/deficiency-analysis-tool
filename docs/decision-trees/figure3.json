@@ -27,7 +27,7 @@
     "F3_S0_Q_CAPABILITY_CONTEXT": {
       "type": "decision",
       "title": "Capability Context",
-      "question": "Is the System Under Test a new capability for the fleet which is not replacing an existing less capable capability?",
+      "question": "Is the System Under Test a new capability for the fleet? (A capability that is not replacing an existing less capable capability?)",
       "choices": {
         "yes": "F3_S0_INFO_NEW_CAPABILITY",
         "no": "F3_S0_INFO_IMPROVED_CAPABILITY"
