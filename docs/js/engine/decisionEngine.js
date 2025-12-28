@@ -154,11 +154,8 @@
       pack = nextPack;
       DDT.validatePack(pack);
 
-      // Reset only pack/node meta; keep state and trace (trace remains cross-pack).
-      store.setMeta(pack.packId, pack.entryNodeId);
-
-      // Move to new pack entry
-      setCurrent(pack.entryNodeId);
+     // Move to new pack entry (setCurrent will set correct meta)
+     setCurrent(pack.entryNodeId);
     }
 
     function restartSamePack() {
