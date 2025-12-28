@@ -1,7 +1,7 @@
 {
   "packId": "figure3",
   "title": "Qualitative Baseline Deficiency Flow (Figure 3)",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "entryNodeId": "F3_START",
   "meta": {
     "authoritativeSource": "Figure 3 (Sheets 1–4) Qualitative Baseline Deficiency Flow Diagram",
@@ -56,6 +56,10 @@
       "next": "F3_S1_Q_MISSION_CANNOT_EXECUTE_IPR"
     },
 
+    /* =========================
+       STEP 1 — NEW PATH
+       ========================= */
+
     "F3_S1_Q_MISSION_CANNOT_EXECUTE_NEW": {
       "type": "decision",
       "title": "Mission Cannot Be Executed (NEW)",
@@ -75,14 +79,14 @@
         "appendTraceTags": ["f3:path=new", "f3:step1:impact=severe"]
       },
       "body": "Severe Impact to Mission Accomplishment.",
-      "next": "F3_S2_ENTRY_PLACEHOLDER_NEW"
+      "next": "F3_S2_DEF_SEVERE_NEW"
     },
 
     "F3_S1_Q_REQUIRES_WORKAROUND_NEW": {
       "type": "decision",
       "title": "Workaround Required (NEW)",
       "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion. (Note 5) (Note 6)",
-      "note": "Note 5: The deficiency prevents the SUT from operating as intended, but the mission can be completed by implementing a work around. or, The SUT in its intended operational environment cannot perform its  intended mission as designed, a work around must be used to ensure mission completion. \n\nNote 6: A workaround must exist within the SUT and not be the use of another system or function that is not part of the SUT.  Inconvenience to the operator is any work around that that is not intuitive and requires some type of training or muscle memory to ensure successful operation of the SUT.",
+      "note": "Note 5: The deficiency prevents the SUT from operating as intended, but the mission can be completed by implementing a work around. or, The SUT in its intended operational environment cannot perform its  intended mission as designed, a work around must be used to ensure mission completion.\n\nNote 6: A workaround must exist within the SUT and not be the use of another system or function that is not part of the SUT.  Inconvenience to the operator is any work around that that is not intuitive and requires some type of training or muscle memory to ensure successful operation of the SUT.",
       "choices": {
         "yes": "F3_S1_IMPACT_CRITICAL_NEW",
         "no": "F3_S1_Q_MISSION_TAKES_LONGER_NEW"
@@ -97,7 +101,7 @@
         "appendTraceTags": ["f3:path=new", "f3:step1:impact=critical"]
       },
       "body": "Critical Impact to Mission Accomplishment.",
-      "next": "F3_S2_ENTRY_PLACEHOLDER_NEW"
+      "next": "F3_S2_Q_WORKAROUND_ACCEPTABLE_NEW"
     },
 
     "F3_S1_Q_MISSION_TAKES_LONGER_NEW": {
@@ -119,7 +123,7 @@
         "appendTraceTags": ["f3:path=new", "f3:step1:impact=serious"]
       },
       "body": "Serious Impact to Mission Accomplishment.",
-      "next": "F3_S2_ENTRY_PLACEHOLDER_NEW"
+      "next": "F3_S2_Q_COMPLETION_DELAY_ACCEPTABLE_NEW"
     },
 
     "F3_S1_Q_PLANNING_DELAY_START_DELAY_NEW": {
@@ -141,7 +145,7 @@
         "appendTraceTags": ["f3:path=new", "f3:step1:impact=moderate"]
       },
       "body": "Moderate Impact to Mission Accomplishment.",
-      "next": "F3_S2_ENTRY_PLACEHOLDER_NEW"
+      "next": "F3_S2_Q_START_DELAY_ACCEPTABLE_NEW"
     },
 
     "F3_S1_INFO_PLANNING_DELAY_NO_START_DELAY_NEW": {
@@ -161,23 +165,158 @@
         "appendTraceTags": ["f3:path=new", "f3:step1:impact=minor"]
       },
       "body": "Minor Impact to Mission Accomplishment.",
-      "next": "F3_S2_ENTRY_PLACEHOLDER_NEW"
+      "next": "F3_S2_Q_PREMISSION_DELAY_ACCEPTABLE_NEW"
     },
 
-    "F3_S2_ENTRY_PLACEHOLDER_NEW": {
+    /* =========================
+       STEP 2 — NEW PATH (Sheet 1)
+       ========================= */
+
+    "F3_S2_DEF_SEVERE_NEW": {
       "type": "info",
-      "title": "Step 2 Entry (Placeholder — NEW)",
-      "effects": { "appendTraceTags": ["f3:path=new", "f3:step2:placeholder"] },
-      "body": "Step 2 (Mission / Utilization Criticality Determination) will be inserted here next for the NEW path.",
-      "next": "F3_END_STEP1_ONLY_NEW"
+      "title": "Severe Deficiency (NEW)",
+      "effects": {
+        "set": {
+          "qualSeverityInitial": "severe",
+          "qualSeverityFinal": "severe"
+        },
+        "appendTraceTags": ["f3:path=new", "f3:step2:deficiency=severe"]
+      },
+      "body": "Severe Deficiency.\n\nCorrect prior to ship or system Deployment.",
+      "next": "F3_S3_ENTRY_PLACEHOLDER_NEW"
     },
 
-    "F3_END_STEP1_ONLY_NEW": {
-      "type": "outcome",
-      "title": "Outcome: Step 1 Complete (Placeholder — NEW)",
-      "outcome": { "qualImpactLevel": "as-set", "nextPlannedStep": "step2" },
-      "body": "Step 1 impact classification is complete (NEW path). Step 2 will determine the initial deficiency severity rating."
+    "F3_S2_Q_WORKAROUND_ACCEPTABLE_NEW": {
+      "type": "decision",
+      "title": "Workaround Acceptable (NEW)",
+      "question": "Is the implemented work around acceptable/reasonable for operators to use and achieve consistent mission success?",
+      "choices": {
+        "no": "F3_S2_DEF_SEVERE_FROM_CRITICAL_NEW",
+        "yes": "F3_S2_DEF_MAJOR1_NEW"
+      }
     },
+
+    "F3_S2_DEF_SEVERE_FROM_CRITICAL_NEW": {
+      "type": "info",
+      "title": "Severe Deficiency (NEW)",
+      "effects": {
+        "set": {
+          "qualSeverityInitial": "severe",
+          "qualSeverityFinal": "severe"
+        },
+        "appendTraceTags": ["f3:path=new", "f3:step2:deficiency=severe", "f3:step2:from=critical"]
+      },
+      "body": "Severe Deficiency.\n\nCorrect prior to ship or system Deployment.",
+      "next": "F3_S3_ENTRY_PLACEHOLDER_NEW"
+    },
+
+    "F3_S2_DEF_MAJOR1_NEW": {
+      "type": "info",
+      "title": "Major 1 Deficiency (NEW)",
+      "effects": {
+        "set": {
+          "qualSeverityInitial": "major1",
+          "qualSeverityFinal": "major1"
+        },
+        "appendTraceTags": ["f3:path=new", "f3:step2:deficiency=major1"]
+      },
+      "body": "Major 1 Deficiency.\n\nCorrect prior to ship or system Deployment.\nCorrect prior to fleet introduction.",
+      "next": "F3_S3_ENTRY_PLACEHOLDER_NEW"
+    },
+
+    "F3_S2_Q_COMPLETION_DELAY_ACCEPTABLE_NEW": {
+      "type": "decision",
+      "title": "Mission Completion Time Delay Acceptable (NEW)",
+      "question": "Is the mission completion time delay acceptable for considering mission execution a success?",
+      "choices": {
+        "no": "F3_S2_DEF_MAJOR1_NEW",
+        "yes": "F3_S2_DEF_MAJOR2_NEW"
+      }
+    },
+
+    "F3_S2_DEF_MAJOR2_NEW": {
+      "type": "info",
+      "title": "Major 2 Deficiency (NEW)",
+      "effects": {
+        "set": {
+          "qualSeverityInitial": "major2",
+          "qualSeverityFinal": "major2"
+        },
+        "appendTraceTags": ["f3:path=new", "f3:step2:deficiency=major2"]
+      },
+      "body": "Major 2 Deficiency.\n\nCorrect prior to fleet introduction.\nCorrect prior to next program build/or software release.",
+      "next": "F3_S3_ENTRY_PLACEHOLDER_NEW"
+    },
+
+    "F3_S2_Q_START_DELAY_ACCEPTABLE_NEW": {
+      "type": "decision",
+      "title": "Mission Start Time Delay Acceptable (NEW)",
+      "question": "Is the mission start time delay acceptable for considering mission execution a success?",
+      "choices": {
+        "no": "F3_S2_DEF_MAJOR2_NEW",
+        "yes": "F3_S2_DEF_MAJOR3_NEW"
+      }
+    },
+
+    "F3_S2_DEF_MAJOR3_NEW": {
+      "type": "info",
+      "title": "Major 3 Deficiency (NEW)",
+      "effects": {
+        "set": {
+          "qualSeverityInitial": "major3",
+          "qualSeverityFinal": "major3"
+        },
+        "appendTraceTags": ["f3:path=new", "f3:step2:deficiency=major3"]
+      },
+      "body": "Major 3 Deficiency.\n\nCorrect prior to next program build/or software release.\nCorrect as soon as possible.",
+      "next": "F3_S3_ENTRY_PLACEHOLDER_NEW"
+    },
+
+    "F3_S2_Q_PREMISSION_DELAY_ACCEPTABLE_NEW": {
+      "type": "decision",
+      "title": "Pre-Mission Delay Acceptable (NEW)",
+      "question": "Is the pre-mission delay acceptable with no adverse affects on Sailors executing pre-mission tasks?",
+      "choices": {
+        "no": "F3_S2_DEF_MAJOR3_NEW",
+        "yes": "F3_S2_DEF_MINOR_NEW"
+      }
+    },
+
+    "F3_S2_DEF_MINOR_NEW": {
+      "type": "info",
+      "title": "Minor Deficiency (NEW)",
+      "effects": {
+        "set": {
+          "qualSeverityInitial": "minor",
+          "qualSeverityFinal": "minor"
+        },
+        "appendTraceTags": ["f3:path=new", "f3:step2:deficiency=minor"]
+      },
+      "body": "Minor Deficiency.\n\nCorrect as soon as possible.\nCorrect as soon as practicable.",
+      "next": "F3_S3_ENTRY_PLACEHOLDER_NEW"
+    },
+
+    "F3_S3_ENTRY_PLACEHOLDER_NEW": {
+      "type": "info",
+      "title": "Step 3 Entry (Placeholder — NEW)",
+      "effects": { "appendTraceTags": ["f3:path=new", "f3:step3:placeholder"] },
+      "body": "Step 3 (Roll-Up Assessment) executes next for the demo. Final outcomes will later tie to Blue Sheet generation.",
+      "next": "F3_END_STEP2_ONLY_NEW"
+    },
+
+    "F3_END_STEP2_ONLY_NEW": {
+      "type": "outcome",
+      "title": "Outcome: Step 2 Complete (Demo Placeholder — NEW)",
+      "outcome": {
+        "qualSeverityInitial": "as-set",
+        "nextPlannedStep": "step3"
+      },
+      "body": "STEP 2 initial deficiency classification is complete (NEW path). STEP 3 roll-up will be implemented next."
+    },
+
+    /* =========================
+       STEP 1 — IPR PATH (unchanged except ready for Step 2 insertion)
+       ========================= */
 
     "F3_S1_Q_MISSION_CANNOT_EXECUTE_IPR": {
       "type": "decision",
