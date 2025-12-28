@@ -59,8 +59,8 @@
     "F3_S1_Q_MISSION_CANNOT_EXECUTE_NEW": {
       "type": "decision",
       "title": "Mission Cannot Be Executed (NEW)",
-      "question": "The mission cannot be executed or the mission must be aborted before reaching successful conclusion.",
-      "note": "Note 4: Use this path when the mission cannot be executed at all, or when the mission must be aborted before successful conclusion due to the deficiency.",
+      "question": "The mission cannot be executed or the mission must be aborted before reaching successful conclusion. (Note 4)",
+      "note": "Note 4: The deficiency prevents the SUT from executing its designed mission or while executing the mission, the deficiency causes the SUT to abort mission support. or, The SUT in its intended operational environment cannot perform its designed/intended mission.",
       "choices": {
         "yes": "F3_S1_IMPACT_SEVERE_NEW",
         "no": "F3_S1_Q_REQUIRES_WORKAROUND_NEW"
@@ -81,8 +81,8 @@
     "F3_S1_Q_REQUIRES_WORKAROUND_NEW": {
       "type": "decision",
       "title": "Workaround Required (NEW)",
-      "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion.",
-      "note": "Note 5/6: Select YES when a workaround is required to successfully conclude the mission. A workaround is not part of the intended system operation and may impose additional operator actions, procedures, or burden.",
+      "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion. (Note 5) (Note 6)",
+      "note": "Note 5: The deficiency prevents the SUT from operating as intended, but the mission can be completed by implementing a work around. or, The SUT in its intended operational environment cannot perform its  intended mission as designed, a work around must be used to ensure mission completion. \nNote 6: A workaround must exist within the SUT and not be the use of another system or function that is not part of the SUT.  Inconvenience to the operator is any work around that that is not intuitive and requires some type of training or muscle memory to ensure successful operation of the SUT.",
       "choices": {
         "yes": "F3_S1_IMPACT_CRITICAL_NEW",
         "no": "F3_S1_Q_MISSION_TAKES_LONGER_NEW"
@@ -103,8 +103,8 @@
     "F3_S1_Q_MISSION_TAKES_LONGER_NEW": {
       "type": "decision",
       "title": "Mission Takes Longer Than Planned (NEW)",
-      "question": "The mission can be executed, but expected mission completion time is delayed.",
-      "note": "Note 7: Select YES when mission execution completes successfully but the completion time is delayed relative to the planned/expected completion time.",
+      "question": "The mission can be executed, but expected mission completion time is delayed. (Note 7)",
+      "note": "Note 7: The deficiency does not prevent the SUT from executing its designed mission, but it takes the SUT longer to execute the mission than expected. or, The SUT in its intended operational environment can perform its intended mission, but mission time takes longer than expected.",
       "choices": {
         "yes": "F3_S1_IMPACT_SERIOUS_NEW",
         "no": "F3_S1_Q_PLANNING_DELAY_START_DELAY_NEW"
@@ -125,8 +125,8 @@
     "F3_S1_Q_PLANNING_DELAY_START_DELAY_NEW": {
       "type": "decision",
       "title": "Planning Delay With Start Delay (NEW)",
-      "question": "Planning for the mission is delayed causing a delay in mission execution, but the mission can be successfully completed.",
-      "note": "Note 8: Select YES when mission planning/preparation delays cause a delay in mission start/execution, but the mission remains executable and can be successfully completed.",
+      "question": "Planning for the mission is delayed causing a delay in mission execution, but the mission can be successfully completed. (Note 8)",
+      "note": "Note 8: The deficiency causes delays in SUT pre-planning, configuration, and/or startup,  delaying planned mission start time, but not  affecting overall mission completion. or,  Preparations for SUT operation take longer than planned causing delays in the SUT mission start time, but no affect on mission completion.",
       "choices": {
         "yes": "F3_S1_IMPACT_MODERATE_NEW",
         "no": "F3_S1_INFO_PLANNING_DELAY_NO_START_DELAY_NEW"
@@ -148,19 +148,19 @@
       "type": "info",
       "title": "Planning Delay Without Start Delay (NEW)",
       "effects": { "appendTraceTags": ["f3:path=new", "note:9"] },
-      "body": "Planning for the mission is delayed, but the mission can be executed on time, and reach its successful conclusion.",
-      "note": "Note 9: Select this path when planning/preparation is delayed but does not delay mission start time and does not prevent successful mission conclusion.",
-      "next": "F3_S1_IMPACT_NONE_NEW"
+      "body": "Planning for the mission is delayed, but the mission can be executed on time, and reach its successful conclusion. (Note 9)",
+      "note": "Note 9: The deficiency causes delays in SUT  pre-planning, configuration, and/or startup, but does not delay mission start time or affect  overall mission completion. or, Preparations for  SUT operation take longer than planned,  but does not affect mission start, or mission completion.",
+      "next": "F3_S1_IMPACT_MINOR_NEW"
     },
 
-    "F3_S1_IMPACT_NONE_NEW": {
+    "F3_S1_IMPACT_MINOR_NEW": {
       "type": "info",
-      "title": "No Impact (NEW)",
+      "title": "Minor (NEW)",
       "effects": {
-        "set": { "qualImpactLevel": "none" },
-        "appendTraceTags": ["f3:path=new", "f3:step1:impact=none", "note:9"]
+        "set": { "qualImpactLevel": "minor" },
+        "appendTraceTags": ["f3:path=new", "f3:step1:impact=minor", "note:9"]
       },
-      "body": "No Impact to Mission Accomplishment.",
+      "body": "Minor Impact to Mission Accomplishment.",
       "next": "F3_S2_ENTRY_PLACEHOLDER_NEW"
     },
 
