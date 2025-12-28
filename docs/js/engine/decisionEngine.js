@@ -14,7 +14,7 @@
       .replaceAll(">", "&gt;");
   }
 
-  function renderNode(el, nodeId, node, store) {
+  function renderNode(el, nodeId, node) {
     const type = node.type || "unknown";
     const title = node.title || nodeId;
     const body = node.body || "";
@@ -28,11 +28,9 @@
     if (type === "decision") html += `<div class="question">${esc(question)}</div>`;
 
     html += `<div class="choices" id="choices"></div>`;
-
     el.innerHTML = html;
 
-    const choicesEl = el.querySelector("#choices");
-    return choicesEl;
+    return el.querySelector("#choices");
   }
 
   function button(label, className, onClick) {
@@ -46,6 +44,7 @@
   DDT.createDecisionEngine = function createDecisionEngine(opts) {
     const renderTarget = opts && opts.renderTarget;
     const onTraceUpdated = (opts && opts.onTraceUpdated) || function () {};
+    const onNodeRendered = (opts && opts.onNodeRendered) || null;
 
     if (!renderTarget) throw new Error("renderTarget is required");
 
@@ -53,31 +52,36 @@
     let store = null;
 
     function getNode(nodeId) {
-      const node = pack.nodes[nodeId];
+      const node = pack && pack.nodes ? pack.nodes[nodeId] : null;
       DDT.validateNode(nodeId, node);
       return node;
     }
 
-    function setCurrent(nodeId) {
-      store.setMeta(pack.packId, nodeId);
-      const node = getNode(nodeId);
+    function pushHistoryBeforeMove() {
+      const meta = store.getMeta();
+      if (meta && meta.packId && meta.nodeId) store.pushHistory(meta.packId, meta.nodeId);
+    }
 
-      const choicesEl = renderNode(renderTarget, nodeId, node, store);
+    function setCurrent(nodeId) {
+      // Single authoritative meta write for any node transition
+      store.setMeta(pack.packId, nodeId);
+
+      const node = getNode(nodeId);
+      const choicesEl = renderNode(renderTarget, nodeId, node);
 
       // Always trace node entry
       store.appendTrace({ kind: "enter", nodeId, nodeType: node.type, title: node.title || "" });
 
-      // Apply effects on entry (info/instruction nodes often include effects)
+      // Apply effects on entry
       if (node.effects) DDT.applyEffects(store, node.effects);
 
       // Render actions per node type
-      if (node.type === "info") {
-        choicesEl.appendChild(button("Continue", "", () => goNextFromInfo(nodeId, node)));
-      } else if (node.type === "connector") {
+      if (node.type === "info" || node.type === "connector") {
         choicesEl.appendChild(button("Continue", "", () => goNextFromInfo(nodeId, node)));
       } else if (node.type === "decision") {
         renderDecisionChoices(choicesEl, nodeId, node);
       } else if (node.type === "handoff") {
+        // Handoff nodes are "Continue to next pack"
         choicesEl.appendChild(button("Go to next pack", "", () => doHandoff(nodeId, node)));
       } else if (node.type === "outcome") {
         choicesEl.appendChild(button("Start Over", "secondary", () => restartSamePack()));
@@ -85,18 +89,17 @@
         choicesEl.appendChild(button("Continue", "", () => goNextFromInfo(nodeId, node)));
       }
 
-      onTraceUpdated();
-    }
+      // Allow outer app to re-render Notes panel using the node that was just rendered
+      if (typeof onNodeRendered === "function") {
+        try { onNodeRendered(nodeId, node); } catch (_) {}
+      }
 
-    function pushHistoryBeforeMove() {
-      const meta = store.getMeta();
-      if (meta.packId && meta.nodeId) store.pushHistory(meta.packId, meta.nodeId);
+      onTraceUpdated();
     }
 
     function goNextFromInfo(nodeId, node) {
       const nextId = node.next;
       if (!nextId) {
-        // If info has no next, treat as terminal (should be rare)
         store.appendTrace({ kind: "error", message: `Node ${nodeId} has no next` });
         onTraceUpdated();
         return;
@@ -121,8 +124,8 @@
       // Preferred: YES/NO ordering when present
       const order = ["yes", "no"];
       const orderedKeys = [
-        ...order.filter(k => keys.includes(k)),
-        ...keys.filter(k => !order.includes(k))
+        ...order.filter((k) => keys.includes(k)),
+        ...keys.filter((k) => !order.includes(k))
       ];
 
       orderedKeys.forEach((k) => {
@@ -146,22 +149,22 @@
         return;
       }
 
-      // Record handoff as a trace event and load new pack.
+      // Trace the handoff event (audit trail remains intact)
       store.appendTrace({ kind: "handoff", nodeId, toPack: targetPackId, reason: h.reason || "" });
 
-      // Clear history on pack switch for MVP (keeps behavior simple and auditable).
+      // Load next pack and validate
       const nextPack = await DDT.loadPack(targetPackId);
       pack = nextPack;
       DDT.validatePack(pack);
 
-     // Move to new pack entry (setCurrent will set correct meta)
-     setCurrent(pack.entryNodeId);
+      // IMPORTANT: do not call store.setMeta() here.
+      // setCurrent() is the single authoritative meta update point.
+      setCurrent(pack.entryNodeId);
     }
 
     function restartSamePack() {
       if (!pack || !store) return;
       store.reset();
-      store.setMeta(pack.packId, pack.entryNodeId);
       setCurrent(pack.entryNodeId);
     }
 
@@ -174,14 +177,13 @@
 
       start() {
         if (!pack || !store) throw new Error("Engine requires pack + caseStore");
-        store.setMeta(pack.packId, pack.entryNodeId);
         setCurrent(pack.entryNodeId);
       },
 
       refresh() {
         if (!pack || !store) return;
         const meta = store.getMeta();
-        if (!meta.nodeId) return;
+        if (!meta || !meta.nodeId) return;
         setCurrent(meta.nodeId);
       },
 
@@ -190,13 +192,11 @@
         const prev = store.popHistory();
         if (!prev) return;
 
-        // restore state snapshot and truncate trace to the prior length
         store.replaceState(prev.stateSnapshot);
-
-        // For MVP: we do not physically truncate trace entries (audit trail stays intact),
-        // but we record a "back" event and render the previous node.
         store.appendTrace({ kind: "back", toNode: prev.nodeId });
 
+        // Restore previous node in the current pack context
+        // (Pack switching back is not supported in MVP; history is within a pack session)
         setCurrent(prev.nodeId);
       }
     };
