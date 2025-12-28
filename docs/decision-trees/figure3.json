@@ -56,9 +56,7 @@
       "next": "F3_S1_Q_MISSION_CANNOT_EXECUTE_IPR"
     },
 
-    /* =========================
-       STEP 1 — NEW PATH
-       ========================= */
+"_section_step1_new": "STEP 1 — NEW PATH",
 
     "F3_S1_Q_MISSION_CANNOT_EXECUTE_NEW": {
       "type": "decision",
@@ -168,10 +166,8 @@
       "next": "F3_S2_Q_PREMISSION_DELAY_ACCEPTABLE_NEW"
     },
 
-    /* =========================
-       STEP 2 — NEW PATH (Sheet 1)
-       ========================= */
-
+"_section_step2_new": "STEP 2 — NEW PATH Sheet 1",
+ 
     "F3_S2_DEF_SEVERE_NEW": {
       "type": "info",
       "title": "Severe Deficiency (NEW)",
@@ -314,10 +310,9 @@
       "body": "STEP 2 initial deficiency classification is complete (NEW path). STEP 3 roll-up will be implemented next."
     },
 
-    /* =========================
-       STEP 1 — IPR PATH (unchanged except ready for Step 2 insertion)
-       ========================= */
+"_section_step1_new": "STEP 1 — NEW PATH IPR PATH (unchanged except ready for Step 2 insertion)",
 
+  
     "F3_S1_Q_MISSION_CANNOT_EXECUTE_IPR": {
       "type": "decision",
       "title": "Mission Cannot Be Executed (IPR)",
