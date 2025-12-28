@@ -82,7 +82,7 @@
       "type": "decision",
       "title": "Workaround Required (NEW)",
       "question": "The mission can be executed, but requires a workaround to ensure its successful conclusion. (Note 5) (Note 6)",
-      "note": "Note 5: The deficiency prevents the SUT from operating as intended, but the mission can be completed by implementing a work around. or, The SUT in its intended operational environment cannot perform its  intended mission as designed, a work around must be used to ensure mission completion. \nNote 6: A workaround must exist within the SUT and not be the use of another system or function that is not part of the SUT.  Inconvenience to the operator is any work around that that is not intuitive and requires some type of training or muscle memory to ensure successful operation of the SUT.",
+      "note": "Note 5: The deficiency prevents the SUT from operating as intended, but the mission can be completed by implementing a work around. or, The SUT in its intended operational environment cannot perform its  intended mission as designed, a work around must be used to ensure mission completion. \n\nNote 6: A workaround must exist within the SUT and not be the use of another system or function that is not part of the SUT.  Inconvenience to the operator is any work around that that is not intuitive and requires some type of training or muscle memory to ensure successful operation of the SUT.",
       "choices": {
         "yes": "F3_S1_IMPACT_CRITICAL_NEW",
         "no": "F3_S1_Q_MISSION_TAKES_LONGER_NEW"
