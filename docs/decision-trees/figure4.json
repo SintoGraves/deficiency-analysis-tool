@@ -1,0 +1,30 @@
+{
+  "packId": "figure4",
+  "title": "Quantitative Baseline Severity Assessment (Figure 4) — Placeholder",
+  "version": "0.0.1",
+  "entryNodeId": "F4_START",
+  "meta": {
+    "authoritativeSource": "Figure 4 placeholder",
+    "wizard": { "oneQuestionPerScreen": true, "requireAckOnInfoNodes": true }
+  },
+  "caseStateSchema": {
+    "traceTags": "array"
+  },
+  "nodes": {
+    "F4_START": {
+      "type": "info",
+      "title": "Figure 4 Not Implemented",
+      "effects": {
+        "appendTraceTags": ["handoff:figure4", "figure4:placeholder"]
+      },
+      "body": "Figure 4 (Quantitative Baseline) is not implemented in this demo yet. Continue using Figure 3 for qualitative baseline.",
+      "next": "F4_END"
+    },
+    "F4_END": {
+      "type": "outcome",
+      "title": "Outcome: Placeholder",
+      "outcome": { "status": "placeholder" },
+      "body": "Placeholder outcome for Figure 4."
+    }
+  }
+}
