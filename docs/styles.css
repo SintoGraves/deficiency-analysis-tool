@@ -67,6 +67,42 @@ select {
 }
 
 /* =========================================
+   Header Button Uniformity (button + anchor)
+   Makes OPCON/TACON links match real buttons 1:1
+   ========================================= */
+
+/* 1) Force identical typography + box model for both */
+.app-controls .btn,
+.app-controls a.btn,
+.app-controls button.btn {
+  font: inherit;          /* same font family/size/weight */
+  font-size: 13px;        /* hard lock (adjust if you want) */
+  line-height: 1;         /* eliminate baseline differences */
+  display: inline-flex;   /* same layout model */
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* 2) Remove native button styling differences */
+.app-controls button.btn {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* 3) Remove native anchor link styling differences */
+.app-controls a.btn,
+.app-controls a.btn:link,
+.app-controls a.btn:visited,
+.app-controls a.btn:hover,
+.app-controls a.btn:active,
+.app-controls a.btn:focus {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* =========================================
    Anchor-as-Button Normalization
    Purpose:
    - Make <a class="btn"> look/behave like <button class="btn">
