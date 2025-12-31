@@ -1,0 +1,633 @@
+<!-- ============================================================
+  File: /docs/opcon-demo.html
+  Operational Consideration Builder (Demo) — Self-Contained
+  --------------------------------------------------------------------
+  PURPOSE (Demo):
+    - Operator-level Operational Consideration (OPCON) template builder.
+    - Guidance text is shown first (pink italics + black example context).
+    - Preview does NOT change while typing.
+    - When user clicks "Generate Preview", guidance disappears and user input replaces it.
+    - Save to DOCX exports Word-compatible HTML (.doc) for POC.
+
+  EXAMPLE SYSTEM UNDER TEST (Demo):
+    - Office Copier / Printer / Scanner (MFD)
+    - SoS 1: Network environment
+    - SoS 2: Direct USB-connected workstation
+============================================================ -->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OPCON Builder (Demo)</title>
+
+  <style>
+    :root{
+      --border: rgba(0,0,0,.14);
+      --muted: rgba(0,0,0,.65);
+      --ink: #111;
+      --guidance: #FF33CC; /* RGB(255,51,204) */
+
+      /* Print geometry (8.5 x 11 feel) */
+      --page-w: 8.5in;
+      --page-h: 11in;
+      --margin: 1in;
+      --usable-w: 6.5in;  /* 8.5 - 2*1 */
+
+      /* UI layout */
+      --ui-max: 1180px;
+
+      /* Status colors (Advisory checks) */
+      --ok: #2f7a3e;
+      --warn: #c79100;
+      --bad: #a21724;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+    }
+    .header-left{ flex: 1 1 auto; min-width: 0; }
+    .header-right{ flex: 0 0 auto; padding-top: 2px; }
+
+    header h1 { margin: 0 0 6px; font-size: 18px; }
+    header p  { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+
+    .btn-link{
+      border: 1px solid var(--border);
+      background: #f7f7f7;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .wrap { max-width: var(--ui-max); margin: 0 auto; padding: 16px 18px; }
+    .grid { display: grid; grid-template-columns: 460px 1fr; gap: 14px; align-items: start; }
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: 1fr; }
+      header{ position: static; }
+    }
+
+    .card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: #fff; }
+    .card h2 { margin: 0; font-size: 14px; }
+    .hr { border-top: 1px solid var(--border); margin: 12px 0; }
+
+    label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 6px; }
+    input, select, textarea {
+      width: 100%; box-sizing: border-box;
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px; font-size: 13px; background: #fff;
+    }
+    textarea { min-height: 86px; resize: vertical; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btnbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
+    button {
+      border: 1px solid var(--border);
+      background: #f7f7f7; border-radius: 10px;
+      padding: 10px 12px; font-size: 13px; cursor: pointer;
+    }
+    button.primary { background: #111; color: #fff; border-color: #111; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.35; }
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
+
+    .guidance {
+      font-style: italic;
+      color: var(--guidance);
+      font-size: 12.5px;
+      line-height: 1.35;
+      margin: 6px 0 8px;
+    }
+    .context {
+      font-size: 12.5px;
+      line-height: 1.35;
+      color: rgba(0,0,0,.78);
+      margin: 6px 0 10px;
+    }
+
+    .modebar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px dashed rgba(0,0,0,.18);
+      border-radius: 12px;
+      background: #fbfbfb;
+      margin-bottom: 10px;
+      font-size: 12.5px;
+      color: rgba(0,0,0,.75);
+      line-height: 1.35;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 12px;
+    }
+
+    .preview { font-family: "Times New Roman", Times, serif; }
+    .paper {
+      width: min(100%, var(--page-w));
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .paper-inner{ padding: var(--margin); }
+
+    .topline { text-align: center; font-weight: 700; }
+    .subline { text-align: center; margin-top: 2px; }
+    .meta { display:flex; justify-content: space-between; margin: 10px 0 14px; font-size: 12px; }
+    .sect { margin: 12px 0; max-width: var(--usable-w); }
+    .sect h3 { margin: 0 0 6px; font-size: 14px; }
+    .sect p  { margin: 0 0 8px; font-size: 13px; line-height: 1.35; }
+
+    .muted { color: rgba(0,0,0,.65); }
+
+    .checks{
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafafa;
+      font-size: 12px;
+      line-height: 1.35;
+      color: rgba(0,0,0,.75);
+    }
+    .checkline{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+    }
+    .checkline:last-child{ border-bottom: none; }
+    .status{ font-weight: 700; white-space: nowrap; }
+    .ok{ color: var(--ok); }
+    .warn{ color: var(--warn); }
+    .bad{ color: var(--bad); }
+
+    @media print {
+      header, .left, .btnbar { display: none !important; }
+      .wrap { padding: 0; }
+      .card { border: none; }
+      .paper{ border:none; border-radius:0; }
+      body { margin: 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-row">
+      <div class="header-left">
+        <h1>OPCON Builder (Demo)</h1>
+        <p>
+          Guidance is shown first (pink italics) and remains visible while you type.
+          Select <span class="kbd">Generate Preview</span> to replace guidance with your entered content.
+        </p>
+      </div>
+      <div class="header-right">
+        <button id="btnBack" class="btn-link" type="button">Back</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+
+      <!-- LEFT: INPUTS -->
+      <div class="card left">
+        <h2>Inputs</h2>
+
+        <div class="hr"></div>
+        <div class="row">
+          <div>
+            <label for="refId">Reference ID (optional)</label>
+            <input id="refId" placeholder="OPCON-DEMO-001" />
+          </div>
+          <div>
+            <label for="date">Date (DD Mmm YYYY)</label>
+            <input id="date" placeholder="31 Dec 2025" />
+          </div>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="sutName">SUT name</label>
+          <input id="sutName" placeholder="Office Copier / Printer / Scanner (MFD)" />
+          <div class="hint">
+            Demo SUT supports SoS 1 (Network) and SoS 2 (USB direct-connected workstation).
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="hint">
+          Inputs are intentionally blank for the demo. Guidance and example text remain on the right until you generate.
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="p1">1. Observed Operational Problem (past tense)</label>
+          <textarea id="p1" spellcheck="true" placeholder=""></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="p2">2. Conditions, Events, and Analysis (past tense)</label>
+          <textarea id="p2" spellcheck="true" placeholder=""></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="p3">3. Mission Impact (operator perspective)</label>
+          <textarea id="p3" spellcheck="true" placeholder=""></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="p4">4. Operational Recommendation (work-around / SOP-ready)</label>
+          <textarea id="p4" spellcheck="true" placeholder=""></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="p5">5. Likelihood of Recurrence</label>
+          <textarea id="p5" spellcheck="true" placeholder=""></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label for="p6">6. Recommendation (adoption guidance)</label>
+          <textarea id="p6" spellcheck="true" placeholder=""></textarea>
+        </div>
+
+        <div class="btnbar">
+          <button class="primary" id="btnGenerate" type="button">Generate Preview</button>
+          <button id="btnReset" type="button">Reset</button>
+          <button id="btnSave" type="button">Save to DOCX</button>
+        </div>
+
+        <div class="hint">
+          Demo logic: typing does not modify the preview. Only <span class="kbd">Generate Preview</span> replaces guidance with inputs.
+        </div>
+
+        <div class="checks" id="checksPanel" aria-label="Advisory checks">
+          <div style="font-weight:700; margin-bottom:6px;">Advisory Checks (Demo)</div>
+          <div class="checkline"><span>Para 1: past tense</span><span id="chk1" class="status warn">CHECK</span></div>
+          <div class="checkline"><span>Para 2: past tense (advisory)</span><span id="chk2" class="status warn">CHECK</span></div>
+          <div class="checkline"><span>Para 4: actionable (contains “should” or imperative)</span><span id="chk4" class="status warn">CHECK</span></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: PREVIEW -->
+      <div class="card preview">
+        <div class="modebar">
+          <div>
+            <span class="badge" id="modeBadge">DRAFT (Guidance Visible)</span>
+          </div>
+          <div class="muted">OPCON is operator-level guidance.</div>
+        </div>
+
+        <div class="paper">
+          <div class="paper-inner" id="previewHost"></div>
+        </div>
+
+        <div class="hint muted" style="margin-top:10px;">
+          Note: “Save to DOCX” exports Word-compatible HTML (.doc) for demo purposes.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    /* ---------------- DOM helper ---------------- */
+    const $ = (id) => document.getElementById(id);
+
+    /* ---------------- State ---------------- */
+    let generatedMode = false;
+
+    /* ---------------- Guidance content (Office MFD demo) ---------------- */
+    const GUIDANCE = {
+      sutName: "Office Copier / Printer / Scanner (MFD) — SoS 1: Network | SoS 2: USB-connected workstation",
+      p1: {
+        g:
+`Paragraph 1 — Observed Operational Problem (past tense).
+State the specific operator-observed problem in clear operator terms. Describe what was seen at the panel or workstation.
+Keep it concise and unambiguous. Avoid detailed analysis here; analysis belongs in Paragraph 2.`,
+        x:
+"The MFD intermittently failed to complete Scan-to-Network jobs to approved network destinations during routine office operations."
+      },
+      p2: {
+        g:
+`Paragraph 2 — Conditions, Events, and Analysis (past tense).
+Describe the conditions where the problem occurred (networked SoS vs USB SoS), what the operator did, what the system did, and why.
+Include any relevant bounds for repeatability (accounts, destinations, time-of-day, concurrency, document types).`,
+        x:
+`The MFD’s ability to print from a networked PC, scan to approved network destinations, scan to a USB-connected workstation, and copy was assessed during routine office operations over five days using standard user accounts and approved network shares. During this period, the MFD intermittently failed to complete Scan-to-Network jobs while Print-from-PC, Scan-to-PC, and Copy functions operated normally.\n\nScan-to-Network failures occurred in 9 of 50 scan attempts and terminated with an on-panel error message and no file written to the destination share. In 6 of the 9 failures, repeating the same job without changing settings resulted in successful completion. As a workaround, users performed Scan-to-PC via USB connection and manually transferred files to the network, increasing steps and time to completion.\n\nThe data indicated Scan-to-Network reliability was inconsistent under normal operational load. The workaround increased user workload and introduced additional opportunities for error.`
+      },
+      p3: {
+        g:
+`Paragraph 3 — Mission Impact (operator perspective).
+Explain how the issue affects the operator’s ability to accomplish the work, including timing, workload, errors, or lost products.`,
+        x:
+"Intermittent Scan-to-Network failures delayed dissemination of scanned products, increased rework, and reduced confidence that scanned documents were reliably captured and shared."
+      },
+      p4: {
+        g:
+`Paragraph 4 — Operational Recommendation (work-around / SOP-ready).
+Provide a clear, actionable recommendation operators can implement immediately. Write it as SOP-ready guidance.`,
+        x:
+"Operators should reattempt a failed Scan-to-Network job once without modifying settings. If the job fails a second time, operators should perform Scan-to-PC via USB and manually transfer the file to the approved network destination, documenting the occurrence and time of failure for troubleshooting."
+      },
+      p5: {
+        g:
+`Paragraph 5 — Likelihood of Recurrence.
+Assess how often this issue is expected to occur under routine operations if the workaround is not followed (likely/occasional/unlikely).`,
+        x:
+"This issue is likely to recur during routine network operations when multiple users are submitting scan jobs to shared destinations."
+      },
+      p6: {
+        g:
+`Paragraph 6 — Recommendation.
+State whether to adopt this practice as standard operating procedure, include it in training, and/or publish as local operating instruction.`,
+        x:
+"Adopt this procedure as standard operator practice and incorporate it into local operating instructions and training for routine MFD scanning operations."
+      }
+    };
+
+    /* ---------------- Inputs list ---------------- */
+    const fields = ["refId","date","sutName","p1","p2","p3","p4","p5","p6"];
+
+    function getForm(){
+      const d = {};
+      fields.forEach(k => d[k] = ($(k)?.value || "").trim());
+      return d;
+    }
+
+    /* ---------------- Safe HTML + paragraph formatting ---------------- */
+    function esc(s){
+      return (s || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;");
+    }
+
+    function para(text){
+      const parts = (text || "").split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
+      return parts.map(p => `<p>${esc(p)}</p>`).join("");
+    }
+
+    function guidanceBlock(g, x){
+      return `
+        <div class="guidance">${esc(g)}</div>
+        <div class="context">${para(x)}</div>
+      `;
+    }
+
+    /* ---------------- Advisory checks ---------------- */
+    function setCheck(id, level, label){
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove("ok","warn","bad");
+      el.classList.add(level);
+      el.textContent = label;
+    }
+
+    function looksPastTense(s){
+      const t = (s || "").toLowerCase();
+      if (!t) return false;
+      return /(\bwas\b|\bwere\b|\bexperienced\b|\bfailed\b|\boccurred\b|\bresulted\b|\bassessed\b|\bobserved\b|\brequired\b|\bterminated\b)/.test(t)
+        || /\b\w+ed\b/.test(t);
+    }
+
+    function looksActionable(s){
+      const t = (s || "").toLowerCase();
+      if (!t) return false;
+      return /\bshould\b/.test(t) || /\bdo\b/.test(t) || /\bperform\b/.test(t) || /\bverify\b/.test(t);
+    }
+
+    function runChecks(){
+      const d = getForm();
+
+      if (!d.p1) setCheck("chk1","warn","EMPTY");
+      else if (looksPastTense(d.p1)) setCheck("chk1","ok","OK");
+      else setCheck("chk1","warn","REVIEW");
+
+      if (!d.p2) setCheck("chk2","warn","EMPTY");
+      else if (looksPastTense(d.p2)) setCheck("chk2","ok","OK");
+      else setCheck("chk2","warn","REVIEW");
+
+      if (!d.p4) setCheck("chk4","warn","EMPTY");
+      else if (looksActionable(d.p4)) setCheck("chk4","ok","OK");
+      else setCheck("chk4","bad","ADD ACTION");
+    }
+
+    /* ---------------- Preview renderer ---------------- */
+    function renderPreviewHtml(){
+      const d = getForm();
+
+      const refId = esc(d.refId || "OPCON-DEMO-XXX");
+      const date = esc(d.date || "DD Mmm YYYY");
+
+      const sutLine = generatedMode
+        ? esc(d.sutName || GUIDANCE.sutName)
+        : esc(GUIDANCE.sutName);
+
+      const p1 = generatedMode
+        ? (d.p1 ? para(d.p1) : `<p class="muted">[Paragraph 1 not entered]</p>`)
+        : guidanceBlock(GUIDANCE.p1.g, GUIDANCE.p1.x);
+
+      const p2 = generatedMode
+        ? (d.p2 ? para(d.p2) : `<p class="muted">[Paragraph 2 not entered]</p>`)
+        : guidanceBlock(GUIDANCE.p2.g, GUIDANCE.p2.x);
+
+      const p3 = generatedMode
+        ? (d.p3 ? para(d.p3) : `<p class="muted">[Paragraph 3 not entered]</p>`)
+        : guidanceBlock(GUIDANCE.p3.g, GUIDANCE.p3.x);
+
+      const p4 = generatedMode
+        ? (d.p4 ? para(d.p4) : `<p class="muted">[Paragraph 4 not entered]</p>`)
+        : guidanceBlock(GUIDANCE.p4.g, GUIDANCE.p4.x);
+
+      const p5 = generatedMode
+        ? (d.p5 ? para(d.p5) : `<p class="muted">[Paragraph 5 not entered]</p>`)
+        : guidanceBlock(GUIDANCE.p5.g, GUIDANCE.p5.x);
+
+      const p6 = generatedMode
+        ? (d.p6 ? para(d.p6) : `<p class="muted">[Paragraph 6 not entered]</p>`)
+        : guidanceBlock(GUIDANCE.p6.g, GUIDANCE.p6.x);
+
+      return `
+        <div class="topline">DRAFT</div>
+        <div class="subline"><strong>OPERATIONAL CONSIDERATION (OPCON)</strong></div>
+        <div class="subline"><strong>REFERENCE:</strong> ${refId}</div>
+
+        <div class="meta">
+          <div><span class="muted">Date:</span> ${date}</div>
+          <div><span class="muted">SUT:</span> ${sutLine}</div>
+        </div>
+
+        <div class="sect">
+          <h3>1. OBSERVED OPERATIONAL PROBLEM.</h3>
+          ${p1}
+        </div>
+
+        <div class="sect">
+          <h3>2. CONDITIONS, EVENTS, AND ANALYSIS.</h3>
+          ${p2}
+        </div>
+
+        <div class="sect">
+          <h3>3. MISSION IMPACT.</h3>
+          ${p3}
+        </div>
+
+        <div class="sect">
+          <h3>4. OPERATIONAL RECOMMENDATION.</h3>
+          ${p4}
+        </div>
+
+        <div class="sect">
+          <h3>5. LIKELIHOOD OF RECURRENCE.</h3>
+          ${p5}
+        </div>
+
+        <div class="sect">
+          <h3>6. RECOMMENDATION.</h3>
+          ${p6}
+        </div>
+      `;
+    }
+
+    function setMode(isGenerated){
+      generatedMode = !!isGenerated;
+      const badge = $("modeBadge");
+      if (badge) badge.textContent = generatedMode ? "GENERATED (Guidance Hidden)" : "DRAFT (Guidance Visible)";
+    }
+
+    function renderPreview(){
+      const host = $("previewHost");
+      if (!host) return;
+      host.innerHTML = renderPreviewHtml();
+      runChecks();
+    }
+
+    /* ---------------- Reset ---------------- */
+    function resetAll(){
+      fields.forEach(k => { const el = $(k); if (el) el.value = ""; });
+      setMode(false);
+      // Keep SUT aligned to demo guidance (optional)
+      $("sutName").value = GUIDANCE.sutName;
+      renderPreview();
+    }
+
+    /* ---------------- Save to DOCX (demo) ---------------- */
+    function saveToDocxDemo(){
+      const previewHtml = $("previewHost") ? $("previewHost").innerHTML : "";
+
+      const doc =
+`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>OPCON Export</title>
+<style>
+  body{ font-family: "Times New Roman", Times, serif; }
+  .page{ width: ${esc(getComputedStyle(document.documentElement).getPropertyValue("--page-w").trim() || "8.5in")}; }
+  .margins{ padding: ${esc(getComputedStyle(document.documentElement).getPropertyValue("--margin").trim() || "1in")}; }
+  .sect{ max-width: ${esc(getComputedStyle(document.documentElement).getPropertyValue("--usable-w").trim() || "6.5in")}; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="margins">
+      ${previewHtml}
+    </div>
+  </div>
+</body>
+</html>`;
+
+      const blob = new Blob([doc], { type: "application/msword" });
+
+      const d = getForm();
+      const fname = (d.refId || "OPCON") + ".doc";
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = fname.replace(/[^\w.\-]+/g, "_");
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    }
+
+    /* ---------------- Nav (Back) ---------------- */
+    function goBack(){
+      // adjust if you prefer index.html in your docs root
+      window.location.href = "./index.html";
+    }
+
+    /* ---------------- Event wiring ---------------- */
+    function wireEvents(){
+      $("btnBack")?.addEventListener("click", (e) => { e.preventDefault(); goBack(); });
+
+      $("btnGenerate")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        setMode(true);
+        renderPreview();
+      });
+
+      $("btnReset")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        resetAll();
+      });
+
+      $("btnSave")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        saveToDocxDemo();
+      });
+
+      // Advisory checks update while typing; preview stays stable until Generate
+      ["p1","p2","p4"].forEach(id => {
+        $(id)?.addEventListener("input", runChecks);
+        $(id)?.addEventListener("change", runChecks);
+      });
+    }
+
+    function init(){
+      setMode(false);
+      // Preload SUT name for demo
+      $("sutName").value = GUIDANCE.sutName;
+      renderPreview();
+      wireEvents();
+      runChecks();
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>
