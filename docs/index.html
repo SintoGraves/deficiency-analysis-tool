@@ -1,4 +1,4 @@
- <!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -23,7 +23,29 @@
       </label>
 
       <button id="btnStartOver" class="btn secondary">Start Over</button>
-      <button id="btnGoReport" class="btn secondary" title="Opens report page">Generate Document</button>
+
+      <!-- ==========================================
+           Document Generation (Upper Right)
+           - Deficiency Sheet uses existing JS handler (#btnGoReport)
+           - OPCON/TACON are direct links to demo pages
+           ========================================== -->
+      <button id="btnGoReport" class="btn secondary" title="Opens deficiency sheet builder">
+        Generate Deficiency Sheet
+      </button>
+
+      <a href="./opcon-demo.html"
+         class="btn secondary"
+         role="button"
+         title="Open OPCON sample page">
+        Generate OPCON
+      </a>
+
+      <a href="./tacon-demo.html"
+         class="btn secondary"
+         role="button"
+         title="Open TACON sample page">
+        Generate TACON
+      </a>
     </div>
   </header>
 
