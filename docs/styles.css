@@ -65,6 +65,37 @@ select {
   border-color: var(--border);
   color: var(--text);
 }
+
+/* =========================================
+   Anchor-as-Button Normalization
+   Purpose:
+   - Make <a class="btn"> look/behave like <button class="btn">
+   - Remove default underline + default link coloring
+   - Prevent font-size differences
+   ========================================= */
+a.btn,
+a.btn:link,
+a.btn:visited {
+  color: inherit;               /* prevent default link blue/purple */
+  text-decoration: none;        /* remove underline */
+  font-size: inherit;           /* match button text sizing */
+  line-height: inherit;
+}
+
+a.btn:hover,
+a.btn:focus,
+a.btn:active {
+  text-decoration: none;        /* keep underline off on hover/focus */
+}
+
+/* Align anchor buttons to the same box-model as buttons */
+a.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .card {
