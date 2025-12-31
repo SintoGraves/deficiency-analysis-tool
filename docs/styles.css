@@ -96,6 +96,13 @@ a.btn {
   white-space: nowrap;
 }
 
+/* =========================================
+   Anchor Button Font Normalization
+   ========================================= */
+a.btn {
+  font-size: 0.95em;    /* match <button> visual baseline */
+}
+
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .card {
