@@ -33,22 +33,11 @@
   NOTES:
     - This file is self-contained (no external CSS/JS required).
     - Link back assumes flow diagrams page is /docs/index.html. Adjust if needed.
--->
 
-<!--
-  File: /docs/blue-sheet-demo.html
-  Blue Sheet Builder (Demo) — Updated for Para 2a / 2b / 2c
-  --------------------------------------------------------------------
-  CHANGE SUMMARY (31 Dec 2025):
-    - Paragraph 2 split into three separate input blocks:
-        2a — Establish the Test Conditions (past tense)
-        2b — Present Data (past tense)
-        2c — Analyze/Evaluate the Data (past tense)
-    - Advisory checks updated to cover 2a, 2b, and 2c separately.
-    - Generated preview stitches 2a + 2b + 2c into Paragraph 2 as a single assembled section
-      (with sublabels 2a/2b/2c).
-    - Draft preview shows separate guidance + example for 2a/2b/2c (pink italics + black example).
-    - Save to DOCX continues to export the CURRENT preview (draft or generated).
+  CHANGE SUMMARY (31 Dec 2025 / 01 Jan 2026):
+    - Paragraph 2 split into three separate input blocks (2a/2b/2c) for authoring.
+    - GENERATED preview stitches 2a + 2b + 2c into a single Paragraph 2 body (NO 2a/2b/2c labels).
+    - Paragraph 2 title does NOT include "(*)".
 -->
 
 <!doctype html>
@@ -252,7 +241,7 @@
     .mini { font-size: 12px; margin-top: 6px; }
     .muted { color: rgba(0,0,0,.65); }
 
-    /* Para 2 sublabels in preview */
+    /* Para 2 sublabels in preview (used in DRAFT guidance only) */
     .p2-subtitle{
       margin: 8px 0 6px;
       font-size: 13px;
@@ -950,20 +939,20 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
     /* ============================================================
        SUBSECTION: PARA 2 ASSEMBLY (GENERATED MODE)
        - Draft shows guidance separately; Generated stitches 2a/2b/2c
+       - COMPLIANCE: Generated output MUST NOT show 2a/2b/2c labels.
        ============================================================ */
     function renderPara2Generated(d, hasP2Figure, p2FigureHtml) {
-      const a = d.p2a ? para(d.p2a) : `<p class="muted">[2a not entered]</p>`;
-      const b = d.p2b ? para(d.p2b) : `<p class="muted">[2b not entered]</p>`;
-      const c = d.p2c ? para(d.p2c) : `<p class="muted">[2c not entered]</p>`;
+      const a = (d.p2a || "").trim();
+      const b = (d.p2b || "").trim();
+      const c = (d.p2c || "").trim();
+
+      // One Paragraph 2 body, assembled in order (2a -> 2b -> 2c), no visible sublabels.
+      const combined = [a, b, c].filter(Boolean).join("\n\n");
+      const bodyHtml = combined ? para(combined) : `<p class="muted">[Paragraph 2 not entered]</p>`;
 
       return `
-        <div class="p2-subtitle">2a. Establish the Test Conditions.</div>
-        ${a}
-        <div class="p2-subtitle">2b. Present Data.</div>
-        ${b}
-        ${p2FigureHtml}
-        <div class="p2-subtitle">2c. Analyze/Evaluate the Data.</div>
-        ${c}
+        ${bodyHtml}
+        ${p2FigureHtml || ""}
       `;
     }
 
@@ -1069,7 +1058,8 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
         </div>
 
         <div class="sect">
-          <h3>2. (*) TEST CONDITIONS, RESULTS, AND ANALYSIS.</h3>
+          <!-- COMPLIANCE: No "(*)" here -->
+          <h3>2. TEST CONDITIONS, RESULTS, AND ANALYSIS.</h3>
           ${p2Body}
         </div>
 
