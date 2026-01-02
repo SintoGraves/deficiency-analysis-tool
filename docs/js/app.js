@@ -1,22 +1,24 @@
 /*-------------------------------------------------
  * /docs/js/app.js
- * Deficiency Decision Tool (POC)
- * - Robust DOM wiring (supports alternate IDs)
- * - Manual on left (loads ./manual/front-matter.html)
- * - Wizard on upper-right
- * - Notes on lower-right
+ * Deficiency Decision Tool (POC) — Single Page Layout
+ * - Flow: upper-left
+ * - Notes/Directives pinned: middle-left
+ * - Manual tabs: bottom-left
+ * - Document generation (Blue/OPCON/TACON): right (embedded)
+ * - No navigation away from page (prevents draft loss)
  * - Trace hidden unless ?debug=1
  *-------------------------------------------------*/
 (function () {
   const DDT = (window.DDT = window.DDT || {});
-  DDT.version = "0.2.1";
+  DDT.version = "0.3.0";
 
   // ===== Module loading (classic scripts; no bundler) =====
   const modulePaths = [
     "./js/data/packLoader.js",
     "./js/data/glossary.js",
-    "./js/data/notes.js",          // <-- ADDED
+    "./js/data/notes.js",
     "./js/state/caseStore.js",
+
     "./js/engine/validators.js",
     "./js/engine/actions.js",
     "./js/engine/decisionEngine.js"
@@ -39,7 +41,6 @@
   // ===== DOM helpers =====
   function qs(id) { return document.getElementById(id); }
 
-  // Try multiple IDs (supports you renaming buttons over time)
   function pickId(ids) {
     for (const id of ids) {
       const el = qs(id);
@@ -61,7 +62,8 @@
     return true;
   }
 
-  async function loadManual(manualStatusEl, manualBodyEl) {
+  // ===== Manual loaders (tab 1 uses fetch; tab 2 uses iframe in HTML) =====
+  async function loadManualFrontMatter(manualStatusEl, manualBodyEl) {
     if (!manualStatusEl || !manualBodyEl) return;
     try {
       const res = await fetch("./manual/front-matter.html", { cache: "no-store" });
@@ -75,6 +77,7 @@
     }
   }
 
+  // ===== Node text helpers =====
   function getNodeDisplayText(node) {
     if (!node) return "";
     const parts = [];
@@ -91,15 +94,13 @@
       const re = new RegExp("\\b" + abbr + "\\b", "g");
       if (re.test(text)) hits.push(abbr);
     }
-    hits.sort(); // deterministic alphabetical order
+    hits.sort();
     return hits;
   }
 
-  // NEW: find NOTE references (NOTE 1, Note 2, (Note 3), Note 4:, etc.)
   function findNoteRefsInNode(node) {
     const text = getNodeDisplayText(node);
     if (!text) return [];
-
     const re = /\bNOTE\s+(\d+)\b/gi;
     const refs = [];
     let m;
@@ -107,18 +108,15 @@
       const key = `NOTE ${m[1]}`;
       if (!refs.includes(key)) refs.push(key);
     }
-
-    // Deterministic order: NOTE 1, NOTE 2, ...
     refs.sort((a, b) => {
       const na = parseInt(a.replace(/\D+/g, ""), 10);
       const nb = parseInt(b.replace(/\D+/g, ""), 10);
       return na - nb;
     });
-
     return refs;
   }
 
-  // Render Notes Panel
+  // ===== Notes Panel =====
   function renderNotesPanel(nodeId, node, meta, notesMetaEl, notesBodyEl) {
     if (!notesMetaEl || !notesBodyEl) return;
 
@@ -126,7 +124,7 @@
     notesMetaEl.textContent = `Pack: ${packId}  |  Step: ${nodeId || "-"}`;
 
     const abbrs = findAbbreviationsInNode(node);
-    const noteRefs = findNoteRefsInNode(node); // <-- NEW
+    const noteRefs = findNoteRefsInNode(node);
 
     const notes = Array.isArray(node?.notes) ? node.notes : [];
     const directives = Array.isArray(node?.directives) ? node.directives : [];
@@ -138,7 +136,6 @@
 
     let html = "";
 
-    // Abbreviations tied to the currently displayed node/question
     if (abbrs.length) {
       html += `<div class="note-block">
         <div class="note-kind">Reference</div>
@@ -151,7 +148,6 @@
       </div>`;
     }
 
-    // Directives
     if (directives.length || directiveText) {
       html += `<div class="note-block">
         <div class="note-kind">Directive</div>
@@ -160,7 +156,6 @@
       </div>`;
     }
 
-    // NEW: Full NOTE content resolved from /docs/js/data/notes.js
     if (noteRefs.length) {
       const lib = (DDT.NOTES && typeof DDT.NOTES === "object") ? DDT.NOTES : {};
       for (const ref of noteRefs) {
@@ -174,7 +169,6 @@
       }
     }
 
-    // Existing node notes
     if (notes.length) {
       for (const n of notes) {
         html += `<div class="note-block">
@@ -191,7 +185,6 @@
       </div>`;
     }
 
-    // Hints
     if (hints.length || hintText) {
       html += `<div class="note-block">
         <div class="note-kind">Hint</div>
@@ -204,90 +197,145 @@
     notesBodyEl.innerHTML = html;
   }
 
+  // ===== UI Tabs =====
+  function setActiveTab(btns, wrapMap, activeKey) {
+    for (const [key, btn] of Object.entries(btns)) {
+      const isActive = key === activeKey;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    }
+    for (const [key, wrap] of Object.entries(wrapMap)) {
+      wrap.hidden = key !== activeKey;
+    }
+  }
+
+  // ===== Send flow context to Blue Sheet iframe =====
+  function pushContextToBlueSheet(frameEl, payload) {
+    if (!frameEl || !frameEl.contentWindow) return;
+    try {
+      frameEl.contentWindow.postMessage(
+        { type: "DDT_FLOW_CONTEXT", payload },
+        "*"
+      );
+    } catch (e) {
+      console.warn("postMessage to Blue Sheet failed:", e);
+    }
+  }
+
   async function main() {
     await loadModules();
 
-    if (!DDT.GLOSSARY || typeof DDT.GLOSSARY !== "object") {
-      console.warn("[DDT] glossary not loaded (DDT.GLOSSARY missing). Check /docs/js/data/glossary.js path and contents.");
-    }
-    if (!DDT.NOTES || typeof DDT.NOTES !== "object") {
-      console.warn("[DDT] notes not loaded (DDT.NOTES missing). Check /docs/js/data/notes.js path and contents.");
-    }
-
     const debug = new URLSearchParams(location.search).get("debug") === "1";
 
-    // ---- Required (core) elements ----
+    // Core elements
     const elScreen = qs("screen");
+    const elFlowMeta = qs("flowMeta");
 
-    // These IDs sometimes change; support both names.
-    const { el: elPackSelect, id: packIdUsed } = pickId(["packSelect"]);
+    const { el: elPackSelect } = pickId(["packSelect"]);
     const { el: elStartOver } = pickId(["btnStartOver", "btnRestart", "btnStart"]);
     const { el: elBack } = pickId(["btnBack"]);
     const { el: elReset } = pickId(["btnReset", "btnResetTrace", "btnResetCase"]);
+    const { el: elGoDoc } = pickId(["btnGenerate", "btnGoReport", "btnReport"]);
 
+    // Manual
     const { el: elManualStatus } = pickId(["manualStatus"]);
     const { el: elManualBody } = pickId(["manualBody"]);
+    const elManualReportWrap = qs("manualReportWrap");
 
+    const tabManualFront = qs("tabManualFront");
+    const tabManualReport = qs("tabManualReport");
+
+    // Notes
     const { el: elNotesMeta } = pickId(["notesMeta"]);
     const { el: elNotesBody } = pickId(["notesBody"]);
+
+    // Doc tabs (right)
+    const tabDocBlue = qs("tabDocBlue");
+    const tabDocOpcon = qs("tabDocOpcon");
+    const tabDocTacon = qs("tabDocTacon");
+    const wrapDocBlue = qs("docBlueWrap");
+    const wrapDocOpcon = qs("docOpconWrap");
+    const wrapDocTacon = qs("docTaconWrap");
+    const blueFrame = qs("blueSheetFrame");
+
+    // Debug
+    const { el: elDebugWrap } = pickId(["debugTraceWrap"]);
+    const { el: elTrace } = pickId(["trace"]);
+    const { el: elTraceMeta } = pickId(["traceMeta"]);
+    if (elDebugWrap) elDebugWrap.hidden = !debug;
 
     if (!elScreen) throw new Error("Missing required element #screen in index.html");
     if (!elPackSelect) throw new Error("Missing required element #packSelect in index.html");
 
-    // ---- Optional elements ----
-    const { el: elGoReport } = pickId(["btnGoReport", "btnReport", "btnGenerate"]);
-    const { el: elDebugWrap } = pickId(["debugTraceWrap"]);
-    const { el: elTrace } = pickId(["trace"]);
-    const { el: elTraceMeta } = pickId(["traceMeta"]);
+    // Manual: load front matter on boot
+    await loadManualFrontMatter(elManualStatus, elManualBody);
 
-    if (elDebugWrap) elDebugWrap.hidden = !debug;
+    // Manual tab behavior
+    const manualBtns = { front: tabManualFront, report: tabManualReport };
+    const manualWraps = { front: elManualBody, report: elManualReportWrap };
+    function showManual(which) {
+      setActiveTab(manualBtns, manualWraps, which);
+    }
+    safeOn(tabManualFront, "click", () => showManual("front"));
+    safeOn(tabManualReport, "click", () => showManual("report"));
 
-    await loadManual(elManualStatus, elManualBody);
+    // Doc tab behavior
+    const docBtns = { blue: tabDocBlue, opcon: tabDocOpcon, tacon: tabDocTacon };
+    const docWraps = { blue: wrapDocBlue, opcon: wrapDocOpcon, tacon: wrapDocTacon };
+    function showDoc(which) {
+      setActiveTab(docBtns, docWraps, which);
+    }
+    safeOn(tabDocBlue, "click", () => showDoc("blue"));
+    safeOn(tabDocOpcon, "click", () => showDoc("opcon"));
+    safeOn(tabDocTacon, "click", () => showDoc("tacon"));
 
+    // Case store + engine
     const store = DDT.createCaseStore();
 
-    // Notes render fallback (guarded to avoid double-renders/log spam)
     let currentPack = null;
     let lastNotesNodeId = null;
 
+    function updateFlowMeta() {
+      if (!elFlowMeta) return;
+      const meta = store.getMeta();
+      elFlowMeta.textContent = `Pack: ${meta.packId || "-"}  |  Step: ${meta.nodeId || "-"}`;
+    }
+
     function updateNotesFromStore() {
       if (!elNotesMeta || !elNotesBody) return;
-
       const meta = store.getMeta();
       const nodeId = meta && meta.nodeId;
       if (!currentPack || !currentPack.nodes || !nodeId) return;
 
-      // Guard: only re-render if node changed
       if (nodeId === lastNotesNodeId) return;
       lastNotesNodeId = nodeId;
 
       const node = currentPack.nodes[nodeId];
       if (!node) return;
-
       renderNotesPanel(nodeId, node, meta, elNotesMeta, elNotesBody);
     }
 
     const engine = DDT.createDecisionEngine({
       renderTarget: elScreen,
-      notesTarget: elNotesBody,      // harmless if engine ignores
-      notesMetaTarget: elNotesMeta,  // harmless if engine ignores
       debug,
 
       onTraceUpdated: () => {
         const meta = store.getMeta();
         if (elBack) elBack.disabled = !store.canGoBack();
 
+        updateFlowMeta();
+        updateNotesFromStore();
+
         if (debug && elTrace && elTraceMeta) {
           elTrace.textContent = JSON.stringify(store.getTrace(), null, 2);
           elTraceMeta.textContent =
             `Pack: ${meta.packId || "-"}  |  Node: ${meta.nodeId || "-"}  |  Steps: ${meta.steps || 0}`;
         }
-
-        updateNotesFromStore();
       },
 
       onNodeRendered: (nodeId, node) => {
-        lastNotesNodeId = nodeId; // keep guard in sync
+        lastNotesNodeId = nodeId;
+        updateFlowMeta();
         renderNotesPanel(nodeId, node, store.getMeta(), elNotesMeta, elNotesBody);
       }
     });
@@ -301,42 +349,47 @@
       engine.loadPack(pack, store);
       engine.start();
 
-      // Force Notes render for the entry node
+      updateFlowMeta();
       updateNotesFromStore();
     }
 
-    // Controls (all guarded)
+    // Header controls
     safeOn(elPackSelect, "change", () => startPack(elPackSelect.value));
     safeOn(elStartOver, "click", () => startPack(elPackSelect.value));
     safeOn(elReset, "click", () => startPack(elPackSelect.value));
     safeOn(elBack, "click", () => engine.back());
 
-    safeOn(elGoReport, "click", () => {
-  // Persist last case (optional, but good for demo credibility later)
-  try {
-    localStorage.setItem("ddt_last_case", JSON.stringify({
-      meta: store.getMeta(),
-      state: store.getState(),
-      trace: store.getTrace()
-    }));
-  } catch (_) {}
+    // Generate Document: switch right panel, push context, persist event snapshot
+    safeOn(elGoDoc, "click", () => {
+      // Persist snapshot for demo credibility / recovery
+      try {
+        localStorage.setItem("ddt_last_case", JSON.stringify({
+          meta: store.getMeta(),
+          state: store.getState(),
+          trace: store.getTrace()
+        }));
+      } catch (_) {}
 
-  // Demo: route to the deficiency sheet builder page
-  // Map pack -> sample for a "connected" feel without full linkage.
-  const packId = (store.getMeta()?.packId || elPackSelect?.value || "").toLowerCase();
-  const sample = packId.includes("figure2") ? "sample2" : "sample1";
+      // Switch to Blue Sheet (single page)
+      showDoc("blue");
 
-  window.location.href = `./blue-sheet-demo.html?sample=${encodeURIComponent(sample)}`;
+      // Push current flow context into the embedded Blue Sheet tool
+      const meta = store.getMeta();
+      const node = currentPack?.nodes?.[meta?.nodeId] || null;
 
-});
+      pushContextToBlueSheet(blueFrame, {
+        meta,
+        currentNode: node ? { id: meta.nodeId, title: node.title, question: node.question, body: node.body } : null,
+        trace: store.getTrace()
+      });
+    });
 
-    // Start default
+    // Boot
     await startPack(elPackSelect.value);
 
-    // Helpful console note (debug only)
-    if (debug) {
-      console.log(`[DDT] started (packSelect id: ${packIdUsed || "packSelect"})`);
-    }
+    // Default manual/doc tabs
+    showManual("front");
+    showDoc("blue");
   }
 
   main().catch((err) => {
@@ -347,7 +400,7 @@
         <div class="node-type">error</div>
         <h2 class="h-title">Load Error</h2>
         <div class="body">${esc(err?.message || err)}</div>
-        <div class="body">Confirm your IDs exist in <code>/docs/index.html</code> and files are under <code>/docs</code>.</div>
+        <div class="body">Confirm IDs exist in <code>/docs/index.html</code> and files are under <code>/docs</code>.</div>
       </div>`;
     }
   });
