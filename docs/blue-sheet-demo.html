@@ -42,34 +42,31 @@
 
 <!--
   File: /docs/blue-sheet-demo.html
-  Blue Sheet Builder (Demo) — Updated with Draft Autosave + Restore (localStorage)
+  Blue Sheet Builder (Demo) — Event Workspace + Multi-Draft Saving (via DDT CaseStore)
   --------------------------------------------------------------------
   PURPOSE (Demo):
-    - Show how a user fills structured “data blocks” and generates a standards-shaped Blue Sheet.
-    - Guidance text is shown first (pink italics + black example context).
+    - Fill structured data blocks and generate a standards-shaped Blue Sheet preview.
+    - Guidance text is shown first and remains visible while typing.
     - Preview does NOT change while typing.
-    - When the user clicks "Generate Preview", guidance disappears and user input replaces it.
+    - Clicking "Generate Preview" hides guidance and uses user input.
 
-  DRAFT SAVING (NEW - FIRST CHANGES DISCUSSED):
-    - Autosave draft locally (localStorage) while user types/changes fields
-    - Save before navigating away (Back to Flow Diagrams)
-    - Restore last draft on load (prompt)
-    - Periodic checkpoint save while dirty
-    - Save on pagehide/visibilitychange
+  DRAFT SAVING (UPDATED):
+    - Uses DDT.createCaseStore() Event Workspace model (localStorage-backed in POC)
+    - One Event can contain many documents:
+        BlueSheet-001, BlueSheet-002, ...
+    - Autosave drafts while user types/changes fields
+    - Restore last active doc on load
+    - Save on navigation and page hide
+    - Figure image data is NOT persisted (metadata only)
 
-  NOTE ON FIGURE STORAGE:
-    - To avoid localStorage quota issues, this demo stores figure metadata (name) but NOT the image data.
-      After refresh/reopen, user may need to re-upload the image.
+  LINKAGE:
+    - Flow context may be imported via postMessage and stored locally (separate key).
+    - Store can also capture flow context later, but for this demo we keep your
+      existing “Imported Flow Context” banner (proof of linkage).
 
-  KEY FEATURES IMPLEMENTED (existing):
-    1) Back-to-Flow Diagrams button in header, right-aligned.
-    2) Risk Matrix (Figure X) appears AFTER Paragraph 5; selected cell colored.
-    3) Risk cube centered; width constrained (default 3.0in; adjustable via --risk-w)
-    4) Para 2 figure upload and insertion into generated preview
-    5) Save to DOCX demo export (Word-compatible HTML .doc)
-    6) Advisory tense/format indicators
-
-  Link back assumes flow diagrams page is /docs/index.html. Adjust if needed.
+  DEPENDENCIES:
+    - Will attempt to load /docs/js/state/caseStore.js (classic script).
+    - If missing, the page still runs, but drafts will not persist across reload.
 -->
 
 <!doctype html>
@@ -123,7 +120,7 @@
       gap:16px;
     }
     .header-left{ flex: 1 1 auto; min-width: 0; }
-    .header-right{ flex: 0 0 auto; padding-top: 2px; }
+    .header-right{ flex: 0 0 auto; padding-top: 2px; display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; }
 
     header h1 { margin: 0 0 6px; font-size: 16px; }
     header p  { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
@@ -374,6 +371,22 @@
     .warn{ color: #b17400; }
     .bad{ color: #b00020; }
 
+    .tiny-row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .tiny-row .mini-pill{
+      padding: 8px 10px;
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 10px;
+      background:#fafafa;
+      font-size: 12px;
+      color: rgba(0,0,0,.75);
+      line-height:1.25;
+    }
+
     @media print {
       header, .left, .btnbar { display: none !important; }
       .wrap { padding: 0; }
@@ -390,13 +403,20 @@
       <div class="header-left">
         <h1>Blue Sheet Builder (Demo)</h1>
         <p>
-          Guidance is shown first (pink italics) and remains visible while you type.
+          Guidance is shown first and remains visible while you type.
           Select <span class="kbd">Generate Preview</span> to replace guidance with your entered content.
-          Draft autosaves locally.
+          Drafts save under a single Event and can be switched.
         </p>
         <div id="flowContextLine" class="contextline" hidden></div>
       </div>
+
       <div class="header-right">
+        <button id="btnNewDocTop" class="btn-link" type="button" title="Create a new Blue Sheet draft under this event">New Blue Sheet</button>
+
+        <select id="docPickerTop" class="btn-link" title="Open an existing Blue Sheet draft" style="padding:10px 12px;">
+          <option value="">Open Draft…</option>
+        </select>
+
         <button id="btnBackToFlowTop" class="btn-link" type="button">Back to Flow Diagrams</button>
       </div>
     </div>
@@ -409,6 +429,13 @@
         <h2>Inputs</h2>
         <div class="hr"></div>
 
+        <div class="tiny-row">
+          <div class="mini-pill"><strong>Event:</strong> <span id="eventPill">Not set</span></div>
+          <div class="mini-pill"><strong>Document:</strong> <span id="docPill">Not set</span></div>
+        </div>
+
+        <div class="hr"></div>
+
         <div>
           <label for="sampleSelect">Demo selection</label>
           <select id="sampleSelect">
@@ -416,7 +443,7 @@
             <option value="lcac">LCAC Example (Alternate Template Sample)</option>
             <option value="custom">Custom (manual entry)</option>
           </select>
-          <div class="hint">Demo mode: selects which guidance + example text is displayed. Inputs remain empty until you enter data.</div>
+          <div class="hint">Demo mode controls guidance/example blocks. Your inputs remain separate per document.</div>
         </div>
 
         <div class="hr"></div>
@@ -450,7 +477,7 @@
         </div>
 
         <div class="hr"></div>
-        <div class="hint">Inputs for Paragraphs 1–5 are intentionally blank for the demo. Guidance and example text remain on the right until you generate.</div>
+        <div class="hint">Inputs for Paragraphs 1–5 remain blank until you enter data. Guidance stays on the right until you generate.</div>
 
         <div style="margin-top:10px;">
           <label for="p1Problem">1. Problem / Issue (past tense, one sentence)</label>
@@ -507,7 +534,7 @@
         <div style="margin-top:10px;">
           <label for="p2b">2b. Present Data (past tense)</label>
           <textarea id="p2b" spellcheck="true" placeholder=""></textarea>
-          <div class="hint">Standalone evidence. Include results (quant/qual), and any operator workaround (objective, third-person).</div>
+          <div class="hint">Standalone evidence. Include results (quant/qual), and any workaround (objective, third-person).</div>
         </div>
 
         <div style="margin-top:10px;">
@@ -522,6 +549,7 @@
           <div class="hint">
             Upload an image to demonstrate insertion into Paragraph 2. If present, it becomes <span class="kbd">Figure 1</span>.
             The risk matrix becomes <span class="kbd">Figure 2</span>.
+            <br><strong>Note:</strong> for the demo, the uploaded image data is not persisted across reload.
           </div>
         </div>
 
@@ -567,8 +595,8 @@
         </div>
 
         <div class="hint">
-          Demo logic: typing does not modify the preview text. Only <span class="kbd">Generate Preview</span> replaces guidance with inputs.
-          Draft autosaves locally and restores on reopen.
+          Drafts autosave under the current <span class="kbd">Event</span> and <span class="kbd">Document</span>.
+          Use <span class="kbd">New Blue Sheet</span> to create the next sequential draft and <span class="kbd">Open Draft</span> to switch.
         </div>
 
         <div class="checks" id="checksPanel" aria-label="Tense and format checks">
@@ -599,18 +627,22 @@
         </div>
 
         <div class="hint muted" style="margin-top:10px;">
-          Note: For the demo, “Save to DOCX” exports Word-compatible HTML. The full build can generate true DOCX from an official template.
+          Note: “Save to DOCX” exports Word-compatible HTML (.doc) for demo purposes. Full build can generate true DOCX from an official template.
         </div>
       </div>
+
     </div>
   </div>
+
+  <!-- Load shared store if present -->
+  <script src="./js/state/caseStore.js"></script>
 
   <script>
   (function () {
     const $ = (id) => document.getElementById(id);
 
     /* =========================
-       FLOW CONTEXT IMPORT (NEW)
+       FLOW CONTEXT IMPORT (kept)
        ========================= */
     const FLOW_CTX_KEY = "blueSheetDemo::flowContext::v1";
 
@@ -637,9 +669,7 @@
     }
 
     function saveFlowContext(ctx) {
-      try {
-        localStorage.setItem(FLOW_CTX_KEY, JSON.stringify(ctx));
-      } catch {}
+      try { localStorage.setItem(FLOW_CTX_KEY, JSON.stringify(ctx)); } catch {}
     }
 
     window.addEventListener("message", (ev) => {
@@ -647,18 +677,36 @@
       if (!msg || msg.type !== "DDT_FLOW_CONTEXT") return;
       saveFlowContext(msg.payload);
       setFlowContextLine(msg.payload);
-      // Optional future: auto-populate certain fields from ctx.payload
-      // For now we only display the context to prove linkage.
+      // Optional future: auto-populate certain fields from msg.payload
     });
 
-    /* ============================================================
-       EXISTING AUTOSAVE + DEMO LOGIC (from your saved version)
-       ============================================================ */
+    /* =========================================================
+       EVENT WORKSPACE + DOC DRAFTS (NEW PRIMARY SAVE MECHANISM)
+       ========================================================= */
+
+    // Decide an eventId in a deterministic way:
+    // 1) query param event=...
+    // 2) if present, TEIN value
+    // 3) fallback "TEIN-DEMO"
+    function getQueryParam(name) {
+      try { return new URLSearchParams(location.search).get(name); } catch { return null; }
+    }
+
+    function normalizeEventId(s) {
+      const raw = String(s || "").trim();
+      if (!raw) return "";
+      return raw.replace(/[^\w.\-]+/g, "_").slice(0, 80);
+    }
+
+    // If DDT store exists, use it. Otherwise, run without persistence.
+    const HAS_STORE = !!(window.DDT && typeof window.DDT.createCaseStore === "function");
+    const store = HAS_STORE ? window.DDT.createCaseStore() : null;
+
+    let eventId = "";
+    let docId = "";
     let generatedMode = false;
 
-    const STORAGE_PREFIX = "blueSheetDemo::v1::";
-    const LAST_KEY = STORAGE_PREFIX + "LAST_ACTIVE_KEY";
-
+    // Debounce + checkpoint
     let dirty = false;
     let saveTimer = null;
     let checkpointTimer = null;
@@ -668,27 +716,161 @@
       const el = $("saveStatus");
       if (el) el.textContent = text;
     }
-
     function fmtTime(iso) {
       if (!iso) return "";
       try { return new Date(iso).toLocaleString(); } catch { return ""; }
     }
 
-    function draftKeyFromCurrent() {
-      const tein = ($("tein")?.value || "").trim() || "TEIN";
-      const issue = ($("issueNo")?.value || "").trim() || "000";
-      return STORAGE_PREFIX + tein + "::" + issue;
+    function updatePills() {
+      const e = $("eventPill");
+      const d = $("docPill");
+      if (e) e.textContent = eventId || "Not set";
+      if (d) d.textContent = docId || "Not set";
     }
 
-    function safeSetItem(key, value) {
-      try { localStorage.setItem(key, value); return true; }
-      catch (e) { console.error("localStorage setItem failed:", e); return false; }
+    function rebuildDocPicker() {
+      const sel = $("docPickerTop");
+      if (!sel) return;
+
+      // Keep first option
+      const first = sel.options[0];
+      sel.innerHTML = "";
+      sel.appendChild(first);
+
+      if (!HAS_STORE || !eventId) return;
+
+      const docs = store.listDocuments().filter(x => (x.docType || "").toLowerCase() === "bluesheet");
+      for (const d of docs) {
+        const opt = document.createElement("option");
+        opt.value = d.id;
+        const status = (d.status || "DRAFT").toUpperCase();
+        opt.textContent = `${d.id} (${status})`;
+        sel.appendChild(opt);
+      }
+
+      // Keep selection aligned
+      if (docId) sel.value = docId;
     }
-    function safeGetItem(key) {
-      try { return localStorage.getItem(key); }
-      catch (e) { console.error("localStorage getItem failed:", e); return null; }
+
+    function ensureWorkspaceInitialized() {
+      // event priority: query param -> current TEIN -> default
+      const qEvent = normalizeEventId(getQueryParam("event"));
+      const teinVal = normalizeEventId(($("tein")?.value || "").trim());
+      eventId = qEvent || teinVal || "TEIN-DEMO";
+
+      if (HAS_STORE) {
+        store.initEvent(eventId, eventId);
+        const ws = store.getEvent();
+        if (ws.activeDocId) docId = ws.activeDocId;
+      }
+
+      updatePills();
+      rebuildDocPicker();
     }
-    function safeRemoveItem(key) { try { localStorage.removeItem(key); } catch {} }
+
+    function createNewBlueSheetDoc() {
+      ensureWorkspaceInitialized();
+      if (!HAS_STORE) {
+        alert("Store module not available. Ensure ./js/state/caseStore.js exists under /docs.");
+        return;
+      }
+      const created = store.createDocument("BlueSheet", {
+        title: "Blue Sheet Draft"
+      });
+      docId = created.id;
+      store.setActiveDocument(docId);
+      updatePills();
+      rebuildDocPicker();
+
+      // Seed issueNo from sequential docId (BlueSheet-XYZ)
+      const seq = String(docId).split("-")[1] || "";
+      if ($("issueNo")) $("issueNo").value = seq || $("issueNo").value;
+
+      // Seed TEIN from eventId if blank
+      if ($("tein") && !String($("tein").value || "").trim()) $("tein").value = eventId;
+
+      // Reset figure state (per doc)
+      p2FigureDataUrl = null;
+      p2FigureName = null;
+      if ($("p2Figure")) $("p2Figure").value = "";
+
+      // Reset generated mode for new doc
+      setMode(false);
+
+      // Persist immediately
+      dirty = true;
+      saveDraftNow("new-doc");
+
+      // Render
+      renderPreview();
+      runAdvisoryChecks();
+    }
+
+    function openDoc(id) {
+      if (!HAS_STORE) return;
+      ensureWorkspaceInitialized();
+
+      const doc = store.getDocument(id);
+      if (!doc) return;
+
+      docId = id;
+      store.setActiveDocument(docId);
+
+      // Load fields into UI
+      applyDraftFields(doc.fields || {});
+
+      // Restore generatedMode (stored in fields)
+      setMode(!!(doc.fields && doc.fields.__generatedMode));
+
+      // Restore figure metadata only
+      p2FigureDataUrl = null; // image data not persisted
+      p2FigureName = (doc.fields && doc.fields.__p2FigureName) ? String(doc.fields.__p2FigureName) : null;
+      if ($("p2Figure")) $("p2Figure").value = ""; // user must re-upload
+
+      updatePills();
+      rebuildDocPicker();
+
+      dirty = false;
+      lastSavedAt = doc.updatedAt || null;
+      setSaveStatus(lastSavedAt ? ("Restored " + fmtTime(lastSavedAt)) : "Restored");
+
+      renderPreview();
+      runAdvisoryChecks();
+    }
+
+    function saveDraftNow(reason) {
+      if (!HAS_STORE) {
+        // Without store, we still behave, but indicate non-persistence.
+        dirty = false;
+        lastSavedAt = new Date().toISOString();
+        setSaveStatus("Saved (no persistence) " + fmtTime(lastSavedAt));
+        return;
+      }
+
+      ensureWorkspaceInitialized();
+      if (!docId) {
+        // First save: create a doc if none exists yet
+        const created = store.createDocument("BlueSheet", { title: "Blue Sheet Draft" });
+        docId = created.id;
+        store.setActiveDocument(docId);
+        updatePills();
+        rebuildDocPicker();
+        const seq = String(docId).split("-")[1] || "";
+        if ($("issueNo") && !String($("issueNo").value || "").trim()) $("issueNo").value = seq;
+      }
+
+      const payload = buildDraftFieldsPayload();
+      store.updateDocumentFields(docId, payload);
+
+      // Also store a small doc-level patch (optional metadata)
+      store.updateDocument(docId, {
+        title: `${payload.tein || eventId}-${payload.issueNo || ""}`.replace(/\-+$/,"")
+      });
+
+      dirty = false;
+      lastSavedAt = new Date().toISOString();
+      setSaveStatus("Saved " + fmtTime(lastSavedAt));
+    }
 
     function markDirty() {
       dirty = true;
@@ -702,62 +884,71 @@
       checkpointTimer = setInterval(() => { if (dirty) saveDraftNow("checkpoint"); }, 20000);
     }
 
-    function buildDraftPayload() {
-      const d = getForm();
-      return {
-        version: 1,
-        savedAt: new Date().toISOString(),
-        generatedMode: !!generatedMode,
-        sampleSelect: ($("sampleSelect")?.value || "mfd"),
-        form: d,
-        figure: { name: p2FigureName || null }
-      };
+    function saveOnPageExit() {
+      if (dirty) saveDraftNow("page-exit");
     }
 
-    function saveDraftNow(reason) {
-      const key = draftKeyFromCurrent();
-      const payload = buildDraftPayload();
+    /* =========================
+       FORM FIELDS + PAYLOAD
+       ========================= */
 
-      const ok = safeSetItem(key, JSON.stringify(payload));
-      if (!ok) { setSaveStatus("Save failed (local storage full)"); return; }
+    const fields = [
+      "tein","issueNo","rev","date","sutName",
+      "p1Problem","riskC","riskL","pmMit",
+      "coiPrimary","coiOther",
+      "p2a","p2b","p2c",
+      "p3","p4","p5",
+      "recommendation","sheetType",
+      "sampleSelect"
+    ];
 
-      safeSetItem(LAST_KEY, key);
-      dirty = false;
-      lastSavedAt = payload.savedAt;
-      setSaveStatus("Saved " + fmtTime(lastSavedAt));
+    function getForm() {
+      const d = {};
+      fields.forEach(k => d[k] = ($(k)?.value || "").trim());
+      return d;
     }
 
-    function loadDraftByKey(key) {
-      if (!key) return null;
-      const raw = safeGetItem(key);
-      if (!raw) return null;
-      try { return JSON.parse(raw); } catch { return null; }
-    }
-
-    function applyDraft(draft) {
-      if (!draft || !draft.form) return;
-
-      if ($("sampleSelect") && draft.sampleSelect) $("sampleSelect").value = draft.sampleSelect;
-
+    function applyDraftFields(saved) {
+      // Populate UI from saved fields
+      if (!saved) return;
       fields.forEach(k => {
         const el = $(k);
         if (!el) return;
-        if (draft.form[k] !== undefined && draft.form[k] !== null) el.value = String(draft.form[k]);
+        if (saved[k] !== undefined && saved[k] !== null) el.value = String(saved[k]);
       });
 
-      p2FigureName = draft.figure?.name || null;
-
-      setMode(!!draft.generatedMode);
-
-      dirty = false;
-      lastSavedAt = draft.savedAt || null;
-      setSaveStatus(lastSavedAt ? ("Restored " + fmtTime(lastSavedAt)) : "Restored");
-
-      renderPreview();
-      runAdvisoryChecks();
+      // Ensure SUT seed if empty
+      if ($("sutName") && !String($("sutName").value || "").trim()) {
+        const demoKey = ($("sampleSelect")?.value || "mfd");
+        $("sutName").value = (GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName);
+      }
     }
 
-    function saveOnPageExit() { if (dirty) saveDraftNow("page-exit"); }
+    function buildDraftFieldsPayload() {
+      const d = getForm();
+      // Store doc-specific internal fields with __ prefix
+      d.__generatedMode = !!generatedMode;
+      d.__p2FigureName = p2FigureName || null;
+      d.__flowCtx = loadSavedFlowContext() || null;
+      d.__savedAt = new Date().toISOString();
+      return d;
+    }
+
+    /* =========================
+       RISK + GUIDANCE + PREVIEW
+       ========================= */
+
+    function esc(s) {
+      return (s || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;");
+    }
+
+    function para(text) {
+      const parts = (text || "").split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
+      return parts.map(p => `<p>${esc(p)}</p>`).join("");
+    }
 
     function riskBandFromCL(c, l) {
       const v = c * l;
@@ -800,59 +991,29 @@
       }
     };
 
-    const fields = [
-      "tein","issueNo","rev","date","sutName",
-      "p1Problem","riskC","riskL","pmMit",
-      "coiPrimary","coiOther",
-      "p2a","p2b","p2c",
-      "p3","p4","p5",
-      "recommendation","sheetType"
-    ];
-
-    function getForm() {
-      const d = {};
-      fields.forEach(k => d[k] = ($(k)?.value || "").trim());
-      return d;
+    function guidanceBlock(g, x) {
+      return `<div class="guidance">${esc(g)}</div><div class="context">${para(x)}</div>`;
     }
 
-    function esc(s) {
-      return (s || "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;");
+    function renderPara2Generated(d, p2FigureHtml) {
+      const a = (d.p2a || "").trim();
+      const b = (d.p2b || "").trim();
+      const c = (d.p2c || "").trim();
+      const combined = [a, b, c].filter(Boolean).join("\n\n");
+      const bodyHtml = combined ? para(combined) : `<p class="muted">[Paragraph 2 not entered]</p>`;
+      return `${bodyHtml}${p2FigureHtml || ""}`;
     }
 
-    function para(text) {
-      const parts = (text || "").split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
-      return parts.map(p => `<p>${esc(p)}</p>`).join("");
-    }
-
-    let p2FigureDataUrl = null;
-    let p2FigureName = null;
-
-    async function fileToDataUrl(file) {
-      return new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(String(r.result || ""));
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
-    }
-
-    async function onFigureChange() {
-      const input = $("p2Figure");
-      const file = input && input.files ? input.files[0] : null;
-      if (!file) {
-        p2FigureDataUrl = null;
-        p2FigureName = null;
-        renderPreview();
-        markDirty();
-        return;
-      }
-      p2FigureName = file.name || "figure";
-      p2FigureDataUrl = await fileToDataUrl(file);
-      renderPreview();
-      markDirty();
+    function renderPara2Draft(gset, p2FigureHtml) {
+      return `
+        <div class="p2-subtitle">2a. Establish the Test Conditions.</div>
+        ${guidanceBlock(gset.p2a.g, gset.p2a.x)}
+        <div class="p2-subtitle">2b. Present Data.</div>
+        ${guidanceBlock(gset.p2b.g, gset.p2b.x)}
+        ${p2FigureHtml}
+        <div class="p2-subtitle">2c. Analyze/Evaluate the Data.</div>
+        ${guidanceBlock(gset.p2c.g, gset.p2c.x)}
+      `;
     }
 
     function renderRiskMatrix(d, figureNumber) {
@@ -860,8 +1021,9 @@
       const l = parseInt(d.riskL || "3", 10);
       const band = riskBandFromCL(c, l);
       const cls  = riskClassFromBand(band);
-      const teinTag = `${esc(d.tein || "TEIN")}-${pmMitLetter(d.pmMit)}`;
 
+      // Use TEIN + PM mitigation letter, as you had
+      const teinTag = `${esc(d.tein || eventId || "TEIN")}-${pmMitLetter(d.pmMit)}`;
       const title = `Figure ${figureNumber}. ${band} Risk (Selected: C${c} x L${l})`;
 
       let html = `
@@ -894,34 +1056,38 @@
       return html;
     }
 
-    function guidanceBlock(g, x) {
-      return `<div class="guidance">${esc(g)}</div><div class="context">${para(x)}</div>`;
+    let p2FigureDataUrl = null;
+    let p2FigureName = null;
+
+    async function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result || ""));
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
     }
 
-    function renderPara2Generated(d, p2FigureHtml) {
-      const a = (d.p2a || "").trim();
-      const b = (d.p2b || "").trim();
-      const c = (d.p2c || "").trim();
-      const combined = [a, b, c].filter(Boolean).join("\n\n");
-      const bodyHtml = combined ? para(combined) : `<p class="muted">[Paragraph 2 not entered]</p>`;
-      return `${bodyHtml}${p2FigureHtml || ""}`;
-    }
-
-    function renderPara2Draft(gset, p2FigureHtml) {
-      return `
-        <div class="p2-subtitle">2a. Establish the Test Conditions.</div>
-        ${guidanceBlock(gset.p2a.g, gset.p2a.x)}
-        <div class="p2-subtitle">2b. Present Data.</div>
-        ${guidanceBlock(gset.p2b.g, gset.p2b.x)}
-        ${p2FigureHtml}
-        <div class="p2-subtitle">2c. Analyze/Evaluate the Data.</div>
-        ${guidanceBlock(gset.p2c.g, gset.p2c.x)}
-      `;
+    async function onFigureChange() {
+      const input = $("p2Figure");
+      const file = input && input.files ? input.files[0] : null;
+      if (!file) {
+        p2FigureDataUrl = null;
+        p2FigureName = null;
+        renderPreview();
+        markDirty();
+        return;
+      }
+      p2FigureName = file.name || "figure";
+      p2FigureDataUrl = await fileToDataUrl(file);
+      renderPreview();
+      markDirty();
     }
 
     function renderPreviewHtml() {
       const d = getForm();
-      const pendingRiskNo = `${esc(d.tein || "TEIN-DEMO")}-${esc(d.issueNo || "001")} (Rev ${esc(d.rev || "0")})`;
+
+      const pendingRiskNo = `${esc(d.tein || eventId || "TEIN")}-${esc(d.issueNo || "001")} (Rev ${esc(d.rev || "0")})`;
 
       const hasP2Figure = !!p2FigureDataUrl;
       const riskFigureNumber = hasP2Figure ? 2 : 1;
@@ -946,11 +1112,13 @@
           </div>
         `;
       } else if (!generatedMode) {
+        const figName = p2FigureName ? `Last saved figure: <strong>${esc(p2FigureName)}</strong> (re-upload required)` : "No figure saved.";
         p2FigureHtml = `
           <div class="figure-box">
             <div class="muted" style="font-size:12px;">
               <strong>[Sample Figure Location]</strong> If a figure is uploaded for Paragraph 2, it will appear here as <strong>Figure 1</strong>.
-              The risk matrix will then be labeled <strong>Figure 2</strong>.
+              The risk matrix will then be labeled <strong>Figure 2</strong>.<br/>
+              ${figName}
             </div>
           </div>
         `;
@@ -1042,6 +1210,10 @@
       runAdvisoryChecks();
     }
 
+    /* =========================
+       ADVISORY CHECKS (unchanged)
+       ========================= */
+
     function setCheck(id, level, label) {
       const el = $(id);
       if (!el) return;
@@ -1121,17 +1293,22 @@
       else setCheck("chkP5","warn","REVIEW");
     }
 
+    /* =========================
+       RESET + DOC EXPORT
+       ========================= */
+
     function resetAll() {
-      fields.forEach(k => {
-        const el = $(k);
-        if (!el) return;
-        if (k === "riskC") el.value = "3";
-        else if (k === "riskL") el.value = "3";
-        else if (k === "pmMit") el.value = "Moderate";
-        else if (k === "recommendation") el.value = "Correct as soon as possible.";
-        else if (k === "sheetType") el.value = "Blue Sheet";
-        else el.value = "";
-      });
+      // Reset only the *form fields*; doc remains same docId.
+      ["p1Problem","p2a","p2b","p2c","p3","p4","p5","coiPrimary","coiOther"].forEach(id => { if ($(id)) $(id).value = ""; });
+
+      if ($("riskC")) $("riskC").value = "3";
+      if ($("riskL")) $("riskL").value = "3";
+      if ($("pmMit")) $("pmMit").value = "Moderate";
+      if ($("recommendation")) $("recommendation").value = "Correct as soon as possible.";
+      if ($("sheetType")) $("sheetType").value = "Blue Sheet";
+
+      // Preserve TEIN / issue / rev / date / sutName unless you want otherwise
+      // (This is usually desirable for a batch of sheets in one event.)
 
       const fig = $("p2Figure");
       if (fig) fig.value = "";
@@ -1141,10 +1318,9 @@
       setMode(false);
       renderPreview();
 
-      safeRemoveItem(draftKeyFromCurrent());
-      dirty = false;
-      lastSavedAt = null;
-      setSaveStatus("Not saved");
+      dirty = true;
+      saveDraftNow("reset");
+      setSaveStatus("Saved " + fmtTime(lastSavedAt));
     }
 
     function saveToDocxDemo() {
@@ -1160,7 +1336,7 @@
       const blob = new Blob([doc], { type: "application/msword" });
 
       const d = getForm();
-      const fname = (d.tein || "TEIN") + "-" + (d.issueNo || "000") + "-BlueSheet.doc";
+      const fname = (d.tein || eventId || "TEIN") + "-" + (d.issueNo || "000") + "-BlueSheet.doc";
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = fname.replace(/[^\w.\-]+/g, "_");
@@ -1170,7 +1346,7 @@
     }
 
     function goBackToFlow() {
-      // Single-page version: if embedded, ask parent to switch tabs; otherwise fall back
+      saveOnPageExit();
       try {
         if (window.parent && window.parent !== window) {
           window.parent.postMessage({ type: "BLUE_SHEET_BACK" }, "*");
@@ -1179,6 +1355,10 @@
       } catch {}
       window.location.href = "./index.html";
     }
+
+    /* =========================
+       WIRING
+       ========================= */
 
     function applyQueryString() {
       const params = new URLSearchParams(window.location.search);
@@ -1189,8 +1369,22 @@
       }
     }
 
+    function seedDefaultsIfBlank() {
+      const demoKey = ($("sampleSelect")?.value || "mfd");
+      if ($("sutName") && !String($("sutName").value || "").trim()) $("sutName").value = (GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName);
+      if ($("tein") && !String($("tein").value || "").trim()) $("tein").value = eventId || "TEIN-DEMO";
+    }
+
     function wireEvents() {
-      $("btnBackToFlowTop")?.addEventListener("click", (e) => { e.preventDefault(); saveDraftNow("nav-away"); goBackToFlow(); });
+      $("btnBackToFlowTop")?.addEventListener("click", (e) => { e.preventDefault(); goBackToFlow(); });
+
+      $("btnNewDocTop")?.addEventListener("click", (e) => { e.preventDefault(); createNewBlueSheetDoc(); });
+
+      $("docPickerTop")?.addEventListener("change", (e) => {
+        const id = String(e.target.value || "");
+        if (!id) return;
+        openDoc(id);
+      });
 
       $("sampleSelect")?.addEventListener("change", () => { setMode(generatedMode); renderPreview(); markDirty(); });
 
@@ -1200,19 +1394,21 @@
       $("btnReset")?.addEventListener("click", (e) => { e.preventDefault(); resetAll(); });
       $("btnSave")?.addEventListener("click", (e) => { e.preventDefault(); saveToDocxDemo(); });
 
-      ["p1Problem","p2a","p2b","p2c","p3","p4","p5","riskC","riskL","pmMit"].forEach(id => {
+      // markDirty on edits
+      const watch = ["p1Problem","p2a","p2b","p2c","p3","p4","p5","riskC","riskL","pmMit",
+                     "tein","issueNo","rev","date","sutName","coiPrimary","coiOther","recommendation","sheetType"];
+      watch.forEach(id => {
         $(id)?.addEventListener("input", () => { runAdvisoryChecks(); markDirty(); });
         $(id)?.addEventListener("change", () => { runAdvisoryChecks(); renderPreview(); markDirty(); });
-      });
-
-      ["tein","issueNo","rev","date","sutName","coiPrimary","coiOther","recommendation","sheetType"].forEach(id => {
-        $(id)?.addEventListener("change", () => { renderPreview(); markDirty(); });
-        $(id)?.addEventListener("input", () => { renderPreview(); markDirty(); });
       });
 
       window.addEventListener("pagehide", saveOnPageExit);
       document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveOnPageExit(); });
     }
+
+    /* =========================
+       INIT
+       ========================= */
 
     function init() {
       applyQueryString();
@@ -1221,20 +1417,33 @@
       // Restore saved flow context display (if any)
       setFlowContextLine(loadSavedFlowContext());
 
-      const demoKey = ($("sampleSelect")?.value || "mfd");
-      $("sutName").value = GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName;
+      // Initialize workspace early (so pills show immediately)
+      ensureWorkspaceInitialized();
+      seedDefaultsIfBlank();
+      updatePills();
 
-      const lastKey = safeGetItem(LAST_KEY);
-      const lastDraft = loadDraftByKey(lastKey);
+      // If store exists, prefer restoring active doc.
+      if (HAS_STORE) {
+        const ws = store.getEvent();
+        docId = ws.activeDocId || "";
 
-      if (lastDraft && lastDraft.form) {
-        const ok = confirm(
-          "A saved Blue Sheet draft was found.\n\n" +
-          `Saved: ${fmtTime(lastDraft.savedAt)}\n` +
-          `Key: ${String(lastKey || "").replace(STORAGE_PREFIX,"")}\n\n` +
-          "Select OK to restore it, or Cancel to start fresh."
-        );
-        if (ok) applyDraft(lastDraft);
+        rebuildDocPicker();
+
+        // If there is an active doc, open it.
+        if (docId) {
+          openDoc(docId);
+        } else {
+          // If there are any existing BlueSheets, open the first; else create first
+          const docs = store.listDocuments().filter(x => (x.docType || "").toLowerCase() === "bluesheet");
+          if (docs.length) openDoc(docs[0].id);
+          else createNewBlueSheetDoc();
+        }
+      } else {
+        // No store; run without persistence but still functional
+        setSaveStatus("Not saved (store missing)");
+        // Seed SUT name
+        const demoKey = ($("sampleSelect")?.value || "mfd");
+        $("sutName").value = GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName;
       }
 
       renderPreview();
@@ -1242,7 +1451,7 @@
       runAdvisoryChecks();
       startCheckpointAutosave();
 
-      if (!lastSavedAt) setSaveStatus("Not saved");
+      if (!lastSavedAt) setSaveStatus(HAS_STORE ? "Saved state ready" : "Not saved (store missing)");
     }
 
     init();
