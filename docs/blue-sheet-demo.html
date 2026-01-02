@@ -40,6 +40,38 @@
     - Paragraph 2 title does NOT include "(*)".
 -->
 
+<!--
+  File: /docs/blue-sheet-demo.html
+  Blue Sheet Builder (Demo) — Updated with Draft Autosave + Restore (localStorage)
+  --------------------------------------------------------------------
+  PURPOSE (Demo):
+    - Show how a user fills structured “data blocks” and generates a standards-shaped Blue Sheet.
+    - Guidance text is shown first (pink italics + black example context).
+    - Preview does NOT change while typing.
+    - When the user clicks "Generate Preview", guidance disappears and user input replaces it.
+
+  DRAFT SAVING (NEW - FIRST CHANGES DISCUSSED):
+    - Autosave draft locally (localStorage) while user types/changes fields
+    - Save before navigating away (Back to Flow Diagrams)
+    - Restore last draft on load (prompt)
+    - Periodic checkpoint save while dirty
+    - Save on pagehide/visibilitychange
+
+  NOTE ON FIGURE STORAGE:
+    - To avoid localStorage quota issues, this demo stores figure metadata (name) but NOT the image data.
+      After refresh/reopen, user may need to re-upload the image.
+
+  KEY FEATURES IMPLEMENTED (existing):
+    1) Back-to-Flow Diagrams button in header, right-aligned.
+    2) Risk Matrix (Figure X) appears AFTER Paragraph 5; selected cell colored.
+    3) Risk cube centered; width constrained (default 3.0in; adjustable via --risk-w)
+    4) Para 2 figure upload and insertion into generated preview
+    5) Save to DOCX demo export (Word-compatible HTML .doc)
+    6) Advisory tense/format indicators
+
+  Link back assumes flow diagrams page is /docs/index.html. Adjust if needed.
+-->
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -47,37 +79,27 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Blue Sheet Builder (Demo)</title>
 
-  <!-- ============================================================
-       SECTION: GLOBAL STYLES / THEME TOKENS
-       ============================================================ -->
   <style>
     :root{
-      /* --- Palette --- */
       --border: rgba(0,0,0,.14);
       --muted: rgba(0,0,0,.65);
       --ink: #111;
-      --guidance: #FF33CC; /* RGB(255,51,204) */
+      --guidance: #FF33CC;
       --gridline: rgba(0,0,0,.35);
 
-      /* --- Risk colors (selected cell only) --- */
-      --risk-low:  #2f7a3e;   /* green-ish */
-      --risk-med:  #c79100;   /* yellow-ish */
-      --risk-high: #a21724;   /* red-ish */
+      --risk-low:  #2f7a3e;
+      --risk-med:  #c79100;
+      --risk-high: #a21724;
 
-      /* --- Print geometry (Blue Sheet feel) --- */
       --page-w: 8.5in;
       --page-h: 11in;
       --margin: 1in;
-      --usable-w: 6.5in;  /* 8.5 - 2*1 */
-      --risk-w: 3.0in;    /* centered cube width */
+      --usable-w: 6.5in;
+      --risk-w: 3.0in;
 
-      /* --- UI layout --- */
       --ui-max: 1180px;
     }
 
-    /* ============================================================
-       SECTION: APP FRAME / HEADER (BACK BUTTON ORIGINAL LOCATION)
-       ============================================================ */
     body {
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       margin: 0;
@@ -89,14 +111,11 @@
       padding: 16px 18px;
       border-bottom: 1px solid var(--border);
       background: #fff;
-
-      /* Sticky header improves demo UX */
       position: sticky;
       top: 0;
       z-index: 10;
     }
 
-    /* Header layout scaffold: title left, back button right */
     .header-row{
       display:flex;
       justify-content:space-between;
@@ -109,7 +128,6 @@
     header h1 { margin: 0 0 6px; font-size: 18px; }
     header p  { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
 
-    /* Back button: matches app buttons */
     .btn-link{
       border: 1px solid var(--border);
       background: #f7f7f7;
@@ -120,9 +138,6 @@
       white-space: nowrap;
     }
 
-    /* ============================================================
-       SECTION: PAGE LAYOUT (INPUTS LEFT / PREVIEW RIGHT)
-       ============================================================ */
     .wrap { max-width: var(--ui-max); margin: 0 auto; padding: 16px 18px; }
     .grid { display: grid; grid-template-columns: 460px 1fr; gap: 14px; align-items: start; }
     @media (max-width: 1100px) {
@@ -134,9 +149,6 @@
     .card h2 { margin: 0; font-size: 14px; }
     .hr { border-top: 1px solid var(--border); margin: 12px 0; }
 
-    /* ============================================================
-       SECTION: FORM CONTROLS
-       ============================================================ */
     label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 6px; }
     input, select, textarea {
       width: 100%; box-sizing: border-box;
@@ -160,7 +172,6 @@
     .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.35; }
     .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
 
-    /* Para 2 sub-block label */
     .subhdr{
       margin: 14px 0 6px;
       padding: 8px 10px;
@@ -172,9 +183,6 @@
       color: rgba(0,0,0,.78);
     }
 
-    /* ============================================================
-       SECTION: GUIDANCE + EXAMPLE TEXT BLOCKS
-       ============================================================ */
     .guidance {
       font-style: italic;
       color: var(--guidance);
@@ -189,9 +197,6 @@
       margin: 6px 0 10px;
     }
 
-    /* ============================================================
-       SECTION: MODE BANNER (DRAFT vs GENERATED)
-       ============================================================ */
     .modebar {
       display: flex;
       justify-content: space-between;
@@ -215,9 +220,20 @@
       font-size: 12px;
     }
 
-    /* ============================================================
-       SECTION: PREVIEW "PAPER" (8.5 x 11 with 1" margins feel)
-       ============================================================ */
+    /* Save status pill */
+    .savepill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.12);
+      background: #fff;
+      font-size: 12px;
+      color: rgba(0,0,0,.72);
+      white-space: nowrap;
+    }
+
     .preview { font-family: "Times New Roman", Times, serif; }
     .paper {
       width: min(100%, var(--page-w));
@@ -231,7 +247,6 @@
       padding: var(--margin);
     }
 
-    /* Preview headers */
     .topline { text-align: center; font-weight: 700; }
     .subline { text-align: center; margin-top: 2px; }
     .meta { display:flex; justify-content: space-between; margin: 10px 0 14px; font-size: 12px; }
@@ -241,16 +256,12 @@
     .mini { font-size: 12px; margin-top: 6px; }
     .muted { color: rgba(0,0,0,.65); }
 
-    /* Para 2 sublabels in preview (used in DRAFT guidance only) */
     .p2-subtitle{
       margin: 8px 0 6px;
       font-size: 13px;
       font-weight: 700;
     }
 
-    /* ============================================================
-       SECTION: PARA 2 FIGURE (UPLOAD + PREVIEW + INSERTION)
-       ============================================================ */
     .figure-box{
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -273,9 +284,6 @@
       background: #fff;
     }
 
-    /* ============================================================
-       SECTION: RISK MATRIX (AFTER PARA 5)
-       ============================================================ */
     .risk-wrap{
       margin-top: 10px;
       max-width: var(--usable-w);
@@ -326,15 +334,11 @@
       color: rgba(0,0,0,.75);
     }
 
-    /* Selected cell highlight only */
     .risk-selected.low   { background: rgba(47,122,62,.18); outline: 2px solid rgba(47,122,62,.6); }
     .risk-selected.med   { background: rgba(199,145,0,.20); outline: 2px solid rgba(199,145,0,.65); }
     .risk-selected.high  { background: rgba(162,23,36,.16); outline: 2px solid rgba(162,23,36,.65); }
     .risk-selected .tag  { font-weight: 700; }
 
-    /* ============================================================
-       SECTION: VALIDATION / INDICATORS (TENSE + FORMAT)
-       ============================================================ */
     .checks{
       margin-top: 10px;
       padding: 10px;
@@ -361,9 +365,6 @@
     .warn{ color: #b17400; }
     .bad{ color: #b00020; }
 
-    /* ============================================================
-       SECTION: PRINT (DEMO)
-       ============================================================ */
     @media print {
       header, .left, .btnbar { display: none !important; }
       .wrap { padding: 0; }
@@ -375,9 +376,6 @@
 </head>
 
 <body>
-  <!-- ============================================================
-       SECTION: HEADER (ORIGINAL LOCATION OF "BACK TO FLOW DIAGRAMS")
-       ============================================================ -->
   <header>
     <div class="header-row">
       <div class="header-left">
@@ -385,6 +383,7 @@
         <p>
           Guidance is shown first (pink italics) and remains visible while you type.
           Select <span class="kbd">Generate Preview</span> to replace guidance with your entered content.
+          Draft autosaves locally.
         </p>
       </div>
       <div class="header-right">
@@ -396,13 +395,10 @@
   <div class="wrap">
     <div class="grid">
 
-      <!-- ============================================================
-           SECTION: LEFT PANEL (INPUTS)
-           ============================================================ -->
+      <!-- LEFT PANEL -->
       <div class="card left">
         <h2>Inputs</h2>
 
-        <!-- ---------- Subsection: Demo selection ---------- -->
         <div class="hr"></div>
         <div>
           <label for="sampleSelect">Demo selection</label>
@@ -416,7 +412,6 @@
           </div>
         </div>
 
-        <!-- ---------- Subsection: TEIN / meta ---------- -->
         <div class="hr"></div>
         <div class="row">
           <div>
@@ -446,7 +441,6 @@
           <input id="sutName" placeholder="Network Multifunction Device (MFD)" />
         </div>
 
-        <!-- ---------- Subsection: Paragraph inputs (EMPTY by requirement) ---------- -->
         <div class="hr"></div>
 
         <div class="hint">
@@ -498,9 +492,6 @@
 
         <div class="hr"></div>
 
-        <!-- ============================================================
-             PARA 2 SPLIT: 2a / 2b / 2c
-             ============================================================ -->
         <div class="subhdr">Paragraph 2 (Split): 2a / 2b / 2c</div>
 
         <div>
@@ -527,7 +518,6 @@
           </div>
         </div>
 
-        <!-- ---------- Para 2 Figure Upload ---------- -->
         <div style="margin-top:10px;">
           <label for="p2Figure">Paragraph 2 Figure (optional upload)</label>
           <input id="p2Figure" type="file" accept="image/*" />
@@ -572,7 +562,6 @@
           </div>
         </div>
 
-        <!-- ---------- Controls ---------- -->
         <div class="btnbar">
           <button class="primary" id="btnGenerate" type="button">Generate Preview</button>
           <button id="btnReset" type="button">Reset</button>
@@ -581,9 +570,9 @@
 
         <div class="hint">
           Demo logic: typing does not modify the preview text. Only <span class="kbd">Generate Preview</span> replaces guidance with inputs.
+          Draft autosaves locally and restores on reopen.
         </div>
 
-        <!-- ---------- Advisory checks (tenses / formatting) ---------- -->
         <div class="checks" id="checksPanel" aria-label="Tense and format checks">
           <div style="font-weight:700; margin-bottom:6px;">Advisory Checks (Demo)</div>
           <div class="checkline"><span>Paragraph 1: past tense + one sentence + ends with period</span><span id="chkP1" class="status warn">CHECK</span></div>
@@ -598,9 +587,7 @@
         </div>
       </div>
 
-      <!-- ============================================================
-           SECTION: RIGHT PANEL (PREVIEW)
-           ============================================================ -->
+      <!-- RIGHT PANEL -->
       <div class="card preview">
         <div class="modebar" id="modebar">
           <div>
@@ -608,7 +595,7 @@
             <span style="margin-left:8px;" id="figureNote" class="muted"></span>
           </div>
           <div class="muted">
-            Risk Matrix appears after Paragraph 5.
+            <span class="savepill" id="saveStatus">Not saved</span>
           </div>
         </div>
 
@@ -623,20 +610,150 @@
     </div>
   </div>
 
-  <!-- ============================================================
-       SECTION: SCRIPT (ALL LOGIC - LABELED)
-       ============================================================ -->
   <script>
   (function () {
-    /* ============================================================
-       SUBSECTION: DOM HELPERS
-       ============================================================ */
     const $ = (id) => document.getElementById(id);
 
     /* ============================================================
        SUBSECTION: STATE
        ============================================================ */
     let generatedMode = false;
+
+    /* ============================================================
+       SUBSECTION: DRAFT PERSISTENCE (localStorage)
+       - Saves text/meta/risk selections + generatedMode + sampleSelect
+       - Saves figure NAME only (no base64) to avoid quota issues
+       ============================================================ */
+    const STORAGE_PREFIX = "blueSheetDemo::v1::";
+    const LAST_KEY = STORAGE_PREFIX + "LAST_ACTIVE_KEY";
+
+    let dirty = false;
+    let saveTimer = null;
+    let checkpointTimer = null;
+    let lastSavedAt = null;
+
+    function setSaveStatus(text) {
+      const el = $("saveStatus");
+      if (el) el.textContent = text;
+    }
+
+    function fmtTime(iso) {
+      if (!iso) return "";
+      try { return new Date(iso).toLocaleString(); } catch { return ""; }
+    }
+
+    function draftKeyFromCurrent() {
+      const tein = ($("tein")?.value || "").trim() || "TEIN";
+      const issue = ($("issueNo")?.value || "").trim() || "000";
+      return STORAGE_PREFIX + tein + "::" + issue;
+    }
+
+    function safeSetItem(key, value) {
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        console.error("localStorage setItem failed:", e);
+        return false;
+      }
+    }
+
+    function safeGetItem(key) {
+      try { return localStorage.getItem(key); }
+      catch (e) { console.error("localStorage getItem failed:", e); return null; }
+    }
+
+    function safeRemoveItem(key) {
+      try { localStorage.removeItem(key); } catch {}
+    }
+
+    function markDirty() {
+      dirty = true;
+      setSaveStatus("Saving…");
+
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => saveDraftNow("debounce"), 900);
+    }
+
+    function startCheckpointAutosave() {
+      if (checkpointTimer) clearInterval(checkpointTimer);
+      checkpointTimer = setInterval(() => {
+        if (dirty) saveDraftNow("checkpoint");
+      }, 20000);
+    }
+
+    function buildDraftPayload() {
+      const d = getForm();
+      return {
+        version: 1,
+        savedAt: new Date().toISOString(),
+        generatedMode: !!generatedMode,
+        sampleSelect: ($("sampleSelect")?.value || "mfd"),
+        form: d,
+        figure: {
+          name: p2FigureName || null
+        }
+      };
+    }
+
+    function saveDraftNow(reason) {
+      const key = draftKeyFromCurrent();
+      const payload = buildDraftPayload();
+
+      const ok = safeSetItem(key, JSON.stringify(payload));
+      if (!ok) {
+        setSaveStatus("Save failed (local storage full)");
+        return;
+      }
+
+      safeSetItem(LAST_KEY, key);
+
+      dirty = false;
+      lastSavedAt = payload.savedAt;
+      setSaveStatus("Saved " + fmtTime(lastSavedAt));
+    }
+
+    function loadDraftByKey(key) {
+      if (!key) return null;
+      const raw = safeGetItem(key);
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function applyDraft(draft) {
+      if (!draft || !draft.form) return;
+
+      // Restore sample selection first (affects guidance)
+      if ($("sampleSelect") && draft.sampleSelect) $("sampleSelect").value = draft.sampleSelect;
+
+      // Restore fields
+      fields.forEach(k => {
+        const el = $(k);
+        if (!el) return;
+        if (draft.form[k] !== undefined && draft.form[k] !== null) {
+          el.value = String(draft.form[k]);
+        }
+      });
+
+      // Restore mode + figure metadata
+      p2FigureName = draft.figure?.name || null;
+      // NOTE: no image restoration in demo; user may re-upload
+      // p2FigureDataUrl remains null unless user uploads again
+
+      setMode(!!draft.generatedMode);
+
+      dirty = false;
+      lastSavedAt = draft.savedAt || null;
+      setSaveStatus(lastSavedAt ? ("Restored " + fmtTime(lastSavedAt)) : "Restored");
+
+      renderPreview();
+      runAdvisoryChecks();
+    }
+
+    function saveOnPageExit() {
+      // Defensive save on tab close/navigation/background
+      if (dirty) saveDraftNow("page-exit");
+    }
 
     /* ============================================================
        SUBSECTION: RISK MATRIX LOGIC (DEMO SCALE)
@@ -663,7 +780,6 @@
 
     /* ============================================================
        SUBSECTION: DEMO GUIDANCE + EXAMPLE TEXT (MFD / LCAC)
-       - Para 2 split into p2a/p2b/p2c
        ============================================================ */
     const GUIDANCE = {
       mfd: {
@@ -840,9 +956,6 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       return d;
     }
 
-    /* ============================================================
-       SUBSECTION: SAFE HTML ESCAPE + PARAGRAPH FORMATTER
-       ============================================================ */
     function esc(s) {
       return (s || "")
         .replace(/&/g,"&amp;")
@@ -877,11 +990,15 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
         p2FigureDataUrl = null;
         p2FigureName = null;
         renderPreview();
+        markDirty();
         return;
       }
       p2FigureName = file.name || "figure";
       p2FigureDataUrl = await fileToDataUrl(file);
+
       renderPreview();
+      // NOTE: draft persists figure name only, but mark dirty so the draft saves metadata
+      markDirty();
     }
 
     /* ============================================================
@@ -926,9 +1043,6 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       return html;
     }
 
-    /* ============================================================
-       SUBSECTION: DRAFT GUIDANCE RENDERERS (guidance + example)
-       ============================================================ */
     function guidanceBlock(g, x) {
       return `
         <div class="guidance">${esc(g)}</div>
@@ -936,17 +1050,11 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       `;
     }
 
-    /* ============================================================
-       SUBSECTION: PARA 2 ASSEMBLY (GENERATED MODE)
-       - Draft shows guidance separately; Generated stitches 2a/2b/2c
-       - COMPLIANCE: Generated output MUST NOT show 2a/2b/2c labels.
-       ============================================================ */
     function renderPara2Generated(d, hasP2Figure, p2FigureHtml) {
       const a = (d.p2a || "").trim();
       const b = (d.p2b || "").trim();
       const c = (d.p2c || "").trim();
 
-      // One Paragraph 2 body, assembled in order (2a -> 2b -> 2c), no visible sublabels.
       const combined = [a, b, c].filter(Boolean).join("\n\n");
       const bodyHtml = combined ? para(combined) : `<p class="muted">[Paragraph 2 not entered]</p>`;
 
@@ -970,9 +1078,6 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       `;
     }
 
-    /* ============================================================
-       SUBSECTION: PREVIEW RENDERER (PAPER CONTENT)
-       ============================================================ */
     function renderPreviewHtml() {
       const d = getForm();
 
@@ -1058,7 +1163,6 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
         </div>
 
         <div class="sect">
-          <!-- COMPLIANCE: No "(*)" here -->
           <h3>2. TEST CONDITIONS, RESULTS, AND ANALYSIS.</h3>
           ${p2Body}
         </div>
@@ -1086,9 +1190,6 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       `;
     }
 
-    /* ============================================================
-       SUBSECTION: RENDER + MODE MANAGEMENT
-       ============================================================ */
     function setMode(isGenerated) {
       generatedMode = !!isGenerated;
 
@@ -1157,7 +1258,6 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
     function runAdvisoryChecks() {
       const d = getForm();
 
-      // P1
       const p1 = d.p1Problem;
       if (!p1) {
         setCheck("chkP1","warn","EMPTY");
@@ -1170,7 +1270,6 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
         else setCheck("chkP1","bad","FIX");
       }
 
-      // P2a / P2b / P2c (separate advisory)
       const p2a = d.p2a;
       if (!p2a) setCheck("chkP2a","warn","EMPTY");
       else if (looksPastTense(p2a)) setCheck("chkP2a","ok","OK");
@@ -1186,19 +1285,16 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       else if (looksPastTense(p2c)) setCheck("chkP2c","ok","OK");
       else setCheck("chkP2c","warn","REVIEW");
 
-      // P3
       const p3 = d.p3;
       if (!p3) setCheck("chkP3","warn","EMPTY");
       else if (looksFutureTense(p3)) setCheck("chkP3","ok","OK");
       else setCheck("chkP3","bad","ADD “WILL”");
 
-      // P4
       const p4 = d.p4;
       if (!p4) setCheck("chkP4","warn","EMPTY");
       else if (looksPresentTense(p4)) setCheck("chkP4","ok","OK");
       else setCheck("chkP4","warn","REVIEW");
 
-      // P5
       const p5 = d.p5;
       if (!p5) setCheck("chkP5","warn","EMPTY");
       else if (looksPresentTense(p5)) setCheck("chkP5","ok","OK");
@@ -1206,7 +1302,7 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
     }
 
     /* ============================================================
-       SUBSECTION: RESET (DEMO BEHAVIOR)
+       SUBSECTION: RESET
        ============================================================ */
     function resetAll() {
       fields.forEach(k => {
@@ -1227,6 +1323,12 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
 
       setMode(false);
       renderPreview();
+
+      // Remove current draft key (best-effort)
+      safeRemoveItem(draftKeyFromCurrent());
+      dirty = false;
+      lastSavedAt = null;
+      setSaveStatus("Not saved");
     }
 
     /* ============================================================
@@ -1273,15 +1375,14 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
     }
 
     /* ============================================================
-       SUBSECTION: NAVIGATION (BACK TO FLOW DIAGRAMS)
+       SUBSECTION: NAVIGATION
        ============================================================ */
     function goBackToFlow() {
+      // Save defensively before leaving
+      saveDraftNow("nav-away");
       window.location.href = "./index.html";
     }
 
-    /* ============================================================
-       SUBSECTION: QUERY STRING SUPPORT (?sample=mfd|lcac)
-       ============================================================ */
     function applyQueryString() {
       const params = new URLSearchParams(window.location.search);
       const sample = (params.get("sample") || "").toLowerCase();
@@ -1292,7 +1393,7 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
     }
 
     /* ============================================================
-       SUBSECTION: EVENT WIRING (LABELED)
+       SUBSECTION: EVENT WIRING
        ============================================================ */
     function wireEvents() {
       $("btnBackToFlowTop")?.addEventListener("click", (e) => { e.preventDefault(); goBackToFlow(); });
@@ -1300,6 +1401,7 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       $("sampleSelect")?.addEventListener("change", () => {
         setMode(generatedMode);
         renderPreview();
+        markDirty();
       });
 
       $("p2Figure")?.addEventListener("change", async () => {
@@ -1310,6 +1412,7 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
         e.preventDefault();
         setMode(true);
         renderPreview();
+        markDirty();
       });
 
       $("btnReset")?.addEventListener("click", (e) => {
@@ -1322,16 +1425,22 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
         saveToDocxDemo();
       });
 
-      // Advisory checks update as user types (checks only)
+      // Advisory checks update as user types; also mark dirty
       ["p1Problem","p2a","p2b","p2c","p3","p4","p5","riskC","riskL","pmMit"].forEach(id => {
-        $(id)?.addEventListener("input", runAdvisoryChecks);
-        $(id)?.addEventListener("change", () => { runAdvisoryChecks(); renderPreview(); });
+        $(id)?.addEventListener("input", () => { runAdvisoryChecks(); markDirty(); });
+        $(id)?.addEventListener("change", () => { runAdvisoryChecks(); renderPreview(); markDirty(); });
       });
 
-      // Meta fields: keep preview headers/risk current
+      // Meta fields: keep preview headers/risk current + mark dirty
       ["tein","issueNo","rev","date","sutName","coiPrimary","coiOther","recommendation","sheetType"].forEach(id => {
-        $(id)?.addEventListener("change", renderPreview);
-        $(id)?.addEventListener("input", renderPreview);
+        $(id)?.addEventListener("change", () => { renderPreview(); markDirty(); });
+        $(id)?.addEventListener("input", () => { renderPreview(); markDirty(); });
+      });
+
+      // Defensive save on tab close/navigation/background
+      window.addEventListener("pagehide", saveOnPageExit);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") saveOnPageExit();
       });
     }
 
@@ -1346,9 +1455,29 @@ State the level of risk/deficiency or closure status (corrected/closed/administr
       const demoKey = ($("sampleSelect")?.value || "mfd");
       $("sutName").value = GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName;
 
+      // Attempt restore of last draft
+      const lastKey = safeGetItem(LAST_KEY);
+      const lastDraft = loadDraftByKey(lastKey);
+
+      if (lastDraft && lastDraft.form) {
+        const ok = confirm(
+          "A saved Blue Sheet draft was found.\n\n" +
+          `Saved: ${fmtTime(lastDraft.savedAt)}\n` +
+          `Key: ${String(lastKey || "").replace(STORAGE_PREFIX,"")}\n\n` +
+          "Select OK to restore it, or Cancel to start fresh."
+        );
+        if (ok) applyDraft(lastDraft);
+      }
+
       renderPreview();
       wireEvents();
       runAdvisoryChecks();
+
+      // Start periodic checkpoint autosave
+      startCheckpointAutosave();
+
+      // Show initial save state if restored without prompt (e.g., cancelled)
+      if (!lastSavedAt) setSaveStatus("Not saved");
     }
 
     init();
