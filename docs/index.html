@@ -2,104 +2,160 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Deficiency Decision Tool (POC)</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
+
+  <!-- Header -->
   <header class="app-header">
     <div class="app-title">
       <h1>Deficiency Decision Tool (POC)</h1>
-      <div class="sub">Question-based wizard (decision packs). Manual on left.</div>
+      <div class="sub">Question-based wizard (flow pack), pinned notes/directives, manual tabs, and document generation.</div>
     </div>
 
     <div class="app-controls">
-      <label class="control">
-        Start Pack
+      <div class="control">
+        <div>Start Pack</div>
         <select id="packSelect">
           <option value="figure1" selected>Figure 1 — Classification</option>
-          <option value="figure2">Figure 2 — Failure Type / OMF</option>
+          <option value="figure2">Figure 2 — Failure Type</option>
         </select>
-      </label>
+      </div>
 
-      <button id="btnStartOver" class="btn secondary">Start Over</button>
+      <button class="btn secondary" id="btnStartOver" type="button">Start Over</button>
+      <button class="btn secondary" id="btnBack" type="button" disabled>Back</button>
+      <button class="btn secondary" id="btnReset" type="button">Reset</button>
 
-      <!-- ==========================================
-           Document Generation (Upper Right)
-           - Deficiency Sheet uses existing JS handler (#btnGoReport)
-           - OPCON/TACON are direct links to demo pages
-           ========================================== -->
-      <button id="btnGoReport" class="btn secondary" title="Opens deficiency sheet builder">
-        Generate Deficiency Sheet
-      </button>
+      <!-- Single-page: switches right panel to Blue Sheet (no navigation) -->
+      <button class="btn" id="btnGenerate" type="button">Generate Document</button>
 
-      <a href="./opcon-demo.html"
-         class="btn secondary"
-         role="button"
-         title="Open OPCON sample page">
-        Generate OPCON
-      </a>
-
-      <a href="./tacon-demo.html"
-         class="btn secondary"
-         role="button"
-         title="Open TACON sample page">
-        Generate TACON
-      </a>
+      <!-- Optional debug toggle via ?debug=1 still works -->
     </div>
   </header>
 
-  <main class="layout-2col">
-    <!-- LEFT: Manual (full-height) -->
-    <section class="manual card" aria-label="Manual Panel">
-      <div class="manual-head">
-        <h2>Manual</h2>
-        <div class="manual-sub" id="manualStatus">Loading front matter…</div>
-      </div>
-      <div id="manualBody" class="manual-body">
-        <!-- Filled by JS from /docs/manual/front-matter.html -->
-      </div>
-    </section>
+  <!-- Main layout -->
+  <main class="layout-single">
 
-    <!-- RIGHT: Split vertically (questions top / notes bottom) -->
-    <section class="right-col">
-      <section class="wizard card" aria-label="Wizard Panel">
+    <!-- LEFT COLUMN: Flow + Notes + Manual -->
+    <section class="left-stack">
+
+      <!-- FLOW (Top Left) -->
+      <div class="card flow">
+        <div class="panel-head">
+          <div>
+            <h2>Flow Diagram</h2>
+            <div class="panel-sub" id="flowMeta">Pack: - | Step: -</div>
+          </div>
+          <div class="panel-right muted">Wizard</div>
+        </div>
+
         <div id="screen" class="screen"></div>
+
         <div class="nav">
-          <button id="btnBack" class="btn secondary" disabled>Back</button>
-          <div class="nav-right">
-            <button id="btnReset" class="btn secondary">Reset</button>
+          <div class="muted small">Use Back / Start Over in the header.</div>
+        </div>
+      </div>
+
+      <!-- NOTES (Middle Left) -->
+      <div class="card notes">
+        <div class="notes-head">
+          <div>
+            <h2>Notes / Directives</h2>
+            <div class="notes-sub" id="notesMeta">Pack: - | Step: -</div>
+          </div>
+          <div class="notes-sub">Pinned to current node</div>
+        </div>
+        <div class="notes-body" id="notesBody"></div>
+      </div>
+
+      <!-- MANUAL (Bottom Left with Tabs) -->
+      <div class="card manual">
+        <div class="manual-head">
+          <div>
+            <h2>Manual</h2>
+            <div class="manual-sub" id="manualStatus">Loading…</div>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Manual Tabs">
+            <button class="tab-btn active" id="tabManualFront" type="button" role="tab" aria-selected="true">Front Matter</button>
+            <button class="tab-btn" id="tabManualReport" type="button" role="tab" aria-selected="false">Report</button>
           </div>
         </div>
-      </section>
 
-      <section class="notes card" aria-label="Notes Panel">
-        <div class="notes-head">
-          <h2>Notes / Directives</h2>
-          <div class="notes-sub" id="notesMeta">Context for the current step</div>
-        </div>
-        <div id="notesBody" class="notes-body">
-          <div class="hint">Notes, directives, and “read first” content will appear here as you progress.</div>
-        </div>
-      </section>
+        <div class="manual-body">
+          <div id="manualBody" class="manual-html"></div>
 
-      <!-- Debug-only trace container (hidden unless ?debug=1) -->
-      <section id="debugTraceWrap" class="debug card" aria-label="Debug Trace" hidden>
-        <div class="debug-head">
-          <h2>Debug Trace</h2>
-          <div class="debug-sub" id="traceMeta"></div>
+          <!-- Optional: embedded report.html as a second tab target -->
+          <div id="manualReportWrap" class="manual-html" hidden>
+            <iframe class="manual-frame" src="./manual/report.html" title="Manual Report"></iframe>
+          </div>
         </div>
-        <pre id="trace" class="trace"></pre>
-      </section>
+      </div>
+
     </section>
+
+    <!-- RIGHT COLUMN: Document Generation -->
+    <section class="right-docs card">
+      <div class="panel-head">
+        <div>
+          <h2>Document Generation</h2>
+          <div class="panel-sub" id="docMeta">Event Workspace (single-page)</div>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Document Tabs">
+          <button class="tab-btn active" id="tabDocBlue" type="button" role="tab" aria-selected="true">Blue Sheet</button>
+          <button class="tab-btn" id="tabDocOpcon" type="button" role="tab" aria-selected="false">OPCON</button>
+          <button class="tab-btn" id="tabDocTacon" type="button" role="tab" aria-selected="false">TACON</button>
+        </div>
+      </div>
+
+      <!-- Blue Sheet (embedded; stays loaded/persistent) -->
+      <div id="docBlueWrap" class="doc-body">
+        <iframe
+          id="blueSheetFrame"
+          class="doc-frame"
+          src="./blue-sheet-demo.html"
+          title="Blue Sheet Builder">
+        </iframe>
+      </div>
+
+      <!-- Placeholders for OPCON/TACON (stubs for now) -->
+      <div id="docOpconWrap" class="doc-body" hidden>
+        <div class="doc-placeholder">
+          <div class="node-type">placeholder</div>
+          <h3 class="h-title">OPCON generation (next)</h3>
+          <div class="body">This panel will host the OPCON builder for a test event. The shell is ready.</div>
+        </div>
+      </div>
+
+      <div id="docTaconWrap" class="doc-body" hidden>
+        <div class="doc-placeholder">
+          <div class="node-type">placeholder</div>
+          <h3 class="h-title">TACON generation (next)</h3>
+          <div class="body">This panel will host the TACON builder for a test event. The shell is ready.</div>
+        </div>
+      </div>
+
+      <div class="app-footer">
+        <div class="small">
+          This interface is single-page: switching panels does not unload flow state or document drafts.
+          Use <code>?debug=1</code> to display trace.
+        </div>
+        <div id="debugTraceWrap" class="debug-wrap" hidden>
+          <div class="debug-head">
+            <h2>Debug Trace</h2>
+            <div class="debug-sub" id="traceMeta">-</div>
+          </div>
+          <pre id="trace" class="trace"></pre>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <footer class="app-footer">
-    <div class="small">
-      This interface is question-based. Underlying flow diagrams and trace are not shown to end users.
-    </div>
-  </footer>
-
+  <!-- Main app loader -->
   <script src="./js/app.js"></script>
 </body>
 </html>
