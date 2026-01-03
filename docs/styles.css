@@ -15,10 +15,6 @@
   --btn2: rgba(255,255,255,0.12);
   --danger: #ff4d4d;
 
-  /* Header height used to size main grid.
-     Your header padding puts this close to ~74px; adjust if needed. */
-  --app-header-h: 74px;
-
   --gap: 14px;
 }
 
@@ -30,6 +26,11 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background: radial-gradient(1200px 700px at 20% 0%, #13213a 0%, var(--bg) 55%);
   color: var(--text);
+
+  /* Critical: make the page a vertical layout so main can fill remaining height */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
@@ -48,6 +49,9 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   border-bottom: 1px solid var(--border);
   background: rgba(10, 16, 26, 0.55);
   backdrop-filter: blur(10px);
+
+  /* header stays natural height in flex column */
+  flex: 0 0 auto;
 }
 
 .app-title h1 { margin: 0; font-size: 18px; font-weight: 700; }
@@ -84,7 +88,7 @@ select {
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* Optional: subtle warning emphasis (used for Start Over in wizard footer) */
+/* Start Over emphasis in wizard footer */
 .btn.danger-outline{
   border-color: rgba(255,77,77,0.55) !important;
   background: rgba(255,77,77,0.06) !important;
@@ -105,36 +109,33 @@ select {
    Left workspace (tabbed) | Right docs
    ========================= */
 .layout-single{
+  /* Fill remaining space under header */
+  flex: 1 1 auto;
+  min-height: 0; /* critical for nested scroll regions */
+
   display: grid;
   grid-template-columns: 1.15fr 1fr;  /* left larger because it’s tabbed */
   gap: var(--gap);
   padding: var(--gap);
-  height: calc(100vh - var(--app-header-h));
-  min-height: 520px;
   align-items: stretch;
 }
 
 @media (max-width: 1100px) {
   .layout-single{
     grid-template-columns: 1fr;
-    height: auto;
     min-height: 0;
   }
 }
 
 /* =========================
    LEFT COLUMN: Workspace Tabs
-   Makes the LEFT side actually fill its column height,
-   and lets the active tab (Wizard+Notes OR Manual) use the full left space.
    ========================= */
-
 .left-stack{
-  height: 100%;
-  min-height: 0;              /* critical for nested scroll areas */
+  min-height: 0;              /* critical */
   display: flex;
 }
 
-/* The outer Workspace card must fill the left column */
+/* Workspace outer card fills left column */
 .left-tabs{
   flex: 1 1 auto;
   min-height: 0;              /* critical */
@@ -142,12 +143,11 @@ select {
   flex-direction: column;
 }
 
-/* The panel header stays fixed; body takes remaining height */
+/* Header fixed, body flexes */
 .left-tabs .panel-head{
   flex: 0 0 auto;
 }
 
-/* Each tab body must be able to shrink and scroll internally */
 .left-tab-body{
   flex: 1 1 auto;
   min-height: 0;              /* critical */
@@ -155,33 +155,25 @@ select {
   overflow: hidden;           /* prevents double scrollbars */
 }
 
-/* Wizard tab: Flow + Notes split vertically and fill available height */
+/* Wizard tab uses full height, split Flow/Notes */
 #leftWizardWrap{
   display: grid;
-  grid-template-rows: 1.1fr 0.9fr;   /* tune split if desired */
+  grid-template-rows: 1.1fr 0.9fr;
   gap: 14px;
-  min-height: 0;                     /* critical */
+  min-height: 0;
 }
 
-/* Manual tab: Manual fills available height */
+/* Manual tab fills full height */
 #leftManualWrap{
   display: flex;
   flex-direction: column;
-  min-height: 0;                     /* critical */
+  min-height: 0;
 }
 
-/* Ensure the nested cards can actually stretch */
+/* Allow nested cards to stretch */
 #leftWizardWrap .flow,
 #leftWizardWrap .notes,
 #leftManualWrap .manual{
-  min-height: 0;                     /* critical */
-}
-
-/* Notes body and wizard screen already scroll; enforce shrink contract */
-#leftWizardWrap .screen,
-#leftWizardWrap .notes-body,
-#leftManualWrap .manual-body,
-#leftManualWrap .manual-html{
   min-height: 0;
 }
 
@@ -191,7 +183,6 @@ select {
 .right-docs{
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
 }
 
@@ -324,7 +315,7 @@ select {
 .note-kind{ color: var(--muted); font-size: 12px; margin-bottom: 6px; }
 
 /* =========================
-   MANUAL (fills full left column when manual tab active)
+   MANUAL
    ========================= */
 .manual{
   display:flex;
@@ -347,6 +338,7 @@ select {
   line-height: 1.45;
   max-width: 980px;
   margin: 0 auto;
+  min-height: 0;
 }
 
 .manual-frame{
@@ -381,6 +373,7 @@ select {
   color: var(--muted);
   border-top: 1px solid var(--border);
   background: rgba(0,0,0,0.12);
+  flex: 0 0 auto;
 }
 
 .debug-wrap{ margin-top: 12px; }
