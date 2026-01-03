@@ -24,8 +24,7 @@
         </select>
       </div>
 
-      <button class="btn secondary" id="btnStartOver" type="button">Start Over</button>
-      <button class="btn secondary" id="btnBack" type="button" disabled>Back</button>
+      <!-- MOVED: Start Over + Back are now INSIDE the Flow Wizard footer -->
       <button class="btn secondary" id="btnReset" type="button">Reset</button>
 
       <!-- Single-page: switches right panel to Blue Sheet (no navigation) -->
@@ -51,10 +50,22 @@
           <div class="panel-right muted">Wizard</div>
         </div>
 
+        <!-- Wizard screen content -->
         <div id="screen" class="screen"></div>
 
-        <div class="nav">
-          <div class="muted small">Use Back / Start Over in the header.</div>
+        <!-- Wizard Footer Nav (Back + Start Over moved here) -->
+        <div class="nav wizard-nav">
+          <div class="wizard-nav-left">
+            <button class="btn secondary" id="btnBack" type="button" disabled>Back</button>
+          </div>
+
+          <div class="wizard-nav-mid muted small" aria-hidden="true">
+            Navigation applies to the current flow step.
+          </div>
+
+          <div class="wizard-nav-right">
+            <button class="btn secondary danger-outline" id="btnStartOver" type="button">Start Over</button>
+          </div>
         </div>
       </div>
 
