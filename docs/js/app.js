@@ -1,10 +1,12 @@
 /*-------------------------------------------------
  * /docs/js/app.js
- * Deficiency Decision Tool (POC) — Single Page Layout (DROP-IN)
- * - Wizard controls (Start Over / Back / Reset) live INSIDE wizard block (footer)
- * - Manual is a separate LEFT TAB; other LEFT TAB is Wizard+Notes
- * - Switching LEFT tabs does NOT reset wizard position/state
- * - Document generation (Blue/OPCON/TACON) on right (embedded); no navigation away
+ * Deficiency Decision Tool (POC) — Single Page Layout
+ * - Left workspace tabs: Wizard+Notes OR Manual (no state reset on tab switch)
+ * - Wizard footer nav buttons live inside Flow panel (Start Over / Reset / Back)
+ * - Notes/Directives pinned to current node
+ * - Manual has its own inner tabs (Front Matter / Report)
+ * - Document generation (Blue/OPCON/TACON): right (embedded)
+ * - No navigation away from page (prevents draft loss)
  * - Trace hidden unless ?debug=1
  *-------------------------------------------------*/
 (function () {
@@ -61,7 +63,7 @@
     return true;
   }
 
-  // ===== Manual loaders (tab 1 uses fetch; tab 2 uses iframe in HTML) =====
+  // ===== Manual loader (Front Matter tab uses fetch; Report tab uses iframe in HTML) =====
   async function loadManualFrontMatter(manualStatusEl, manualBodyEl) {
     if (!manualStatusEl || !manualBodyEl) return;
     try {
@@ -194,9 +196,8 @@
     notesBodyEl.innerHTML = html;
   }
 
-  // ===== Generic tab helper =====
+  // ===== Generic tab helper (buttons + wrappers) =====
   function setActiveTab(btns, wrapMap, activeKey) {
-    // btns and wrapMap can contain nulls; guard.
     for (const [key, btn] of Object.entries(btns)) {
       if (!btn) continue;
       const isActive = key === activeKey;
@@ -213,10 +214,7 @@
   function pushContextToBlueSheet(frameEl, payload) {
     if (!frameEl || !frameEl.contentWindow) return;
     try {
-      frameEl.contentWindow.postMessage(
-        { type: "DDT_FLOW_CONTEXT", payload },
-        "*"
-      );
+      frameEl.contentWindow.postMessage({ type: "DDT_FLOW_CONTEXT", payload }, "*");
     } catch (e) {
       console.warn("postMessage to Blue Sheet failed:", e);
     }
@@ -227,39 +225,23 @@
 
     const debug = new URLSearchParams(location.search).get("debug") === "1";
 
-    // ==========================
-    // Core elements (required)
-    // ==========================
+    // ---- Core wizard elements ----
     const elScreen = qs("screen");
     const elFlowMeta = qs("flowMeta");
 
     const { el: elPackSelect } = pickId(["packSelect"]);
-    const { el: elStartOver } = pickId(["btnStartOver", "btnRestart", "btnStart"]);
+    const { el: elStartOver } = pickId(["btnStartOver"]);
     const { el: elBack } = pickId(["btnBack"]);
-    const { el: elReset } = pickId(["btnReset", "btnResetTrace", "btnResetCase"]);
-    const { el: elGoDoc } = pickId(["btnGenerate", "btnGoReport", "btnReport"]);
+    const { el: elReset } = pickId(["btnReset"]);
+    const { el: elGoDoc } = pickId(["btnGenerate"]);
 
-    // Notes
-    const { el: elNotesMeta } = pickId(["notesMeta"]);
-    const { el: elNotesBody } = pickId(["notesBody"]);
-
-    if (!elScreen) throw new Error("Missing required element #screen in index.html");
-    if (!elPackSelect) throw new Error("Missing required element #packSelect in index.html");
-    if (!elStartOver) console.warn("[DDT] btnStartOver not found. Wizard footer button required by UX.");
-    if (!elBack) console.warn("[DDT] btnBack not found. Wizard footer button required by UX.");
-    if (!elReset) console.warn("[DDT] btnReset not found. Wizard footer button required by UX.");
-
-    // ==========================
-    // Left tabs: Manual vs Wizard
-    // ==========================
+    // ---- Left workspace tabs (Wizard+Notes vs Manual) ----
     const tabLeftWizard = qs("tabLeftWizard");
     const tabLeftManual = qs("tabLeftManual");
     const wrapLeftWizard = qs("leftWizardWrap");
     const wrapLeftManual = qs("leftManualWrap");
 
-    // ==========================
-    // Manual (inside Manual tab)
-    // ==========================
+    // ---- Manual inner tabs ----
     const { el: elManualStatus } = pickId(["manualStatus"]);
     const { el: elManualBody } = pickId(["manualBody"]);
     const elManualReportWrap = qs("manualReportWrap");
@@ -267,62 +249,73 @@
     const tabManualFront = qs("tabManualFront");
     const tabManualReport = qs("tabManualReport");
 
-    // Manual: load front matter on boot (even if manual tab is not visible yet)
-    await loadManualFrontMatter(elManualStatus, elManualBody);
+    // ---- Notes ----
+    const { el: elNotesMeta } = pickId(["notesMeta"]);
+    const { el: elNotesBody } = pickId(["notesBody"]);
 
-    // Manual tab behavior (Front Matter vs Report)
-    const manualBtns = { front: tabManualFront, report: tabManualReport };
-    const manualWraps = { front: elManualBody, report: elManualReportWrap };
-    function showManual(which) {
-      setActiveTab(manualBtns, manualWraps, which);
-    }
-    safeOn(tabManualFront, "click", () => showManual("front"));
-    safeOn(tabManualReport, "click", () => showManual("report"));
-    showManual("front");
-
-    // Left tab behavior (Wizard+Notes vs Manual) — IMPORTANT: hide/show only.
-    const leftBtns = { wizard: tabLeftWizard, manual: tabLeftManual };
-    const leftWraps = { wizard: wrapLeftWizard, manual: wrapLeftManual };
-    function showLeft(which) {
-      setActiveTab(leftBtns, leftWraps, which);
-    }
-    safeOn(tabLeftWizard, "click", () => showLeft("wizard"));
-    safeOn(tabLeftManual, "click", () => showLeft("manual"));
-    // Default: Wizard tab active (no state reset)
-    showLeft("wizard");
-
-    // ==========================
-    // Right doc tabs (Blue/OPCON/TACON)
-    // ==========================
+    // ---- Doc tabs (right) ----
     const tabDocBlue = qs("tabDocBlue");
     const tabDocOpcon = qs("tabDocOpcon");
     const tabDocTacon = qs("tabDocTacon");
+
     const wrapDocBlue = qs("docBlueWrap");
     const wrapDocOpcon = qs("docOpconWrap");
     const wrapDocTacon = qs("docTaconWrap");
+
     const blueFrame = qs("blueSheetFrame");
 
-    const docBtns = { blue: tabDocBlue, opcon: tabDocOpcon, tacon: tabDocTacon };
-    const docWraps = { blue: wrapDocBlue, opcon: wrapDocOpcon, tacon: wrapDocTacon };
-    function showDoc(which) {
-      setActiveTab(docBtns, docWraps, which);
-    }
-    safeOn(tabDocBlue, "click", () => showDoc("blue"));
-    safeOn(tabDocOpcon, "click", () => showDoc("opcon"));
-    safeOn(tabDocTacon, "click", () => showDoc("tacon"));
-    showDoc("blue");
-
-    // ==========================
-    // Debug
-    // ==========================
+    // ---- Debug ----
     const { el: elDebugWrap } = pickId(["debugTraceWrap"]);
     const { el: elTrace } = pickId(["trace"]);
     const { el: elTraceMeta } = pickId(["traceMeta"]);
     if (elDebugWrap) elDebugWrap.hidden = !debug;
 
-    // ==========================
-    // Case store + engine
-    // ==========================
+    // Required checks
+    if (!elScreen) throw new Error("Missing required element #screen in index.html");
+    if (!elPackSelect) throw new Error("Missing required element #packSelect in index.html");
+
+    // ===== LEFT WORKSPACE TAB BEHAVIOR (THIS IS WHAT YOU’RE MISSING) =====
+    const leftBtns = { wizard: tabLeftWizard, manual: tabLeftManual };
+    const leftWraps = { wizard: wrapLeftWizard, manual: wrapLeftManual };
+
+    function showLeft(which) {
+      setActiveTab(leftBtns, leftWraps, which);
+    }
+
+    safeOn(tabLeftWizard, "click", () => showLeft("wizard"));
+    safeOn(tabLeftManual, "click", () => showLeft("manual"));
+
+    // Force correct default state on boot (prevents “manual visible when not selected”)
+    showLeft("wizard");
+
+    // ===== Manual content =====
+    await loadManualFrontMatter(elManualStatus, elManualBody);
+
+    const manualBtns = { front: tabManualFront, report: tabManualReport };
+    const manualWraps = { front: elManualBody, report: elManualReportWrap };
+
+    function showManual(which) {
+      setActiveTab(manualBtns, manualWraps, which);
+    }
+
+    safeOn(tabManualFront, "click", () => showManual("front"));
+    safeOn(tabManualReport, "click", () => showManual("report"));
+    showManual("front");
+
+    // ===== Doc tabs =====
+    const docBtns = { blue: tabDocBlue, opcon: tabDocOpcon, tacon: tabDocTacon };
+    const docWraps = { blue: wrapDocBlue, opcon: wrapDocOpcon, tacon: wrapDocTacon };
+
+    function showDoc(which) {
+      setActiveTab(docBtns, docWraps, which);
+    }
+
+    safeOn(tabDocBlue, "click", () => showDoc("blue"));
+    safeOn(tabDocOpcon, "click", () => showDoc("opcon"));
+    safeOn(tabDocTacon, "click", () => showDoc("tacon"));
+    showDoc("blue");
+
+    // ===== Case store + engine =====
     const store = DDT.createCaseStore();
 
     let currentPack = null;
@@ -387,19 +380,14 @@
       updateNotesFromStore();
     }
 
-    // ==========================
-    // Wiring: Wizard controls (in wizard footer)
-    // ==========================
+    // Wizard controls (footer)
     safeOn(elPackSelect, "change", () => startPack(elPackSelect.value));
     safeOn(elStartOver, "click", () => startPack(elPackSelect.value));
     safeOn(elReset, "click", () => startPack(elPackSelect.value));
     safeOn(elBack, "click", () => engine.back());
 
-    // ==========================
-    // Generate Document (right panel) — no navigation
-    // ==========================
+    // Generate Document: switch right panel, push context, persist snapshot
     safeOn(elGoDoc, "click", () => {
-      // Persist snapshot for demo credibility / recovery
       try {
         localStorage.setItem("ddt_last_case", JSON.stringify({
           meta: store.getMeta(),
@@ -408,30 +396,20 @@
         }));
       } catch (_) {}
 
-      // Switch to Blue Sheet (single page)
       showDoc("blue");
 
-      // Push current flow context into the embedded Blue Sheet tool
       const meta = store.getMeta();
       const node = currentPack?.nodes?.[meta?.nodeId] || null;
 
       pushContextToBlueSheet(blueFrame, {
         meta,
-        currentNode: node
-          ? { id: meta.nodeId, title: node.title, question: node.question, body: node.body }
-          : null,
+        currentNode: node ? { id: meta.nodeId, title: node.title, question: node.question, body: node.body } : null,
         trace: store.getTrace()
       });
     });
 
-    // ==========================
     // Boot
-    // ==========================
     await startPack(elPackSelect.value);
-
-    // Ensure UI reflects initial state
-    updateFlowMeta();
-    updateNotesFromStore();
   }
 
   main().catch((err) => {
@@ -442,7 +420,7 @@
         <div class="node-type">error</div>
         <h2 class="h-title">Load Error</h2>
         <div class="body">${esc(err?.message || err)}</div>
-        <div class="body">Confirm your IDs exist in <code>/docs/index.html</code> and files are under <code>/docs</code>.</div>
+        <div class="body">Confirm IDs exist in <code>/docs/index.html</code> and files are under <code>/docs</code>.</div>
       </div>`;
     }
   });
