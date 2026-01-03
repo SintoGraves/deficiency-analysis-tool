@@ -1,7 +1,7 @@
 /*-------------------------------------------------
  * styles.css
  * Purpose: Minimal, readable styling for the POC UI
- * Single-page layout: Flow + Notes + Manual (left) | Docs (right)
+ * Single-page layout: Left workspace (Wizard+Notes OR Manual) | Docs (right)
  *-------------------------------------------------*/
 
 :root {
@@ -14,10 +14,17 @@
   --btn: #2b71ff;
   --btn2: rgba(255,255,255,0.12);
   --danger: #ff4d4d;
+
+  /* Header height used to size main grid.
+     Your header padding puts this close to ~74px; adjust if needed. */
+  --app-header-h: 74px;
+
+  --gap: 14px;
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -29,6 +36,9 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .small { font-size: 12px; }
 .muted { color: var(--muted); }
 
+/* =========================
+   Header
+   ========================= */
 .app-header {
   display: flex;
   gap: 16px;
@@ -45,6 +55,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
 .app-controls { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
 .control { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+
 select {
   padding: 8px 10px;
   border: 1px solid var(--border);
@@ -54,6 +65,9 @@ select {
   outline: none;
 }
 
+/* =========================
+   Buttons
+   ========================= */
 .btn {
   border: 1px solid transparent;
   background: var(--btn);
@@ -70,6 +84,15 @@ select {
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Optional: subtle warning emphasis (used for Start Over in wizard footer) */
+.btn.danger-outline{
+  border-color: rgba(255,77,77,0.55) !important;
+  background: rgba(255,77,77,0.06) !important;
+}
+
+/* =========================
+   Cards
+   ========================= */
 .card {
   background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
   border: 1px solid var(--border);
@@ -77,38 +100,72 @@ select {
   overflow: hidden;
 }
 
-/* ====== SINGLE PAGE LAYOUT ====== */
+/* =========================
+   SINGLE PAGE LAYOUT
+   Left workspace (tabbed) | Right docs
+   ========================= */
 .layout-single{
   display: grid;
-  grid-template-columns: 1.02fr 1.18fr;
-  gap: 14px;
-  padding: 14px;
-  height: calc(100vh - 74px);
+  grid-template-columns: 1.15fr 1fr;  /* left larger because it’s tabbed */
+  gap: var(--gap);
+  padding: var(--gap);
+  height: calc(100vh - var(--app-header-h));
+  min-height: 520px;
+  align-items: stretch;
 }
 
 @media (max-width: 1100px) {
   .layout-single{
     grid-template-columns: 1fr;
     height: auto;
+    min-height: 0;
   }
 }
 
-/* LEFT STACK */
+/* =========================
+   LEFT WORKSPACE (TAB HOST)
+   Expect:
+     - #leftWizardWrap (Flow+Notes)
+     - #leftManualWrap (Manual)
+   Only one is visible at a time (hidden toggled in JS).
+   ========================= */
 .left-stack{
-  display: grid;
-  grid-template-rows: 0.48fr 0.32fr 0.40fr; /* Flow, Notes, Manual */
-  gap: 14px;
-  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0; /* critical for nested scrolling */
 }
 
-/* RIGHT DOCS */
+/* Left tab wrappers fill the left column when active */
+#leftWizardWrap,
+#leftManualWrap{
+  flex: 1 1 auto;
+  min-height: 0; /* critical */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Wizard tab: split Flow (top) and Notes (bottom), both fill available height */
+#leftWizardWrap{
+  display: grid;
+  grid-template-rows: 1.15fr 0.85fr; /* tune as desired */
+  gap: var(--gap);
+  min-height: 0;
+}
+
+/* =========================
+   RIGHT DOCS
+   ========================= */
 .right-docs{
   display: flex;
   flex-direction: column;
-  min-height: 520px;
+  height: 100%;
+  min-height: 0;
 }
 
-/* Common panel header */
+/* =========================
+   Common panel headers
+   ========================= */
 .panel-head,
 .manual-head,
 .notes-head{
@@ -120,14 +177,18 @@ select {
   align-items: baseline;
   gap: 10px;
 }
+
 .panel-head h2,
 .manual-head h2,
 .notes-head h2 { margin: 0; font-size: 14px; }
+
 .panel-sub,
 .manual-sub,
 .notes-sub { color: var(--muted); font-size: 12px; }
 
-/* Tabs */
+/* =========================
+   Tabs
+   ========================= */
 .tabs{
   display: inline-flex;
   gap: 8px;
@@ -148,9 +209,21 @@ select {
   border-color: rgba(43,113,255,0.50);
 }
 
-/* FLOW */
-.flow{ display:flex; flex-direction:column; min-height: 240px; }
-.screen { padding: 18px; flex: 1; overflow: auto; }
+/* =========================
+   FLOW (Wizard)
+   ========================= */
+.flow{
+  display:flex;
+  flex-direction:column;
+  min-height: 0;
+}
+
+.screen{
+  padding: 18px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
 
 .node-type {
   display: inline-block;
@@ -166,7 +239,8 @@ select {
 .question { margin-top: 10px; font-size: 15px; font-weight: 650; }
 .choices { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 
-.nav {
+/* Wizard footer nav (Back/Start Over live here) */
+.nav{
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -175,35 +249,65 @@ select {
   background: rgba(0,0,0,0.10);
 }
 
-/* NOTES */
-.notes{ display:flex; flex-direction:column; min-height: 160px; }
-.notes-body {
+.nav.wizard-nav{
+  align-items: center;
+}
+.nav.wizard-nav .nav-left,
+.nav.wizard-nav .nav-right{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap: wrap;
+}
+
+/* =========================
+   NOTES
+   ========================= */
+.notes{
+  display:flex;
+  flex-direction:column;
+  min-height: 0;
+}
+
+.notes-body{
   padding: 14px 18px 18px;
   overflow: auto;
   background: rgba(0,0,0,0.10);
   line-height: 1.45;
+  flex: 1 1 auto;
+  min-height: 0;
 }
+
 .hint { color: var(--muted); font-size: 12px; }
 
-.note-block {
+.note-block{
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 10px;
   background: rgba(0,0,0,0.12);
 }
-.note-title { font-weight: 700; margin-bottom: 6px; }
-.note-body { white-space: pre-wrap; color: var(--text); }
-.note-kind { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+.note-title{ font-weight: 700; margin-bottom: 6px; }
+.note-body{ white-space: pre-wrap; color: var(--text); }
+.note-kind{ color: var(--muted); font-size: 12px; margin-bottom: 6px; }
 
-/* MANUAL */
-.manual{ display:flex; flex-direction:column; min-height: 240px; }
+/* =========================
+   MANUAL (fills full left column when manual tab active)
+   ========================= */
+.manual{
+  display:flex;
+  flex-direction:column;
+  min-height: 0;
+}
+
 .manual-body{
   padding: 0;
   overflow: hidden;
   background: rgba(0,0,0,0.10);
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
 }
+
 .manual-html{
   padding: 14px 18px 18px;
   overflow: auto;
@@ -212,15 +316,19 @@ select {
   max-width: 980px;
   margin: 0 auto;
 }
+
 .manual-frame{
   width: 100%;
   height: 100%;
   border: 0;
 }
 
-/* DOCS */
+/* =========================
+   DOCS
+   ========================= */
 .doc-body{
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   background: rgba(0,0,0,0.10);
   overflow: hidden;
 }
@@ -233,15 +341,19 @@ select {
   padding: 18px;
 }
 
-/* Footer + debug */
-.app-footer {
+/* =========================
+   Footer + debug
+   ========================= */
+.app-footer{
   padding: 12px 18px 18px;
   color: var(--muted);
   border-top: 1px solid var(--border);
   background: rgba(0,0,0,0.12);
 }
+
 .debug-wrap{ margin-top: 12px; }
-.debug-head {
+
+.debug-head{
   padding: 14px 18px 10px;
   border-bottom: 1px solid var(--border);
   background: rgba(0,0,0,0.10);
@@ -249,10 +361,11 @@ select {
   justify-content: space-between;
   align-items: baseline;
 }
-.debug-head h2 { margin: 0; font-size: 14px; }
-.debug-sub { color: var(--muted); font-size: 12px; }
 
-.trace {
+.debug-head h2{ margin: 0; font-size: 14px; }
+.debug-sub{ color: var(--muted); font-size: 12px; }
+
+.trace{
   margin: 0;
   padding: 12px 18px 18px;
   background: rgba(0,0,0,0.18);
@@ -260,74 +373,4 @@ select {
   overflow: auto;
   font-size: 12px;
   color: #d7e2f2;
-}
-/* =========================================
-   Flow Wizard Footer Nav (Back + Start Over moved here)
-   ========================================= */
-.nav.wizard-nav {
-  align-items: center;
-}
-
-.wizard-nav-left,
-.wizard-nav-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.wizard-nav-mid {
-  text-align: center;
-  flex: 1 1 auto;
-  padding: 0 10px;
-}
-
-/* Optional: distinguish Start Over without changing JS */
-.btn.danger-outline {
-  border-color: rgba(255, 77, 77, 0.45);
-  color: #ffb3b3;
-  background: rgba(0,0,0,0.10);
-}
-.btn.danger-outline:hover {
-  border-color: rgba(255, 77, 77, 0.65);
-}
-/* ==============================
-   Left-side Tabs (Wizard/Manual)
-   ============================== */
-
-.left-tabs { padding: 0; }
-.left-tabs .panel-head{
-  padding: 14px 18px 10px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(0,0,0,0.10);
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  gap:10px;
-}
-.left-tab-body{
-  padding: 14px;
-}
-
-/* Wizard footer controls live inside the wizard panel now */
-.nav.wizard-nav{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  padding: 12px 18px 16px;
-  border-top: 1px solid var(--border);
-  background: rgba(0,0,0,0.10);
-}
-.nav.wizard-nav .nav-left,
-.nav.wizard-nav .nav-right{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap: wrap;
-}
-
-/* Subtle warning emphasis for Start Over */
-.btn.danger-outline{
-  border-color: rgba(255,77,77,0.55) !important;
-  background: rgba(255,77,77,0.06) !important;
 }
