@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- Header (NO wizard nav buttons here anymore) -->
   <header class="app-header">
     <div class="app-title">
       <h1>Deficiency Decision Tool (POC)</h1>
@@ -24,12 +24,8 @@
         </select>
       </div>
 
-      <!-- MOVED: Start Over + Back are now INSIDE the Flow Wizard footer -->
-      <button class="btn secondary" id="btnReset" type="button">Reset</button>
-
       <!-- Single-page: switches right panel to Blue Sheet (no navigation) -->
       <button class="btn" id="btnGenerate" type="button">Generate Document</button>
-
       <!-- Optional debug toggle via ?debug=1 still works -->
     </div>
   </header>
@@ -37,74 +33,89 @@
   <!-- Main layout -->
   <main class="layout-single">
 
-    <!-- LEFT COLUMN: Flow + Notes + Manual -->
+    <!-- LEFT COLUMN: Tabs (Manual) vs (Wizard + Notes) -->
     <section class="left-stack">
 
-      <!-- FLOW (Top Left) -->
-      <div class="card flow">
+      <!-- LEFT TABS HEADER -->
+      <div class="card left-tabs">
         <div class="panel-head">
           <div>
-            <h2>Flow Diagram</h2>
-            <div class="panel-sub" id="flowMeta">Pack: - | Step: -</div>
-          </div>
-          <div class="panel-right muted">Wizard</div>
-        </div>
-
-        <!-- Wizard screen content -->
-        <div id="screen" class="screen"></div>
-
-        <!-- Wizard Footer Nav (Back + Start Over moved here) -->
-        <div class="nav wizard-nav">
-          <div class="wizard-nav-left">
-            <button class="btn secondary" id="btnBack" type="button" disabled>Back</button>
+            <h2>Workspace</h2>
+            <div class="panel-sub muted">Switching tabs does not reset wizard position.</div>
           </div>
 
-          <div class="wizard-nav-mid muted small" aria-hidden="true">
-            Navigation applies to the current flow step.
-          </div>
-
-          <div class="wizard-nav-right">
-            <button class="btn secondary danger-outline" id="btnStartOver" type="button">Start Over</button>
+          <div class="tabs" role="tablist" aria-label="Left Tabs">
+            <button class="tab-btn active" id="tabLeftWizard" type="button" role="tab" aria-selected="true">Wizard + Notes</button>
+            <button class="tab-btn" id="tabLeftManual" type="button" role="tab" aria-selected="false">Manual</button>
           </div>
         </div>
+
+        <!-- TAB: WIZARD + NOTES -->
+        <div id="leftWizardWrap" class="left-tab-body">
+
+          <!-- FLOW (Wizard) -->
+          <div class="card flow">
+            <div class="panel-head">
+              <div>
+                <h2>Flow Diagram</h2>
+                <div class="panel-sub" id="flowMeta">Pack: - | Step: -</div>
+              </div>
+              <div class="panel-right muted">Wizard</div>
+            </div>
+
+            <div id="screen" class="screen"></div>
+
+            <!-- Wizard footer controls are HERE -->
+            <div class="nav wizard-nav">
+              <div class="nav-left">
+                <button class="btn secondary danger-outline" id="btnStartOver" type="button">Start Over</button>
+                <button class="btn secondary" id="btnReset" type="button">Reset</button>
+              </div>
+              <div class="nav-right">
+                <button class="btn secondary" id="btnBack" type="button" disabled>Back</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- NOTES (Pinned to node) -->
+          <div class="card notes">
+            <div class="notes-head">
+              <div>
+                <h2>Notes / Directives</h2>
+                <div class="notes-sub" id="notesMeta">Pack: - | Step: -</div>
+              </div>
+              <div class="notes-sub">Pinned to current node</div>
+            </div>
+            <div class="notes-body" id="notesBody"></div>
+          </div>
+        </div>
+
+        <!-- TAB: MANUAL -->
+        <div id="leftManualWrap" class="left-tab-body" hidden>
+          <div class="card manual">
+            <div class="manual-head">
+              <div>
+                <h2>Manual</h2>
+                <div class="manual-sub" id="manualStatus">Loading…</div>
+              </div>
+
+              <div class="tabs" role="tablist" aria-label="Manual Tabs">
+                <button class="tab-btn active" id="tabManualFront" type="button" role="tab" aria-selected="true">Front Matter</button>
+                <button class="tab-btn" id="tabManualReport" type="button" role="tab" aria-selected="false">Report</button>
+              </div>
+            </div>
+
+            <div class="manual-body">
+              <div id="manualBody" class="manual-html"></div>
+
+              <div id="manualReportWrap" class="manual-html" hidden>
+                <iframe class="manual-frame" src="./manual/report.html" title="Manual Report"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-
-      <!-- NOTES (Middle Left) -->
-      <div class="card notes">
-        <div class="notes-head">
-          <div>
-            <h2>Notes / Directives</h2>
-            <div class="notes-sub" id="notesMeta">Pack: - | Step: -</div>
-          </div>
-          <div class="notes-sub">Pinned to current node</div>
-        </div>
-        <div class="notes-body" id="notesBody"></div>
-      </div>
-
-      <!-- MANUAL (Bottom Left with Tabs) -->
-      <div class="card manual">
-        <div class="manual-head">
-          <div>
-            <h2>Manual</h2>
-            <div class="manual-sub" id="manualStatus">Loading…</div>
-          </div>
-
-          <div class="tabs" role="tablist" aria-label="Manual Tabs">
-            <button class="tab-btn active" id="tabManualFront" type="button" role="tab" aria-selected="true">Front Matter</button>
-            <button class="tab-btn" id="tabManualReport" type="button" role="tab" aria-selected="false">Report</button>
-          </div>
-        </div>
-
-        <div class="manual-body">
-          <div id="manualBody" class="manual-html"></div>
-
-          <!-- Optional: embedded report.html as a second tab target -->
-          <div id="manualReportWrap" class="manual-html" hidden>
-            <iframe class="manual-frame" src="./manual/report.html" title="Manual Report"></iframe>
-          </div>
-        </div>
-      </div>
-
     </section>
 
     <!-- RIGHT COLUMN: Document Generation -->
@@ -122,7 +133,6 @@
         </div>
       </div>
 
-      <!-- Blue Sheet (embedded; stays loaded/persistent) -->
       <div id="docBlueWrap" class="doc-body">
         <iframe
           id="blueSheetFrame"
@@ -132,7 +142,6 @@
         </iframe>
       </div>
 
-      <!-- Placeholders for OPCON/TACON (stubs for now) -->
       <div id="docOpconWrap" class="doc-body" hidden>
         <div class="doc-placeholder">
           <div class="node-type">placeholder</div>
@@ -166,7 +175,6 @@
 
   </main>
 
-  <!-- Main app loader -->
   <script src="./js/app.js"></script>
 </body>
 </html>
