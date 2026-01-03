@@ -19,6 +19,9 @@
 }
 
 * { box-sizing: border-box; }
+/* Enforce HTML hidden attribute (prevents tab panels from leaking) */
+[hidden] { display: none !important; }
+
 html, body { height: 100%; }
 
 body {
