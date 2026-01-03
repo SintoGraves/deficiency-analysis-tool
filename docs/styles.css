@@ -123,33 +123,65 @@ select {
 }
 
 /* =========================
-   LEFT WORKSPACE (TAB HOST)
-   Expect:
-     - #leftWizardWrap (Flow+Notes)
-     - #leftManualWrap (Manual)
-   Only one is visible at a time (hidden toggled in JS).
+   LEFT COLUMN: Workspace Tabs
+   Makes the LEFT side actually fill its column height,
+   and lets the active tab (Wizard+Notes OR Manual) use the full left space.
    ========================= */
+
 .left-stack{
-  display: flex;
-  flex-direction: column;
   height: 100%;
-  min-height: 0; /* critical for nested scrolling */
+  min-height: 0;              /* critical for nested scroll areas */
+  display: flex;
 }
 
-/* Left tab wrappers fill the left column when active */
-#leftWizardWrap,
-#leftManualWrap{
+/* The outer Workspace card must fill the left column */
+.left-tabs{
   flex: 1 1 auto;
-  min-height: 0; /* critical */
+  min-height: 0;              /* critical */
   display: flex;
   flex-direction: column;
 }
 
-/* Wizard tab: split Flow (top) and Notes (bottom), both fill available height */
+/* The panel header stays fixed; body takes remaining height */
+.left-tabs .panel-head{
+  flex: 0 0 auto;
+}
+
+/* Each tab body must be able to shrink and scroll internally */
+.left-tab-body{
+  flex: 1 1 auto;
+  min-height: 0;              /* critical */
+  padding: 14px;
+  overflow: hidden;           /* prevents double scrollbars */
+}
+
+/* Wizard tab: Flow + Notes split vertically and fill available height */
 #leftWizardWrap{
   display: grid;
-  grid-template-rows: 1.15fr 0.85fr; /* tune as desired */
-  gap: var(--gap);
+  grid-template-rows: 1.1fr 0.9fr;   /* tune split if desired */
+  gap: 14px;
+  min-height: 0;                     /* critical */
+}
+
+/* Manual tab: Manual fills available height */
+#leftManualWrap{
+  display: flex;
+  flex-direction: column;
+  min-height: 0;                     /* critical */
+}
+
+/* Ensure the nested cards can actually stretch */
+#leftWizardWrap .flow,
+#leftWizardWrap .notes,
+#leftManualWrap .manual{
+  min-height: 0;                     /* critical */
+}
+
+/* Notes body and wizard screen already scroll; enforce shrink contract */
+#leftWizardWrap .screen,
+#leftWizardWrap .notes-body,
+#leftManualWrap .manual-body,
+#leftManualWrap .manual-html{
   min-height: 0;
 }
 
