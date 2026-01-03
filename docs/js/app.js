@@ -327,6 +327,10 @@
       elFlowMeta.textContent = `Pack: ${meta.packId || "-"}  |  Step: ${meta.nodeId || "-"}`;
     }
 
+    // Force correct initial visibility even if previous state leaked
+    if (wrapLeftWizard) wrapLeftWizard.hidden = false;
+    if (wrapLeftManual) wrapLeftManual.hidden = true;
+    
     function updateNotesFromStore() {
       if (!elNotesMeta || !elNotesBody) return;
       const meta = store.getMeta();
