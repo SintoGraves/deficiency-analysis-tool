@@ -261,3 +261,32 @@ select {
   font-size: 12px;
   color: #d7e2f2;
 }
+/* =========================================
+   Flow Wizard Footer Nav (Back + Start Over moved here)
+   ========================================= */
+.nav.wizard-nav {
+  align-items: center;
+}
+
+.wizard-nav-left,
+.wizard-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wizard-nav-mid {
+  text-align: center;
+  flex: 1 1 auto;
+  padding: 0 10px;
+}
+
+/* Optional: distinguish Start Over without changing JS */
+.btn.danger-outline {
+  border-color: rgba(255, 77, 77, 0.45);
+  color: #ffb3b3;
+  background: rgba(0,0,0,0.10);
+}
+.btn.danger-outline:hover {
+  border-color: rgba(255, 77, 77, 0.65);
+}
