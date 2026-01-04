@@ -309,6 +309,11 @@
     const docBtns = { blue: tabDocBlue, opcon: tabDocOpcon, tacon: tabDocTacon };
     const docWraps = { blue: wrapDocBlue, opcon: wrapDocOpcon, tacon: wrapDocTacon };
 
+    function isDocTabActive(key) {
+    const btn = docBtns[key];
+    return !!btn && btn.classList.contains("active");
+  }
+   
     function showDoc(which) {
   setActiveTab(docBtns, docWraps, which);
 
