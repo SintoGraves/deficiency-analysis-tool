@@ -62,38 +62,51 @@
       gap:16px;
     }
 /* =========================================================
-   Blue Sheet Builder header layout fix
-   Goal:
-   - Left header text gets the space
-   - Doc dropdown does NOT expand wider than Phase
+   Header width reclaim (Blue Sheet Builder)
+   - Force selects to a fixed width
+   - Allow truncation so the right cluster stops expanding
+   - Left side then naturally reclaims remaining width
    ========================================================= */
 
-/* Ensure the left side can actually expand */
-    .header-left{
-    flex: 1 1 auto;
-    min-width: 0; /* allows text to wrap instead of forcing right side wider */
-      }
+.header-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
 
-/* Keep the right control cluster from stretching */
-    .header-right{
-    flex: 0 0 auto;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: flex-start;
-      }
+/* Left should take remaining space */
+.header-left{
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
-/* Constrain BOTH selects to the same width */
-  .header-right select{
-    width: 220px;      /* match Phase width */
-    max-width: 220px;
-    min-width: 220px;
-    }
+/* Right cluster must not stretch */
+.header-right{
+  flex: 0 0 auto;
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;      /* keep it on one line */
+  align-items: flex-start;
+}
 
-/* If you want the button to stay compact as well */
-   .header-right .btn-link{
-    flex: 0 0 auto;
-   }
+/* Hard cap BOTH selects to the same width */
+.header-right select{
+  width: 170px;           /* adjust if you want tighter (160–190 typical) */
+  min-width: 170px;
+  max-width: 170px;
+
+  /* Truncate displayed text instead of expanding control */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Keep the button compact */
+.header-right .btn-link{
+  flex: 0 0 auto;
+}
+
 
     header h1 { margin: 0 0 6px; font-size: 16px; }
     header p  { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
