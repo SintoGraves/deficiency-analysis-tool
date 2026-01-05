@@ -1,72 +1,14 @@
 <!--
   File: /docs/blue-sheet-demo.html
-  Blue Sheet Builder (Demo) — Updated & Heavily Labeled
-  --------------------------------------------------------------------
-  PURPOSE (Demo):
-    - Show how a user fills structured “data blocks” and generates a standards-shaped Blue Sheet.
-    - Guidance text is shown first (pink italics + black example context).
-    - Preview does NOT change while typing.
-    - When the user clicks "Generate Preview", guidance disappears and user input replaces it.
-
-  KEY FEATURES IMPLEMENTED:
-    1) Back-to-Flow Diagrams button restored to the ORIGINAL location:
-       - Global page header (top band), right-aligned.
-    2) Risk Matrix (Figure X) appears AFTER Paragraph 5 in the preview:
-       - Only the selected cell is colored (Red/Yellow/Green based on computed risk).
-       - Grid lines are grey.
-       - TEIN + PM mitigation letter displayed in selected cell (e.g., TEIN-DEMO-M).
-       - Figure numbering supports Para 2 figure: if user attaches a figure, it becomes Figure 1; risk matrix becomes Figure 2.
-    3) Risk cube:
-       - Centered horizontally
-       - Width constrained (default 3.0in; adjustable via --risk-w)
-    4) Para 2 figure upload:
-       - Includes a “sample location” preview and actual file upload workflow.
-       - Uploaded image appears inside Para 2 section in the generated preview.
-    5) Save to DOCX:
-       - Uses a minimal client-side HTML->DOCX approach via Word-compatible HTML (.doc).
-       - This is suitable for a demo POC; full build can migrate to a true .docx library/template.
-    6) Tense/format indicators:
-       - Lightweight checks + visual indicators for each paragraph.
-       - Uses browser spellcheck on textareas.
-       - Checks are advisory (non-blocking).
-
-  NOTES:
-    - This file is self-contained (no external CSS/JS required).
-    - Link back assumes flow diagrams page is /docs/index.html. Adjust if needed.
-
-  CHANGE SUMMARY (31 Dec 2025 / 01 Jan 2026):
-    - Paragraph 2 split into three separate input blocks (2a/2b/2c) for authoring.
-    - GENERATED preview stitches 2a + 2b + 2c into a single Paragraph 2 body (NO 2a/2b/2c labels).
-    - Paragraph 2 title does NOT include "(*)".
--->
-
-<!--
-  File: /docs/blue-sheet-demo.html
   Blue Sheet Builder (Demo) — Event Workspace + Multi-Draft Saving (via DDT CaseStore)
-  --------------------------------------------------------------------
-  PURPOSE (Demo):
-    - Fill structured data blocks and generate a standards-shaped Blue Sheet preview.
-    - Guidance text is shown first and remains visible while typing.
-    - Preview does NOT change while typing.
-    - Clicking "Generate Preview" hides guidance and uses user input.
 
-  DRAFT SAVING (UPDATED):
-    - Uses DDT.createCaseStore() Event Workspace model (localStorage-backed in POC)
-    - One Event can contain many documents:
-        BlueSheet-001, BlueSheet-002, ...
-    - Autosave drafts while user types/changes fields
-    - Restore last active doc on load
-    - Save on navigation and page hide
-    - Figure image data is NOT persisted (metadata only)
-
-  LINKAGE:
-    - Flow context may be imported via postMessage and stored locally (separate key).
-    - Store can also capture flow context later, but for this demo we keep your
-      existing “Imported Flow Context” banner (proof of linkage).
-
-  DEPENDENCIES:
-    - Will attempt to load /docs/js/state/caseStore.js (classic script).
-    - If missing, the page still runs, but drafts will not persist across reload.
+  DROP-IN READY (Updated per your requirements):
+    - Removes Back-to-Flow behavior (not needed when embedded in the same workspace)
+    - Adds Phase control:
+        PRE_OT  => "PENDING RISK NO." + shows Risk Matrix + shows Para 4 (PM mitigation assessment)
+        OT      => "DEFICIENCY NO."   + hides Risk Matrix + hides Para 4
+    - Phase is stored per-document (persists with drafts)
+    - Preview header label dynamically switches based on phase
 -->
 
 <!doctype html>
@@ -417,6 +359,13 @@
           <option value="">Open Draft…</option>
         </select>
 
+        <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; color: rgba(0,0,0,.75);">
+          Phase
+          <select id="bsPhase" class="btn-link" style="padding:8px 10px;">
+            <option value="PRE_OT" selected>Pre-OT (Pending Risk)</option>
+            <option value="OT">Operational Test (Deficiency)</option>
+          </select>
+        </label>
       </div>
     </div>
   </header>
@@ -562,6 +511,7 @@
         <div style="margin-top:10px;">
           <label for="p4">4. Mitigation Assessment (present tense)</label>
           <textarea id="p4" spellcheck="true" placeholder=""></textarea>
+          <div class="hint">Hidden in OT (Deficiency) phase.</div>
         </div>
 
         <div style="margin-top:10px;">
@@ -676,17 +626,12 @@
       if (!msg || msg.type !== "DDT_FLOW_CONTEXT") return;
       saveFlowContext(msg.payload);
       setFlowContextLine(msg.payload);
-      // Optional future: auto-populate certain fields from msg.payload
     });
 
     /* =========================================================
        EVENT WORKSPACE + DOC DRAFTS (NEW PRIMARY SAVE MECHANISM)
        ========================================================= */
 
-    // Decide an eventId in a deterministic way:
-    // 1) query param event=...
-    // 2) if present, TEIN value
-    // 3) fallback "TEIN-DEMO"
     function getQueryParam(name) {
       try { return new URLSearchParams(location.search).get(name); } catch { return null; }
     }
@@ -697,13 +642,15 @@
       return raw.replace(/[^\w.\-]+/g, "_").slice(0, 80);
     }
 
-    // If DDT store exists, use it. Otherwise, run without persistence.
     const HAS_STORE = !!(window.DDT && typeof window.DDT.createCaseStore === "function");
     const store = HAS_STORE ? window.DDT.createCaseStore() : null;
 
     let eventId = "";
     let docId = "";
     let generatedMode = false;
+
+    // Phase: PRE_OT | OT
+    let phase = "PRE_OT";
 
     // Debounce + checkpoint
     let dirty = false;
@@ -731,7 +678,6 @@
       const sel = $("docPickerTop");
       if (!sel) return;
 
-      // Keep first option
       const first = sel.options[0];
       sel.innerHTML = "";
       sel.appendChild(first);
@@ -747,12 +693,10 @@
         sel.appendChild(opt);
       }
 
-      // Keep selection aligned
       if (docId) sel.value = docId;
     }
 
     function ensureWorkspaceInitialized() {
-      // event priority: query param -> current TEIN -> default
       const qEvent = normalizeEventId(getQueryParam("event"));
       const teinVal = normalizeEventId(($("tein")?.value || "").trim());
       eventId = qEvent || teinVal || "TEIN-DEMO";
@@ -767,40 +711,50 @@
       rebuildDocPicker();
     }
 
+    function setPhase(nextPhase, opts) {
+      const p = (nextPhase === "OT") ? "OT" : "PRE_OT";
+      phase = p;
+      const sel = $("bsPhase");
+      if (sel && sel.value !== phase) sel.value = phase;
+
+      // Persist phase as soon as it changes if we have a doc
+      if (opts?.save !== false) {
+        markDirty();
+      }
+
+      // Update preview immediately
+      renderPreview();
+    }
+
     function createNewBlueSheetDoc() {
       ensureWorkspaceInitialized();
       if (!HAS_STORE) {
         alert("Store module not available. Ensure ./js/state/caseStore.js exists under /docs.");
         return;
       }
-      const created = store.createDocument("BlueSheet", {
-        title: "Blue Sheet Draft"
-      });
+      const created = store.createDocument("BlueSheet", { title: "Blue Sheet Draft" });
       docId = created.id;
       store.setActiveDocument(docId);
       updatePills();
       rebuildDocPicker();
 
-      // Seed issueNo from sequential docId (BlueSheet-XYZ)
       const seq = String(docId).split("-")[1] || "";
       if ($("issueNo")) $("issueNo").value = seq || $("issueNo").value;
 
-      // Seed TEIN from eventId if blank
       if ($("tein") && !String($("tein").value || "").trim()) $("tein").value = eventId;
 
-      // Reset figure state (per doc)
       p2FigureDataUrl = null;
       p2FigureName = null;
       if ($("p2Figure")) $("p2Figure").value = "";
 
-      // Reset generated mode for new doc
       setMode(false);
 
-      // Persist immediately
+      // Default phase on new doc: PRE_OT
+      setPhase("PRE_OT", { save: false });
+
       dirty = true;
       saveDraftNow("new-doc");
 
-      // Render
       renderPreview();
       runAdvisoryChecks();
     }
@@ -815,16 +769,18 @@
       docId = id;
       store.setActiveDocument(docId);
 
-      // Load fields into UI
       applyDraftFields(doc.fields || {});
 
-      // Restore generatedMode (stored in fields)
       setMode(!!(doc.fields && doc.fields.__generatedMode));
 
+      // Restore phase (stored per doc)
+      const savedPhase = (doc.fields && doc.fields.__phase) ? String(doc.fields.__phase) : "PRE_OT";
+      setPhase((savedPhase === "OT") ? "OT" : "PRE_OT", { save: false });
+
       // Restore figure metadata only
-      p2FigureDataUrl = null; // image data not persisted
+      p2FigureDataUrl = null;
       p2FigureName = (doc.fields && doc.fields.__p2FigureName) ? String(doc.fields.__p2FigureName) : null;
-      if ($("p2Figure")) $("p2Figure").value = ""; // user must re-upload
+      if ($("p2Figure")) $("p2Figure").value = "";
 
       updatePills();
       rebuildDocPicker();
@@ -839,7 +795,6 @@
 
     function saveDraftNow(reason) {
       if (!HAS_STORE) {
-        // Without store, we still behave, but indicate non-persistence.
         dirty = false;
         lastSavedAt = new Date().toISOString();
         setSaveStatus("Saved (no persistence) " + fmtTime(lastSavedAt));
@@ -848,7 +803,6 @@
 
       ensureWorkspaceInitialized();
       if (!docId) {
-        // First save: create a doc if none exists yet
         const created = store.createDocument("BlueSheet", { title: "Blue Sheet Draft" });
         docId = created.id;
         store.setActiveDocument(docId);
@@ -861,7 +815,6 @@
       const payload = buildDraftFieldsPayload();
       store.updateDocumentFields(docId, payload);
 
-      // Also store a small doc-level patch (optional metadata)
       store.updateDocument(docId, {
         title: `${payload.tein || eventId}-${payload.issueNo || ""}`.replace(/\-+$/,"")
       });
@@ -908,7 +861,6 @@
     }
 
     function applyDraftFields(saved) {
-      // Populate UI from saved fields
       if (!saved) return;
       fields.forEach(k => {
         const el = $(k);
@@ -916,7 +868,6 @@
         if (saved[k] !== undefined && saved[k] !== null) el.value = String(saved[k]);
       });
 
-      // Ensure SUT seed if empty
       if ($("sutName") && !String($("sutName").value || "").trim()) {
         const demoKey = ($("sampleSelect")?.value || "mfd");
         $("sutName").value = (GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName);
@@ -925,11 +876,11 @@
 
     function buildDraftFieldsPayload() {
       const d = getForm();
-      // Store doc-specific internal fields with __ prefix
       d.__generatedMode = !!generatedMode;
       d.__p2FigureName = p2FigureName || null;
       d.__flowCtx = loadSavedFlowContext() || null;
       d.__savedAt = new Date().toISOString();
+      d.__phase = phase; // PRE_OT | OT
       return d;
     }
 
@@ -1021,12 +972,11 @@
       const band = riskBandFromCL(c, l);
       const cls  = riskClassFromBand(band);
 
-      // Use TEIN + PM mitigation letter, as you had
       const teinTag = `${esc(d.tein || eventId || "TEIN")}-${pmMitLetter(d.pmMit)}`;
       const title = `Figure ${figureNumber}. ${band} Risk (Selected: C${c} x L${l})`;
 
       let html = `
-        <div class="risk-wrap">
+        <div class="risk-wrap" id="riskMatrixSection">
           <div class="risk-title"><strong>${esc(title)}</strong></div>
           <div class="risk-center">
             <div class="risk-cube" role="img" aria-label="Risk matrix">
@@ -1086,7 +1036,8 @@
     function renderPreviewHtml() {
       const d = getForm();
 
-      const pendingRiskNo = `${esc(d.tein || eventId || "TEIN")}-${esc(d.issueNo || "001")} (Rev ${esc(d.rev || "0")})`;
+      const idPrefix = (phase === "OT") ? "DEFICIENCY NO." : "PENDING RISK NO.";
+      const idLine = `${esc(d.tein || eventId || "TEIN")}-${esc(d.issueNo || "001")} (Rev ${esc(d.rev || "0")})`;
 
       const hasP2Figure = !!p2FigureDataUrl;
       const riskFigureNumber = hasP2Figure ? 2 : 1;
@@ -1126,10 +1077,15 @@
       const p2Body = generatedMode ? renderPara2Generated(d, p2FigureHtml) : renderPara2Draft(gset, p2FigureHtml);
 
       const p3Body = generatedMode ? (d.p3 ? para(d.p3) : `<p class="muted">[Paragraph 3 not entered]</p>`) : guidanceBlock(gset.p3.g, gset.p3.x);
+
+      // Para 4 is hidden in OT phase
       const p4Body = generatedMode ? (d.p4 ? para(d.p4) : `<p class="muted">[Paragraph 4 not entered]</p>`) : guidanceBlock(gset.p4.g, gset.p4.x);
+
       const p5Body = generatedMode ? (d.p5 ? para(d.p5) : `<p class="muted">[Paragraph 5 not entered]</p>`) : guidanceBlock(gset.p5.g, gset.p5.x);
 
-      const riskMatrix = renderRiskMatrix(d, riskFigureNumber);
+      // Risk Matrix is hidden in OT phase
+      const riskMatrix = (phase === "OT") ? "" : renderRiskMatrix(d, riskFigureNumber);
+
       const p6Body = `<p>${esc(d.recommendation || "Correct as soon as possible.")}</p>`;
 
       const dateLine = esc(d.date || "DD Mmm YYYY");
@@ -1139,7 +1095,7 @@
       return `
         <div class="topline">DRAFT</div>
         <div class="subline"><strong>COMMANDER, OPERATIONAL TEST AND EVALUATION FORCE</strong></div>
-        <div class="subline"><strong>PENDING RISK NO.</strong> ${pendingRiskNo}</div>
+        <div class="subline"><strong><span id="bsIdPrefix">${esc(idPrefix)}</span></strong> ${idLine}</div>
         <div class="subline"><strong>${esc(d.sheetType || "Blue Sheet")}</strong></div>
 
         <div class="meta">
@@ -1148,7 +1104,7 @@
         </div>
 
         <div class="sect">
-          <h3>1. SYSTEM UNDER TEST PENDING RISK.</h3>
+          <h3>1. SYSTEM UNDER TEST ${phase === "OT" ? "DEFICIENCY" : "PENDING RISK"}.</h3>
           ${p1Body}
           <div class="mini">
             <div><span class="muted">a. Primary COI:</span> ${coiPrimary}</div>
@@ -1167,7 +1123,7 @@
           ${p3Body}
         </div>
 
-        <div class="sect">
+        <div class="sect" id="pmMitigationSection" style="${phase === "OT" ? "display:none;" : ""}">
           <h3>4. MITIGATION ASSESSMENT FOR INITIAL OPERATIONAL TEST AND EVALUATION (IOT&amp;E).</h3>
           ${p4Body}
         </div>
@@ -1195,10 +1151,15 @@
 
       const hasP2Figure = !!p2FigureDataUrl;
       const riskFig = hasP2Figure ? 2 : 1;
+
       if (note) {
-        note.textContent = hasP2Figure
-          ? `Para 2 includes Figure 1. Risk Matrix is Figure ${riskFig}.`
-          : `No Para 2 figure. Risk Matrix is Figure ${riskFig}.`;
+        if (phase === "OT") {
+          note.textContent = "OT Phase: Risk Matrix hidden. Para 4 hidden.";
+        } else {
+          note.textContent = hasP2Figure
+            ? `Para 2 includes Figure 1. Risk Matrix is Figure ${riskFig}.`
+            : `No Para 2 figure. Risk Matrix is Figure ${riskFig}.`;
+        }
       }
     }
 
@@ -1206,6 +1167,7 @@
       const host = $("previewHost");
       if (!host) return;
       host.innerHTML = renderPreviewHtml();
+      setMode(generatedMode); // refresh note text based on phase
       runAdvisoryChecks();
     }
 
@@ -1281,8 +1243,10 @@
       else if (looksFutureTense(p3)) setCheck("chkP3","ok","OK");
       else setCheck("chkP3","bad","ADD “WILL”");
 
+      // Para 4 hidden in OT phase, keep check but don't flag as FIX in OT
       const p4 = d.p4;
-      if (!p4) setCheck("chkP4","warn","EMPTY");
+      if (phase === "OT") setCheck("chkP4","ok","N/A");
+      else if (!p4) setCheck("chkP4","warn","EMPTY");
       else if (looksPresentTense(p4)) setCheck("chkP4","ok","OK");
       else setCheck("chkP4","warn","REVIEW");
 
@@ -1297,7 +1261,6 @@
        ========================= */
 
     function resetAll() {
-      // Reset only the *form fields*; doc remains same docId.
       ["p1Problem","p2a","p2b","p2c","p3","p4","p5","coiPrimary","coiOther"].forEach(id => { if ($(id)) $(id).value = ""; });
 
       if ($("riskC")) $("riskC").value = "3";
@@ -1305,9 +1268,6 @@
       if ($("pmMit")) $("pmMit").value = "Moderate";
       if ($("recommendation")) $("recommendation").value = "Correct as soon as possible.";
       if ($("sheetType")) $("sheetType").value = "Blue Sheet";
-
-      // Preserve TEIN / issue / rev / date / sutName unless you want otherwise
-      // (This is usually desirable for a batch of sheets in one event.)
 
       const fig = $("p2Figure");
       if (fig) fig.value = "";
@@ -1335,24 +1295,14 @@
       const blob = new Blob([doc], { type: "application/msword" });
 
       const d = getForm();
-      const fname = (d.tein || eventId || "TEIN") + "-" + (d.issueNo || "000") + "-BlueSheet.doc";
+      const prefix = (phase === "OT") ? "Deficiency" : "PendingRisk";
+      const fname = (d.tein || eventId || "TEIN") + "-" + (d.issueNo || "000") + "-" + prefix + "-BlueSheet.doc";
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = fname.replace(/[^\w.\-]+/g, "_");
       document.body.appendChild(a);
       a.click();
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-    }
-
-    function goBackToFlow() {
-      saveOnPageExit();
-      try {
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: "BLUE_SHEET_BACK" }, "*");
-          return;
-        }
-      } catch {}
-      window.location.href = "./index.html";
     }
 
     /* =========================
@@ -1366,23 +1316,31 @@
         const sel = $("sampleSelect");
         if (sel) sel.value = sample;
       }
+      const qpPhase = (params.get("phase") || "").toUpperCase();
+      if (qpPhase === "OT") phase = "OT";
+      if (qpPhase === "PRE_OT") phase = "PRE_OT";
     }
 
     function seedDefaultsIfBlank() {
       const demoKey = ($("sampleSelect")?.value || "mfd");
       if ($("sutName") && !String($("sutName").value || "").trim()) $("sutName").value = (GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName);
       if ($("tein") && !String($("tein").value || "").trim()) $("tein").value = eventId || "TEIN-DEMO";
+      const sel = $("bsPhase");
+      if (sel) sel.value = phase;
     }
 
     function wireEvents() {
-      $("btnBackToFlowTop")?.addEventListener("click", (e) => { e.preventDefault(); goBackToFlow(); });
-
       $("btnNewDocTop")?.addEventListener("click", (e) => { e.preventDefault(); createNewBlueSheetDoc(); });
 
       $("docPickerTop")?.addEventListener("change", (e) => {
         const id = String(e.target.value || "");
         if (!id) return;
         openDoc(id);
+      });
+
+      $("bsPhase")?.addEventListener("change", (e) => {
+        const v = String(e.target.value || "PRE_OT");
+        setPhase(v);
       });
 
       $("sampleSelect")?.addEventListener("change", () => { setMode(generatedMode); renderPreview(); markDirty(); });
@@ -1393,7 +1351,6 @@
       $("btnReset")?.addEventListener("click", (e) => { e.preventDefault(); resetAll(); });
       $("btnSave")?.addEventListener("click", (e) => { e.preventDefault(); saveToDocxDemo(); });
 
-      // markDirty on edits
       const watch = ["p1Problem","p2a","p2b","p2c","p3","p4","p5","riskC","riskL","pmMit",
                      "tein","issueNo","rev","date","sutName","coiPrimary","coiOther","recommendation","sheetType"];
       watch.forEach(id => {
@@ -1413,10 +1370,8 @@
       applyQueryString();
       setMode(false);
 
-      // Restore saved flow context display (if any)
       setFlowContextLine(loadSavedFlowContext());
 
-      // Initialize workspace early (so pills show immediately)
       ensureWorkspaceInitialized();
       seedDefaultsIfBlank();
       updatePills();
@@ -1428,21 +1383,19 @@
 
         rebuildDocPicker();
 
-        // If there is an active doc, open it.
         if (docId) {
           openDoc(docId);
         } else {
-          // If there are any existing BlueSheets, open the first; else create first
           const docs = store.listDocuments().filter(x => (x.docType || "").toLowerCase() === "bluesheet");
           if (docs.length) openDoc(docs[0].id);
           else createNewBlueSheetDoc();
         }
       } else {
-        // No store; run without persistence but still functional
         setSaveStatus("Not saved (store missing)");
-        // Seed SUT name
         const demoKey = ($("sampleSelect")?.value || "mfd");
         $("sutName").value = GUIDANCE[demoKey]?.sutName || GUIDANCE.mfd.sutName;
+        const sel = $("bsPhase");
+        if (sel) sel.value = phase;
       }
 
       renderPreview();
