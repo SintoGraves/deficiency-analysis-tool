@@ -233,8 +233,9 @@
     const { el: elStartOver } = pickId(["btnStartOver"]);
     const { el: elBack } = pickId(["btnBack"]);
     const { el: elReset } = pickId(["btnReset"]);
-// NOTE: btnGenerate is deprecated (doc panel is in-page now).
-// We keep a reference only to hide it if present so old HTML doesn't break.
+
+    // NOTE: btnGenerate is deprecated (doc panel is in-page now).
+    // Keep reference only to hide it if present so old HTML doesn't break.
     const { el: elGoDoc } = pickId(["btnGenerate"]);
     if (elGoDoc) elGoDoc.hidden = true;
 
@@ -277,7 +278,36 @@
     if (!elScreen) throw new Error("Missing required element #screen in index.html");
     if (!elPackSelect) throw new Error("Missing required element #packSelect in index.html");
 
-    // ===== LEFT WORKSPACE TAB BEHAVIOR (THIS IS WHAT YOU’RE MISSING) =====
+    // ===== Case store + engine =====
+    // IMPORTANT: store/currentPack must exist BEFORE showDoc() can call buildFlowContextPayload()
+    const store = DDT.createCaseStore();
+    let currentPack = null;
+    let lastNotesNodeId = null;
+
+    function buildFlowContextPayload() {
+      const meta = store.getMeta();
+      const node = currentPack?.nodes?.[meta?.nodeId] || null;
+
+      return {
+        meta,
+        currentNode: node
+          ? { id: meta.nodeId, title: node.title, question: node.question, body: node.body }
+          : null,
+        trace: store.getTrace()
+      };
+    }
+
+    function persistLastCaseSnapshot() {
+      try {
+        localStorage.setItem("ddt_last_case", JSON.stringify({
+          meta: store.getMeta(),
+          state: store.getState(),
+          trace: store.getTrace()
+        }));
+      } catch (_) {}
+    }
+
+    // ===== LEFT WORKSPACE TAB BEHAVIOR =====
     const leftBtns = { wizard: tabLeftWizard, manual: tabLeftManual };
     const leftWraps = { wizard: wrapLeftWizard, manual: wrapLeftManual };
 
@@ -288,7 +318,7 @@
     safeOn(tabLeftWizard, "click", () => showLeft("wizard"));
     safeOn(tabLeftManual, "click", () => showLeft("manual"));
 
-    // Force correct default state on boot (prevents “manual visible when not selected”)
+    // Force correct default state on boot
     showLeft("wizard");
 
     // ===== Manual content =====
@@ -310,73 +340,44 @@
     const docWraps = { blue: wrapDocBlue, opcon: wrapDocOpcon, tacon: wrapDocTacon };
 
     function isDocTabActive(key) {
-    const btn = docBtns[key];
-    return !!btn && btn.classList.contains("active");
-  }
-   
+      const btn = docBtns[key];
+      return !!btn && btn.classList.contains("active");
+    }
+
     function showDoc(which) {
-  setActiveTab(docBtns, docWraps, which);
+      setActiveTab(docBtns, docWraps, which);
 
-  // Auto-push context whenever Blue is shown (no header "Generate Document" needed)
-  if (which === "blue") {
-    persistLastCaseSnapshot();
-    pushContextToBlueSheet(blueFrame, buildFlowContextPayload());
-  }
+      // Auto-push context whenever Blue is shown (no header "Generate Document" needed)
+      if (which === "blue") {
+        persistLastCaseSnapshot();
+        pushContextToBlueSheet(blueFrame, buildFlowContextPayload());
+      }
 
-  // Load OPCON/TACON from existing generated HTML (static)
-  // This assumes your doc wraps contain iframes with these IDs in index.html:
-  //   <iframe id="opconFrame" ...>
-  //   <iframe id="taconFrame" ...>
-  if (which === "opcon") {
-    const opconFrame = qs("opconFrame");
-    if (opconFrame && !opconFrame.dataset.ddtLoaded) {
-      opconFrame.src = "./manual/opcon-demo.html";
-      opconFrame.dataset.ddtLoaded = "1";
+      // Load OPCON/TACON from existing generated HTML (static)
+      // Requires iframes in /docs/index.html with:
+      //   <iframe id="opconFrame" ...>
+      //   <iframe id="taconFrame" ...>
+      if (which === "opcon") {
+        const opconFrame = qs("opconFrame");
+        if (opconFrame && !opconFrame.dataset.ddtLoaded) {
+          opconFrame.src = "./manual/opcon-demo.html";
+          opconFrame.dataset.ddtLoaded = "1";
+        }
+      }
+
+      if (which === "tacon") {
+        const taconFrame = qs("taconFrame");
+        if (taconFrame && !taconFrame.dataset.ddtLoaded) {
+          taconFrame.src = "./manual/tacon-demo.html";
+          taconFrame.dataset.ddtLoaded = "1";
+        }
+      }
     }
-  }
-
-  if (which === "tacon") {
-    const taconFrame = qs("taconFrame");
-    if (taconFrame && !taconFrame.dataset.ddtLoaded) {
-      taconFrame.src = "./manual/tacon-demo.html";
-      taconFrame.dataset.ddtLoaded = "1";
-    }
-  }
-}
 
     safeOn(tabDocBlue, "click", () => showDoc("blue"));
     safeOn(tabDocOpcon, "click", () => showDoc("opcon"));
     safeOn(tabDocTacon, "click", () => showDoc("tacon"));
     showDoc("blue");
-
-    // ===== Case store + engine =====
-    const store = DDT.createCaseStore();
-
-    let currentPack = null;
-    function buildFlowContextPayload() {
-    const meta = store.getMeta();
-    const node = currentPack?.nodes?.[meta?.nodeId] || null;
-
-    return {
-      meta,
-      currentNode: node
-        ? { id: meta.nodeId, title: node.title, question: node.question, body: node.body }
-        : null,
-      trace: store.getTrace()
-    };
-}
-
-function persistLastCaseSnapshot() {
-  try {
-    localStorage.setItem("ddt_last_case", JSON.stringify({
-      meta: store.getMeta(),
-      state: store.getState(),
-      trace: store.getTrace()
-    }));
-  } catch (_) {}
-}
-    
-    let lastNotesNodeId = null;
 
     function updateFlowMeta() {
       if (!elFlowMeta) return;
@@ -387,7 +388,7 @@ function persistLastCaseSnapshot() {
     // Force correct initial visibility even if previous state leaked
     if (wrapLeftWizard) wrapLeftWizard.hidden = false;
     if (wrapLeftManual) wrapLeftManual.hidden = true;
-    
+
     function updateNotesFromStore() {
       if (!elNotesMeta || !elNotesBody) return;
       const meta = store.getMeta();
@@ -419,10 +420,11 @@ function persistLastCaseSnapshot() {
           elTraceMeta.textContent =
             `Pack: ${meta.packId || "-"}  |  Node: ${meta.nodeId || "-"}  |  Steps: ${meta.steps || 0}`;
         }
-          // Keep Blue Sheet synced while user is viewing it
-       if (isDocTabActive("blue")) {
-       pushContextToBlueSheet(blueFrame, buildFlowContextPayload());
-         }             
+
+        // Keep Blue Sheet synced while user is viewing it
+        if (isDocTabActive("blue")) {
+          pushContextToBlueSheet(blueFrame, buildFlowContextPayload());
+        }
       },
 
       onNodeRendered: (nodeId, node) => {
@@ -443,6 +445,11 @@ function persistLastCaseSnapshot() {
 
       updateFlowMeta();
       updateNotesFromStore();
+
+      // If Blue is visible, push initial context after pack loads
+      if (isDocTabActive("blue")) {
+        pushContextToBlueSheet(blueFrame, buildFlowContextPayload());
+      }
     }
 
     // Wizard controls (footer)
@@ -451,7 +458,7 @@ function persistLastCaseSnapshot() {
     safeOn(elReset, "click", () => startPack(elPackSelect.value));
     safeOn(elBack, "click", () => engine.back());
 
-   // btnGenerate deprecated; context is pushed automatically when Blue doc tab is shown.
+    // btnGenerate deprecated; keep click behavior as "show Blue"
     safeOn(elGoDoc, "click", () => showDoc("blue"));
 
     // Boot
