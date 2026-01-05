@@ -61,8 +61,39 @@
       align-items:flex-start;
       gap:16px;
     }
-    .header-left{ flex: 1 1 auto; min-width: 0; }
-    .header-right{ flex: 0 0 auto; padding-top: 2px; display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; }
+/* =========================================================
+   Blue Sheet Builder header layout fix
+   Goal:
+   - Left header text gets the space
+   - Doc dropdown does NOT expand wider than Phase
+   ========================================================= */
+
+/* Ensure the left side can actually expand */
+    .header-left{
+    flex: 1 1 auto;
+    min-width: 0; /* allows text to wrap instead of forcing right side wider */
+      }
+
+/* Keep the right control cluster from stretching */
+    .header-right{
+    flex: 0 0 auto;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+      }
+
+/* Constrain BOTH selects to the same width */
+  .header-right select{
+    width: 220px;      /* match Phase width */
+    max-width: 220px;
+    min-width: 220px;
+    }
+
+/* If you want the button to stay compact as well */
+   .header-right .btn-link{
+    flex: 0 0 auto;
+   }
 
     header h1 { margin: 0 0 6px; font-size: 16px; }
     header p  { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
