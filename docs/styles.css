@@ -124,10 +124,31 @@ select {
 }
 
 @media (max-width: 1100px) {
-  .layout-single{
-    grid-template-columns: 1fr;
-    min-height: 0;
-  }
+  /* --- widen LEFT column + allow shrink (fix “left constrained”) --- */
+.layout-single{
+  flex: 1 1 auto;
+  min-height: 0;
+
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;  /* left bigger */
+  gap: var(--gap);
+  padding: var(--gap);
+  align-items: stretch;
+}
+
+/* Critical: allow grid children to shrink (prevents right side from forcing width) */
+.layout-single > *{
+  min-width: 0;
+}
+
+/* Make sure both columns and iframe containers can shrink */
+.left-stack,
+.left-tabs,
+.left-tab-body,
+.right-docs,
+.doc-body,
+.doc-frame{
+  min-width: 0;
 }
 
 /* =========================
