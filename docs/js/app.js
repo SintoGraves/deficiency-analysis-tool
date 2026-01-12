@@ -221,8 +221,11 @@
   }
 
   async function main() {
+// Run intro before any module loads or layout work begins
+    if (window.DDTIntro && typeof window.DDTIntro.runOnce === "function") {
+      await window.DDTIntro.runOnce({ cycles: 1 }); // change cycles to 2 if desired
+    }    
     await loadModules();
-
     const debug = new URLSearchParams(location.search).get("debug") === "1";
 
     // ---- Core wizard elements ----
