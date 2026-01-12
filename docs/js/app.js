@@ -11,7 +11,7 @@
  *-------------------------------------------------*/
 (function () {
   const DDT = (window.DDT = window.DDT || {});
-  DDT.version = "0.3.1";
+  DDT.version = "0.3.2";
 
   // ===== Module loading (classic scripts; no bundler) =====
   const modulePaths = [
@@ -220,19 +220,45 @@
     }
   }
 
-async function main() {
-  // Run intro before any module loads or layout work begins (fail-open)
-  try {
-    if (window.DDTIntro && typeof window.DDTIntro.runOnce === "function") {
-      await window.DDTIntro.runOnce({ cycles: 1 });
+  // ===== Intro (prevents layout shifts by locking overflow + forcing resize) =====
+  async function runIntroIfAvailable() {
+    if (!window.DDTIntro || typeof window.DDTIntro.runOnce !== "function") return;
+
+    // Optional gating: only run when ?intro=1 is set
+    // Comment out if you want it always on.
+    // const introEnabled = new URLSearchParams(location.search).get("intro") === "1";
+    // if (!introEnabled) return;
+
+    const originalOverflow = document.body.style.overflow;
+
+    try {
+      // Prevent scrollbar/viewport-width changes that can collapse flex columns
+      document.body.style.overflow = "hidden";
+
+      await window.DDTIntro.runOnce({
+        cycles: 1
+      });
+    } finally {
+      document.body.style.overflow = originalOverflow;
+
+      // Force flex/grid/iframe recalculation after overlay teardown
+      window.dispatchEvent(new Event("resize"));
     }
-  } catch (e) {
-    console.warn("Intro skipped:", e);
   }
 
-  await loadModules();
-  const debug = new URLSearchParams(location.search).get("debug") === "1";
+  async function main() {
+    // Run intro before any module loads or layout work begins (fail-open)
+    try {
+      await runIntroIfAvailable();
+    } catch (e) {
+      console.warn("Intro skipped:", e);
+      // Still normalize layout if intro partially ran
+      window.dispatchEvent(new Event("resize"));
+    }
 
+    await loadModules();
+
+    const debug = new URLSearchParams(location.search).get("debug") === "1";
 
     // ---- Core wizard elements ----
     const elScreen = qs("screen");
@@ -363,9 +389,6 @@ async function main() {
       }
 
       // Load OPCON/TACON from existing generated HTML (static)
-      // Requires iframes in /docs/index.html with:
-      //   <iframe id="opconFrame" ...>
-      //   <iframe id="taconFrame" ...>
       if (which === "opcon") {
         const opconFrame = qs("opconFrame");
         if (opconFrame && !opconFrame.dataset.ddtLoaded) {
