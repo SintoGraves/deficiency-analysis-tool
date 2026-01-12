@@ -220,13 +220,19 @@
     }
   }
 
-  async function main() {
-// Run intro before any module loads or layout work begins
+async function main() {
+  // Run intro before any module loads or layout work begins (fail-open)
+  try {
     if (window.DDTIntro && typeof window.DDTIntro.runOnce === "function") {
-      await window.DDTIntro.runOnce({ cycles: 1 }); // change cycles to 2 if desired
-    }    
-    await loadModules();
-    const debug = new URLSearchParams(location.search).get("debug") === "1";
+      await window.DDTIntro.runOnce({ cycles: 1 });
+    }
+  } catch (e) {
+    console.warn("Intro skipped:", e);
+  }
+
+  await loadModules();
+  const debug = new URLSearchParams(location.search).get("debug") === "1";
+
 
     // ---- Core wizard elements ----
     const elScreen = qs("screen");
