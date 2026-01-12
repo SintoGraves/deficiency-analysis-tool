@@ -108,7 +108,7 @@
     const ctx = canvas.getContext("2d", { alpha: false });
 
     const off = document.createElement("canvas");
-    const offCtx = off.getContext("2d");
+    const offCtx = off.getContext("2d", { willReadFrequently: true });
 
     let rafId = 0;
     let done = false;
