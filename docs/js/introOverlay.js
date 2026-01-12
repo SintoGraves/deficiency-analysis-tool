@@ -1,24 +1,45 @@
 /*-------------------------------------------------
  * /docs/js/introOverlay.js
- * DDT Intro Overlay — particle text fly-in/fly-out
- * - Runs as a fixed overlay, then self-destructs
- * - No dependencies on DDT modules
+ * DDT Intro Overlay (Hardened)
+ * - Fixed overlay canvas; isolated from app layout
+ * - Saves/restores html/body styles to prevent reflow/column collapse
+ * - Cleans up RAF + listeners reliably (skip-safe, error-safe)
  * - Exposes: window.DDTIntro.runOnce(options)
  *-------------------------------------------------*/
 (function () {
   const DEFAULTS = {
     words: ["Flow Diagram", "DEMO"],
-    cycles: 1,                 // how many full word-sequences before exit
+    cycles: 1,
+
     background: "#0b0f14",
     particleColor: "rgba(235,245,255,0.95)",
-    sampleStep: 5,             // higher = fewer particles = faster
+
+    // Performance
+    sampleStep: 6,          // higher = fewer particles
     particleSize: 2,
-    fontScale: 0.17,
+    maxParticles: 4200,
+
+    // Typography
+    fontScale: 0.17,        // relative to min(w,h)
+    fontWeight: 800,
+
+    // Timing (ms)
     inDuration: 1200,
     holdDuration: 450,
     outDuration: 900,
     pauseDuration: 200,
-    maxParticles: 5200
+
+    // Motion tuning
+    inEasePower: 2.2,
+    outSpeed: 1.9,
+    drift: 0.20,
+
+    // Overlay UI
+    showSkip: true,
+    skipLabel: "Skip",
+
+    // Safety
+    respectReducedMotion: true
   };
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -44,7 +65,8 @@
       const a = Math.random() * Math.PI * 2;
       this.sx = cx + Math.cos(a) * r;
       this.sy = cy + Math.sin(a) * r;
-      this.x = this.sx; this.y = this.sy;
+      this.x = this.sx;
+      this.y = this.sy;
     }
     setTarget(tx, ty) { this.tx = tx; this.ty = ty; }
     setBlowoutVelocity(w, h, outSpeed, drift) {
@@ -58,15 +80,35 @@
     }
   }
 
-  function buildOverlayDOM() {
+  function prefersReducedMotion() {
+    try {
+      return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function snapshotStyles(el, props) {
+    const snap = {};
+    for (const p of props) snap[p] = el.style[p] || "";
+    return snap;
+  }
+
+  function restoreStyles(el, snap) {
+    for (const [k, v] of Object.entries(snap)) el.style[k] = v;
+  }
+
+  function buildOverlayDOM(opt) {
     const overlay = document.createElement("div");
     overlay.id = "ddtIntroOverlay";
+    overlay.setAttribute("aria-hidden", "true");
     overlay.style.cssText = [
       "position:fixed",
       "inset:0",
       "z-index:9999",
       "display:block",
-      "background:#0b0f14"
+      `background:${opt.background}`,
+      "pointer-events:auto" // capture clicks (skip)
     ].join(";");
 
     const canvas = document.createElement("canvas");
@@ -74,23 +116,26 @@
     canvas.style.cssText = "width:100%;height:100%;display:block;";
     overlay.appendChild(canvas);
 
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.textContent = "Skip";
-    btn.setAttribute("aria-label", "Skip intro");
-    btn.style.cssText = [
-      "position:fixed",
-      "top:16px",
-      "right:16px",
-      "z-index:10000",
-      "padding:10px 12px",
-      "border-radius:10px",
-      "border:1px solid rgba(255,255,255,.2)",
-      "background:rgba(0,0,0,.35)",
-      "color:#fff",
-      "cursor:pointer"
-    ].join(";");
-    overlay.appendChild(btn);
+    let btn = null;
+    if (opt.showSkip) {
+      btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = opt.skipLabel || "Skip";
+      btn.setAttribute("aria-label", "Skip intro");
+      btn.style.cssText = [
+        "position:fixed",
+        "top:16px",
+        "right:16px",
+        "z-index:10000",
+        "padding:10px 12px",
+        "border-radius:10px",
+        "border:1px solid rgba(255,255,255,.2)",
+        "background:rgba(0,0,0,.35)",
+        "color:#fff",
+        "cursor:pointer"
+      ].join(";");
+      overlay.appendChild(btn);
+    }
 
     document.body.appendChild(overlay);
     return { overlay, canvas, btn };
@@ -99,30 +144,99 @@
   async function runOnce(userOptions) {
     const opt = { ...DEFAULTS, ...(userOptions || {}) };
 
-    // Respect reduced motion
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return; // simply skip
+    if (opt.respectReducedMotion && prefersReducedMotion()) {
+      return; // skip entirely
     }
 
-    const { overlay, canvas, btn } = buildOverlayDOM();
+    // ---- HARDENING: snapshot/lock global styles to prevent layout shifts ----
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+
+    const htmlProps = ["overflow", "width", "height"];
+    const bodyProps = ["overflow", "width", "height", "position", "top", "left", "right", "margin", "padding"];
+
+    const htmlSnap = snapshotStyles(htmlEl, htmlProps);
+    const bodySnap = snapshotStyles(bodyEl, bodyProps);
+
+    // Also snapshot scroll position if we need to lock the page
+    const scrollX = window.scrollX || 0;
+    const scrollY = window.scrollY || 0;
+
+    // Lock scrolling in a way that does not create scrollbar width jitter:
+    // - hide overflow on html/body
+    // - pin body position so scroll doesn't jump
+    // This is more robust than overflow:hidden alone on some browsers.
+    function lockPage() {
+      htmlEl.style.overflow = "hidden";
+      bodyEl.style.overflow = "hidden";
+
+      bodyEl.style.position = "fixed";
+      bodyEl.style.top = `-${scrollY}px`;
+      bodyEl.style.left = "0";
+      bodyEl.style.right = "0";
+      bodyEl.style.width = "100%";
+    }
+
+    function unlockPage() {
+      restoreStyles(htmlEl, htmlSnap);
+      restoreStyles(bodyEl, bodySnap);
+
+      // Restore scroll position if we pinned the body
+      // (parse the pinned top if present)
+      const top = bodyEl.style.top;
+      let restoredY = scrollY;
+      if (top && top.startsWith("-")) {
+        const n = parseInt(top.replace("px", ""), 10);
+        if (!Number.isNaN(n)) restoredY = -n;
+      }
+      window.scrollTo(scrollX, restoredY);
+    }
+
+    lockPage();
+
+    // ---- Build overlay DOM ----
+    const { overlay, canvas, btn } = buildOverlayDOM(opt);
+
+    // Canvas contexts
     const ctx = canvas.getContext("2d", { alpha: false });
-
     const off = document.createElement("canvas");
-    const offCtx = off.getContext("2d", { willReadFrequently: true });
+    const offCtx = off.getContext("2d", { willReadFrequently: true }); // resolves warning
 
+    // Runtime state
     let rafId = 0;
     let done = false;
+    let skipRequested = false;
 
-    function teardown() {
-      done = true;
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resize);
-      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    function safeCancelRAF() {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
     }
 
-    function finish(resolve) {
-      // quick fade then teardown
-      overlay.style.transition = "opacity 250ms ease";
+    function teardown() {
+      if (done) return;
+      done = true;
+
+      safeCancelRAF();
+      window.removeEventListener("resize", onResize);
+
+      // Remove overlay from DOM
+      try {
+        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      } catch (_) {}
+
+      // Restore global styles LAST
+      try {
+        unlockPage();
+      } catch (_) {}
+    }
+
+    function fadeAndFinish(resolve) {
+      // Ensure finish is idempotent
+      if (done) return;
+
+      overlay.style.transition = "opacity 240ms ease";
       overlay.style.opacity = "0";
       setTimeout(() => {
         teardown();
@@ -130,60 +244,52 @@
       }, 260);
     }
 
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-
-    function resize() {
-      const w = Math.floor(window.innerWidth * dpr);
-      const h = Math.floor(window.innerHeight * dpr);
-      canvas.width = w; canvas.height = h;
-      off.width = w; off.height = h;
+    // Ensure skip works even if animation fails
+    if (btn) {
+      btn.addEventListener("click", () => { skipRequested = true; }, { passive: true });
     }
 
-    resize();
-    window.addEventListener("resize", resize);
+    // DPI-aware sizing
+    function getDpr() {
+      return Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    }
 
-    btn.addEventListener("click", () => {
-      // Skip immediately
-      if (done) return;
-      // resolve will be wired below
-      skipRequested = true;
-    });
+    function onResize() {
+      const dpr = getDpr();
+      const w = Math.floor(window.innerWidth * dpr);
+      const h = Math.floor(window.innerHeight * dpr);
 
-    let skipRequested = false;
+      canvas.width = w;
+      canvas.height = h;
+      off.width = w;
+      off.height = h;
 
-    const SETTINGS = {
-      background: opt.background,
-      particleColor: opt.particleColor,
-      sampleStep: opt.sampleStep,
-      particleSize: opt.particleSize,
-      fontScale: opt.fontScale,
-      inDuration: opt.inDuration,
-      holdDuration: opt.holdDuration,
-      outDuration: opt.outDuration,
-      pauseDuration: opt.pauseDuration,
-      inEasePower: 2.2,
-      outSpeed: 1.9,
-      drift: 0.20,
-      maxParticles: opt.maxParticles
-    };
+      // Important: reset transform to avoid any lingering transforms
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
 
+    onResize();
+    window.addEventListener("resize", onResize);
+
+    // Rasterize word into pixel targets
     function fontPx(w, h) {
-      return Math.floor(Math.min(w, h) * SETTINGS.fontScale);
+      return Math.floor(Math.min(w, h) * opt.fontScale);
     }
 
     function rasterizeWordTargets(text) {
       const w = canvas.width, h = canvas.height;
+
       offCtx.clearRect(0, 0, w, h);
       offCtx.fillStyle = "#ffffff";
       offCtx.textAlign = "center";
       offCtx.textBaseline = "middle";
-      offCtx.font = `800 ${fontPx(w, h)}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+      offCtx.font = `${opt.fontWeight} ${fontPx(w, h)}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
       offCtx.fillText(text, w * 0.5, h * 0.5);
 
       const img = offCtx.getImageData(0, 0, w, h).data;
       const targets = [];
-      const step = SETTINGS.sampleStep;
 
+      const step = opt.sampleStep;
       for (let y = 0; y < h; y += step) {
         for (let x = 0; x < w; x += step) {
           const i = (y * w + x) * 4;
@@ -191,12 +297,13 @@
         }
       }
 
-      if (targets.length > SETTINGS.maxParticles) {
-        const ratio = targets.length / SETTINGS.maxParticles;
+      if (targets.length > opt.maxParticles) {
+        const ratio = targets.length / opt.maxParticles;
         const reduced = [];
         for (let i = 0; i < targets.length; i += ratio) reduced.push(targets[Math.floor(i)]);
         return reduced;
       }
+
       return targets;
     }
 
@@ -241,7 +348,7 @@
 
       const w = canvas.width, h = canvas.height;
       if (phase === PHASE.OUT) {
-        for (const pt of particles) pt.setBlowoutVelocity(w, h, SETTINGS.outSpeed, SETTINGS.drift);
+        for (const pt of particles) pt.setBlowoutVelocity(w, h, opt.outSpeed, opt.drift);
       }
       if (phase === PHASE.IN) {
         for (const pt of particles) pt.setStartRandom(w, h);
@@ -256,58 +363,62 @@
         if (done) return;
 
         if (skipRequested) {
-          finish(resolve);
+          fadeAndFinish(resolve);
           return;
         }
 
-        // Exit condition after N sequences
         if (completedSequences >= opt.cycles) {
-          finish(resolve);
+          fadeAndFinish(resolve);
           return;
         }
 
-        ctx.fillStyle = SETTINGS.background;
+        // Clear frame
+        ctx.fillStyle = opt.background;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         const t = now - phaseStart;
 
         if (phase === PHASE.IN) {
-          const u = easeInOut(t / SETTINGS.inDuration, SETTINGS.inEasePower);
+          const u = easeInOut(t / opt.inDuration, opt.inEasePower);
           for (const p of particles) {
             p.x = lerp(p.sx, p.tx, u) + p.jx * 0.35;
             p.y = lerp(p.sy, p.ty, u) + p.jy * 0.35;
           }
-          if (t >= SETTINGS.inDuration) setPhase(PHASE.HOLD);
+          if (t >= opt.inDuration) setPhase(PHASE.HOLD);
         } else if (phase === PHASE.HOLD) {
           for (const p of particles) {
             p.x = p.tx + p.jx * 0.25;
             p.y = p.ty + p.jy * 0.25;
           }
-          if (t >= SETTINGS.holdDuration) setPhase(PHASE.OUT);
+          if (t >= opt.holdDuration) setPhase(PHASE.OUT);
         } else if (phase === PHASE.OUT) {
-          const u = easeInOut(t / SETTINGS.outDuration, 1.6);
+          const u = easeInOut(t / opt.outDuration, 1.6);
           for (const p of particles) {
             p.x += p.vx * (1 + u * 2.5);
             p.y += p.vy * (1 + u * 2.5);
-            p.x += (Math.random() - 0.5) * SETTINGS.drift;
-            p.y += (Math.random() - 0.5) * SETTINGS.drift;
+            p.x += (Math.random() - 0.5) * opt.drift;
+            p.y += (Math.random() - 0.5) * opt.drift;
           }
-          if (t >= SETTINGS.outDuration) {
+          if (t >= opt.outDuration) {
             nextWord();
             setPhase(PHASE.PAUSE);
           }
         } else if (phase === PHASE.PAUSE) {
-          if (t >= SETTINGS.pauseDuration) setPhase(PHASE.IN);
+          if (t >= opt.pauseDuration) setPhase(PHASE.IN);
         }
 
-        ctx.fillStyle = SETTINGS.particleColor;
-        const s = SETTINGS.particleSize;
+        // Draw particles
+        ctx.fillStyle = opt.particleColor;
+        const s = opt.particleSize;
         for (const p of particles) ctx.fillRect(p.x, p.y, s, s);
 
         rafId = requestAnimationFrame(tick);
       }
 
       rafId = requestAnimationFrame(tick);
+    }).finally(() => {
+      // Absolute guarantee of cleanup
+      try { teardown(); } catch (_) {}
     });
   }
 
