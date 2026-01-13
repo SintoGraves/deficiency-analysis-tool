@@ -115,7 +115,7 @@ select {
   /* Fill remaining space under header */
   flex: 1 1 auto;
   min-height: 0; /* critical for nested scroll regions */
-
+ 
   display: grid;
   grid-template-columns: 1.15fr 1fr;  /* left larger because it’s tabbed */
   gap: var(--gap);
@@ -124,8 +124,7 @@ select {
 }
 
 @media (max-width: 1100px) {
-  /* --- widen LEFT column + allow shrink (fix “left constrained”) --- */
-.layout-single{
+ .layout-single{
   flex: 1 1 auto;
   min-height: 0;
 
@@ -134,7 +133,9 @@ select {
   gap: var(--gap);
   padding: var(--gap);
   align-items: stretch;
+ }
 }
+
 
 /* Critical: allow grid children to shrink (prevents right side from forcing width) */
 .layout-single > *{
