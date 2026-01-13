@@ -125,14 +125,14 @@
         </div>
 
         <div class="tabs" role="tablist" aria-label="Document Tabs">
-          <button class="tab-btn active" id="tabDocBlue" type="button" role="tab" aria-selected="true">Blue Sheet</button>
-          <button class="tab-btn" id="tabDocIntro" type="button" role="tab" aria-selected="false">Intro</button>
+          <button class="tab-btn" id="tabDocBlue" type="button" role="tab" aria-selected="false">Blue Sheet</button>
+          <button class="tab-btn active" id="tabDocIntro" type="button" role="tab" aria-selected="true">Intro</button>
           <button class="tab-btn" id="tabDocOpcon" type="button" role="tab" aria-selected="false">OPCON</button>
           <button class="tab-btn" id="tabDocTacon" type="button" role="tab" aria-selected="false">TACON</button>
         </div>
       </div>
 
-      <div id="docBlueWrap" class="doc-body">
+      <div id="docBlueWrap" class="doc-body" hidden>
         <iframe
           id="blueSheetFrame"
           class="doc-frame"
@@ -141,7 +141,7 @@
         </iframe>
       </div>
 
-      <div id="docIntroWrap" class="doc-body" hidden>
+      <div id="docIntroWrap" class="doc-body">
         <!-- Intro iframe is created/removed by app.js to guarantee it does not run in the background -->
       </div>
 
