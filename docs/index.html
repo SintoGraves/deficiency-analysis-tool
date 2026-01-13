@@ -126,6 +126,7 @@
 
         <div class="tabs" role="tablist" aria-label="Document Tabs">
           <button class="tab-btn active" id="tabDocBlue" type="button" role="tab" aria-selected="true">Blue Sheet</button>
+          <button class="tab-btn" id="tabDocIntro" type="button" role="tab" aria-selected="false">Intro</button>
           <button class="tab-btn" id="tabDocOpcon" type="button" role="tab" aria-selected="false">OPCON</button>
           <button class="tab-btn" id="tabDocTacon" type="button" role="tab" aria-selected="false">TACON</button>
         </div>
@@ -138,6 +139,10 @@
           src="./blue-sheet-demo.html"
           title="Blue Sheet Builder">
         </iframe>
+      </div>
+
+      <div id="docIntroWrap" class="doc-body" hidden>
+        <!-- Intro iframe is created/removed by app.js to guarantee it does not run in the background -->
       </div>
 
       <div id="docOpconWrap" class="doc-body" hidden>
