@@ -5,7 +5,8 @@
  * - Wizard footer nav buttons live inside Flow panel (Start Over / Reset / Back)
  * - Notes/Directives pinned to current node
  * - Manual has its own inner tabs (Front Matter / Report)
- * - Document generation (Blue/OPCON/TACON): right (embedded)
+ * - Document generation (Blue/OPCON/TACON/Intro): right (embedded)
+ * - Intro runs ONLY when Intro tab is active (iframe created/removed on tab switch)
  * - No navigation away from page (prevents draft loss)
  * - Trace hidden unless ?debug=1
  *-------------------------------------------------*/
@@ -259,10 +260,12 @@
 
     // ---- Doc tabs (right) ----
     const tabDocBlue = qs("tabDocBlue");
+    const tabDocIntro = qs("tabDocIntro");
     const tabDocOpcon = qs("tabDocOpcon");
     const tabDocTacon = qs("tabDocTacon");
 
     const wrapDocBlue = qs("docBlueWrap");
+    const wrapDocIntro = qs("docIntroWrap");
     const wrapDocOpcon = qs("docOpconWrap");
     const wrapDocTacon = qs("docTaconWrap");
 
@@ -336,16 +339,49 @@
     showManual("front");
 
     // ===== Doc tabs =====
-    const docBtns = { blue: tabDocBlue, opcon: tabDocOpcon, tacon: tabDocTacon };
-    const docWraps = { blue: wrapDocBlue, opcon: wrapDocOpcon, tacon: wrapDocTacon };
+    const docBtns = { blue: tabDocBlue, intro: tabDocIntro, opcon: tabDocOpcon, tacon: tabDocTacon };
+    const docWraps = { blue: wrapDocBlue, intro: wrapDocIntro, opcon: wrapDocOpcon, tacon: wrapDocTacon };
 
     function isDocTabActive(key) {
       const btn = docBtns[key];
       return !!btn && btn.classList.contains("active");
     }
 
+    // Intro iframe lifecycle:
+    // - Created ONLY when Intro tab is active
+    // - Removed immediately when leaving Intro (hard stop, no background execution)
+    function teardownIntroFrame() {
+      if (!wrapDocIntro) return;
+      try {
+        const existing = qs("introFrame");
+        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+      } catch (_) {}
+      // Defensive: ensure no leftover nodes
+      try { wrapDocIntro.innerHTML = ""; } catch (_) {}
+    }
+
+    function ensureIntroFrame() {
+      if (!wrapDocIntro) return;
+      teardownIntroFrame(); // guarantees restart from beginning each time
+      const f = document.createElement("iframe");
+      f.id = "introFrame";
+      f.className = "doc-frame";   // same styling as other doc frames
+      f.src = "./intro.html";      // must exist under /docs
+      f.title = "DDT Intro";
+      wrapDocIntro.appendChild(f);
+    }
+
     function showDoc(which) {
+      // If leaving Intro, hard-stop it before changing tabs
+      if (which !== "intro") teardownIntroFrame();
+
       setActiveTab(docBtns, docWraps, which);
+
+      // Intro: mount iframe ONLY when active (auto-runs on load)
+      if (which === "intro") {
+        ensureIntroFrame();
+        return;
+      }
 
       // Auto-push context whenever Blue is shown
       if (which === "blue") {
@@ -372,6 +408,7 @@
     }
 
     safeOn(tabDocBlue, "click", () => showDoc("blue"));
+    safeOn(tabDocIntro, "click", () => showDoc("intro"));
     safeOn(tabDocOpcon, "click", () => showDoc("opcon"));
     safeOn(tabDocTacon, "click", () => showDoc("tacon"));
     showDoc("blue");
