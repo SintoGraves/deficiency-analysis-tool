@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DDT Intro</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0f14; }
+  </style>
+</head>
+<body>
+  <script src="./js/introOverlay.js"></script>
+  <script>
+    // Auto-run on load; no background execution because parent destroys iframe on tab switch
+    (function () {
+      if (!window.DDTIntro || typeof window.DDTIntro.runOnce !== "function") return;
+      window.DDTIntro.runOnce({
+        // Optional: hide skip inside the iframe. Set true if you want it visible.
+        showSkip: false
+      });
+    })();
+  </script>
+</body>
+</html>
