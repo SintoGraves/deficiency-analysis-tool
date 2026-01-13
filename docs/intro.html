@@ -11,12 +11,23 @@
 <body>
   <script src="./js/introOverlay.js"></script>
   <script>
-    // Auto-run on load; no background execution because parent destroys iframe on tab switch
+    // Auto-run on load; parent destroys iframe on tab switch so it cannot run in background.
     (function () {
       if (!window.DDTIntro || typeof window.DDTIntro.runOnce !== "function") return;
+
       window.DDTIntro.runOnce({
-        // Optional: hide skip inside the iframe. Set true if you want it visible.
-        showSkip: false
+        // Run the sequence 3 times
+        cycles: 3,
+
+        // Smaller typography for smaller screens (relative to min(w,h))
+        // Original default was 0.17; reduce to tighten on smaller viewports.
+        fontScale: 0.13,
+
+        // Optional: keep skip hidden in the iframe intro
+        showSkip: false,
+
+        // Keep your existing words unless you want to change them
+        words: ["Flow Diagram", "DEMO"]
       });
     })();
   </script>
