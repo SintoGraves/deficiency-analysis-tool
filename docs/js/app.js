@@ -7,6 +7,7 @@
  * - Manual has its own inner tabs (Front Matter / Report)
  * - Document generation (Blue/OPCON/TACON/Intro): right (embedded)
  * - Intro runs ONLY when Intro tab is active (iframe created/removed on tab switch)
+ * - App boots to Intro tab (not Blue Sheet)
  * - No navigation away from page (prevents draft loss)
  * - Trace hidden unless ?debug=1
  *-------------------------------------------------*/
@@ -356,7 +357,6 @@
         const existing = qs("introFrame");
         if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
       } catch (_) {}
-      // Defensive: ensure no leftover nodes
       try { wrapDocIntro.innerHTML = ""; } catch (_) {}
     }
 
@@ -411,7 +411,9 @@
     safeOn(tabDocIntro, "click", () => showDoc("intro"));
     safeOn(tabDocOpcon, "click", () => showDoc("opcon"));
     safeOn(tabDocTacon, "click", () => showDoc("tacon"));
-    showDoc("blue");
+
+    // BOOT DEFAULT: Intro (not Blue)
+    showDoc("intro");
 
     function updateFlowMeta() {
       if (!elFlowMeta) return;
