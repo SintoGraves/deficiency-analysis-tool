@@ -390,21 +390,22 @@
       }
 
       // Lazy-load OPCON/TACON if/when iframes are added in index.html
-      if (which === "opcon") {
-        const opconFrame = qs("opconFrame");
-        if (opconFrame && !opconFrame.dataset.ddtLoaded) {
-          opconFrame.src = "./manual/opcon-demo.html";
-          opconFrame.dataset.ddtLoaded = "1";
-        }
+     if (which === "opcon") {
+      const opconFrame = qs("opconFrame");
+      if (opconFrame && !opconFrame.dataset.ddtLoaded) {
+         opconFrame.src = "./opcon-demo.html";
+         opconFrame.dataset.ddtLoaded = "1";
       }
+   }
 
       if (which === "tacon") {
-        const taconFrame = qs("taconFrame");
-        if (taconFrame && !taconFrame.dataset.ddtLoaded) {
-          taconFrame.src = "./manual/tacon-demo.html";
+       const taconFrame = qs("taconFrame");
+       if (taconFrame && !taconFrame.dataset.ddtLoaded) {
+          taconFrame.src = "./tacon-demo.html";
           taconFrame.dataset.ddtLoaded = "1";
-        }
       }
+   }
+
     }
 
     safeOn(tabDocBlue, "click", () => showDoc("blue"));
