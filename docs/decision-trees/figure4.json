@@ -1,30 +1,971 @@
 {
   "packId": "figure4",
-  "title": "Quantitative Baseline Severity Assessment (Figure 4) — Placeholder",
-  "version": "0.0.1",
+  "title": "Quantitative Baseline Deficiency Flow Diagram (Figure 4)",
+  "version": "0.1.0",
   "entryNodeId": "F4_START",
   "meta": {
-    "authoritativeSource": "Figure 4 placeholder",
+    "authoritativeSource": "Figure 4 (Sheets 1–4) Quantitative Baseline Deficiency Flow Diagram",
     "wizard": { "oneQuestionPerScreen": true, "requireAckOnInfoNodes": true }
   },
   "caseStateSchema": {
+    "quantCapabilityContext": "string",
+    "quantSupportContext": "string",
+    "quantImpactLevel": "string",
+    "quantSupportDegradation": "string",
+    "quantMissionLossRange": "string",
+    "quantSupportUsabilityRange": "string",
+    "quantSubstituteExists": "boolean",
+    "quantSeverityInitial": "string",
+    "quantSeverityFinal": "string",
+    "quantRollupApplied": "boolean",
+    "quantRollupResult": "string",
     "traceTags": "array"
   },
   "nodes": {
     "F4_START": {
       "type": "info",
-      "title": "Figure 4 Not Implemented",
-      "effects": {
-        "appendTraceTags": ["handoff:figure4", "figure4:placeholder"]
-      },
-      "body": "Figure 4 (Quantitative Baseline) is not implemented in this demo yet. Continue using Figure 3 for qualitative baseline.",
-      "next": "F4_END"
+      "title": "Start",
+      "body": "Begin quantitative baseline deficiency assessment (Figure 4).",
+      "effects": { "appendTraceTags": ["figure4:start"] },
+      "next": "F4_S0_Q_ENTRY_TYPE"
     },
-    "F4_END": {
+
+    "F4_S0_Q_ENTRY_TYPE": {
+      "type": "decision",
+      "title": "Assessment Entry",
+      "question": "Which Figure 4 entry best matches what you are assessing?",
+      "choices": {
+        "sut_capability": "F4_S0_Q_CAPABILITY_CONTEXT",
+        "support_item": "F4_S0_INFO_SUPPORT_ITEM"
+      }
+    },
+
+    "F4_S0_Q_CAPABILITY_CONTEXT": {
+      "type": "decision",
+      "title": "Capability Context",
+      "question": "Is the System Under Test a new capability for the fleet which is not replacing an existing less capable capability?",
+      "choices": {
+        "yes_new_capability": "F4_S0_INFO_NEW_CAPABILITY",
+        "no_replacing_improving": "F4_S0_INFO_IPR_CAPABILITY"
+      }
+    },
+
+    "F4_S0_INFO_NEW_CAPABILITY": {
+      "type": "info",
+      "title": "New Equipment / New Capability",
+      "body": "New capability selected (NEW path). Continue to Step 1 (Capability Production Requirements Assessment).",
+      "effects": {
+        "set": { "quantCapabilityContext": "new" },
+        "appendTraceTags": ["f4:context:capability=new"]
+      },
+      "next": "F4_NEW_S1_Q_TOTAL_LOSS"
+    },
+
+    "F4_S0_INFO_IPR_CAPABILITY": {
+      "type": "info",
+      "title": "Existing Capability Replacement / Improvement",
+      "body": "Replacing/improving an existing capability selected (IPR path). Continue to Step 1 (Capability Production Requirements Assessment).",
+      "effects": {
+        "set": { "quantCapabilityContext": "ipr" },
+        "appendTraceTags": ["f4:context:capability=ipr"]
+      },
+      "next": "F4_IPR_S1_Q_TOTAL_LOSS"
+    },
+
+    "F4_S0_INFO_SUPPORT_ITEM": {
+      "type": "info",
+      "title": "Support Equipment / Support System Item",
+      "body": "Support equipment baseline deficiency flow selected. Continue to Step 1 (Support System/Item Development Assessment).",
+      "effects": {
+        "set": { "quantSupportContext": "support_item" },
+        "appendTraceTags": ["f4:context:support_item"]
+      },
+      "next": "F4_SUP_S1_Q_NOT_EXISTENT"
+    },
+
+    /* =========================================================
+       NEW PATH (Sheet 1): Step 1 — Operational Impact Determination
+       ========================================================= */
+
+    "F4_NEW_S1_Q_TOTAL_LOSS": {
+      "type": "decision",
+      "title": "Step 1 — Total Loss of Functionality (NEW)",
+      "question": "Do you have total loss of system functionality? (New capabilities are not available.)",
+      "choices": {
+        "yes": "F4_NEW_S1_IMPACT_SEVERE",
+        "no": "F4_NEW_S1_Q_LOSS_GE_50"
+      }
+    },
+
+    "F4_NEW_S1_IMPACT_SEVERE": {
+      "type": "info",
+      "title": "Severe Impact to SUT Operation (NEW)",
+      "body": "Severe Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "severe" },
+        "appendTraceTags": ["f4:path=new", "f4:step1:impact=severe"]
+      },
+      "next": "F4_S2_ENTRY_FROM_SEVERE"
+    },
+
+    "F4_NEW_S1_Q_LOSS_GE_50": {
+      "type": "decision",
+      "title": "Step 1 — ≥ 50% Loss (NEW)",
+      "question": "Do you have a ≥ 50% loss of primary application functionality or performance resulting in users unable to perform their normal functions, or a Major Feature/Product Failure with partial loss of secondary capabilities/features? (Inconvenient workaround exists, or no workaround exists.)",
+      "choices": {
+        "yes": "F4_NEW_S1_IMPACT_CRITICAL",
+        "no": "F4_NEW_S1_Q_LOSS_25_49"
+      }
+    },
+
+    "F4_NEW_S1_IMPACT_CRITICAL": {
+      "type": "info",
+      "title": "Critical Impact to SUT Operation (NEW)",
+      "body": "Critical Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "critical" },
+        "appendTraceTags": ["f4:path=new", "f4:step1:impact=critical"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_50_75"
+    },
+
+    "F4_NEW_S1_Q_LOSS_25_49": {
+      "type": "decision",
+      "title": "Step 1 — 25–49% (Partial) Loss (NEW)",
+      "question": "Do you have a 25–49% (partial) loss of primary application functionality or performance resulting in users unable to perform their normal functions? (Inconvenient workaround exists.)",
+      "choices": {
+        "yes": "F4_NEW_S1_IMPACT_SERIOUS",
+        "no": "F4_NEW_S1_Q_DEGRADED_LT_24"
+      }
+    },
+
+    "F4_NEW_S1_IMPACT_SERIOUS": {
+      "type": "info",
+      "title": "Serious Impact to SUT Operation (NEW)",
+      "body": "Serious Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "serious" },
+        "appendTraceTags": ["f4:path=new", "f4:step1:impact=serious"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_25_49"
+    },
+
+    "F4_NEW_S1_Q_DEGRADED_LT_24": {
+      "type": "decision",
+      "title": "Step 1 — Degraded (< 24% Degradation) (NEW)",
+      "question": "Do you have a degraded (less than 24% degradation) primary application functionality or performance resulting in a low number of users unable to perform their normal functions? (No impact to their normal functions, and a workaround exists.)",
+      "choices": {
+        "yes": "F4_NEW_S1_IMPACT_MODERATE",
+        "no": "F4_NEW_S1_Q_TOTAL_PRIMARY_BELOW_THRESHOLD"
+      }
+    },
+
+    "F4_NEW_S1_IMPACT_MODERATE": {
+      "type": "info",
+      "title": "Moderate Impact to SUT Operation (NEW)",
+      "body": "Moderate Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "moderate" },
+        "appendTraceTags": ["f4:path=new", "f4:step1:impact=moderate"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_15_24"
+    },
+
+    "F4_NEW_S1_Q_TOTAL_PRIMARY_BELOW_THRESHOLD": {
+      "type": "decision",
+      "title": "Step 1 — Total Primary Functionality but Below Threshold (NEW)",
+      "question": "Do you have total primary functionality or performance, but less than the threshold requirements is required, and no workaround is required? (All existing capabilities exist with no problems.)",
+      "choices": {
+        "yes": "F4_NEW_S1_IMPACT_MINOR",
+        "no": "F4_NEW_S1_IMPACT_MINOR"
+      }
+    },
+
+    "F4_NEW_S1_IMPACT_MINOR": {
+      "type": "info",
+      "title": "Minor Impact to SUT Operation (NEW)",
+      "body": "Minor Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "minor" },
+        "appendTraceTags": ["f4:path=new", "f4:step1:impact=minor"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_0_14"
+    },
+
+    /* =========================================================
+       IPR PATH (Sheet 2): Step 1 — Operational Impact Determination
+       ========================================================= */
+
+    "F4_IPR_S1_Q_TOTAL_LOSS": {
+      "type": "decision",
+      "title": "Step 1 — Total Loss of Functionality (IPR)",
+      "question": "Do you have total loss of system functionality? (New and previously existing capabilities are not available.)",
+      "choices": {
+        "yes": "F4_IPR_S1_IMPACT_SEVERE",
+        "no": "F4_IPR_S1_Q_LOSS_GE_75"
+      }
+    },
+
+    "F4_IPR_S1_IMPACT_SEVERE": {
+      "type": "info",
+      "title": "Severe Impact to SUT Operation (IPR)",
+      "body": "Severe Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "severe" },
+        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=severe"]
+      },
+      "next": "F4_S2_ENTRY_FROM_SEVERE"
+    },
+
+    "F4_IPR_S1_Q_LOSS_GE_75": {
+      "type": "decision",
+      "title": "Step 1 — ≥ 75% Loss (IPR)",
+      "question": "Do you have a ≥ 75% loss of primary application functionality or performance resulting in users unable to perform their normal functions, or a Major Feature/Product Failure with partial loss of existing (regressive) capabilities? (Inconvenient workaround exists, or no workaround exists.)",
+      "choices": {
+        "yes": "F4_IPR_S1_IMPACT_CRITICAL",
+        "no": "F4_IPR_S1_Q_LOSS_50_74_NO_REGRESSION"
+      }
+    },
+
+    "F4_IPR_S1_IMPACT_CRITICAL": {
+      "type": "info",
+      "title": "Critical Impact to SUT Operation (IPR)",
+      "body": "Critical Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "critical" },
+        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=critical"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_50_75"
+    },
+
+    "F4_IPR_S1_Q_LOSS_50_74_NO_REGRESSION": {
+      "type": "decision",
+      "title": "Step 1 — 50–74% (Partial) Loss (IPR)",
+      "question": "Do you have a 50–74% (partial) loss of primary application functionality or performance resulting in users unable to perform their normal functions, or a Major feature/product failure, but no loss of existing capabilities? (Inconvenient workaround exists.)",
+      "choices": {
+        "yes": "F4_IPR_S1_IMPACT_SERIOUS",
+        "no": "F4_IPR_S1_Q_DEGRADED_NO_EXISTING_LOSS"
+      }
+    },
+
+    "F4_IPR_S1_IMPACT_SERIOUS": {
+      "type": "info",
+      "title": "Serious Impact to SUT Operation (IPR)",
+      "body": "Serious Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "serious" },
+        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=serious"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_25_49"
+    },
+
+    "F4_IPR_S1_Q_DEGRADED_NO_EXISTING_LOSS": {
+      "type": "decision",
+      "title": "Step 1 — Degraded Primary Application (IPR)",
+      "question": "Do you have a degraded primary application functionality or performance resulting in a low number of users unable to perform their normal functions? (No loss of existing capabilities and/or secondary feature/product intermittently functioning; with a workaround that exists.)",
+      "choices": {
+        "yes": "F4_IPR_S1_IMPACT_MODERATE",
+        "no": "F4_IPR_S1_IMPACT_MINOR"
+      }
+    },
+
+    "F4_IPR_S1_IMPACT_MODERATE": {
+      "type": "info",
+      "title": "Moderate Impact to SUT Operation (IPR)",
+      "body": "Moderate Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "moderate" },
+        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=moderate"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_15_24"
+    },
+
+    "F4_IPR_S1_IMPACT_MINOR": {
+      "type": "info",
+      "title": "Minor Impact to SUT Operation (IPR)",
+      "body": "Minor Impact to SUT Operation.",
+      "effects": {
+        "set": { "quantImpactLevel": "minor" },
+        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=minor"]
+      },
+      "next": "F4_S2_Q_MISSIONLOSS_0_14"
+    },
+
+    /* =========================================================
+       Step 2 (Sheets 1–2): Mission Relation Assessment (shared)
+       ========================================================= */
+
+    "F4_S2_ENTRY_FROM_SEVERE": {
+      "type": "info",
+      "title": "Step 2 — Mission Relation Assessment",
+      "body": "Proceed to Step 2 (Mission Relation Assessment).",
+      "effects": { "appendTraceTags": ["f4:step2:entry"] },
+      "next": "F4_S2_DEF_SEVERE"
+    },
+
+    "F4_S2_DEF_SEVERE": {
+      "type": "info",
+      "title": "Severe Deficiency",
+      "body": "Severe Deficiency.\n\nCorrect prior to ship or system Deployment.",
+      "effects": {
+        "set": {
+          "quantMissionLossRange": "above_75",
+          "quantSeverityInitial": "severe",
+          "quantSeverityFinal": "severe"
+        },
+        "appendTraceTags": ["f4:step2:deficiency=severe"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_SEVERE"
+    },
+
+    "F4_S2_Q_MISSIONLOSS_50_75": {
+      "type": "decision",
+      "title": "Mission Loss Range (Critical Impact)",
+      "question": "Do you have a 50–75% loss of mission capability due to the Critical SUT impact?",
+      "choices": {
+        "yes": "F4_S2_DEF_MAJOR1",
+        "no": "F4_S2_Q_MISSIONLOSS_25_49"
+      }
+    },
+
+    "F4_S2_DEF_MAJOR1": {
+      "type": "info",
+      "title": "Major 1 Deficiency",
+      "body": "Major 1 Deficiency.\n\nCorrect prior to ship or system Deployment.\nCorrect prior to fleet introduction.",
+      "effects": {
+        "set": {
+          "quantMissionLossRange": "50_75",
+          "quantSeverityInitial": "major1",
+          "quantSeverityFinal": "major1"
+        },
+        "appendTraceTags": ["f4:step2:deficiency=major1"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MAJOR1"
+    },
+
+    "F4_S2_Q_MISSIONLOSS_25_49": {
+      "type": "decision",
+      "title": "Mission Loss Range (Serious Impact)",
+      "question": "Do you have a 25–49% loss of mission capability due to the Serious SUT impact?",
+      "choices": {
+        "yes": "F4_S2_DEF_MAJOR2",
+        "no": "F4_S2_Q_MISSIONLOSS_15_24"
+      }
+    },
+
+    "F4_S2_DEF_MAJOR2": {
+      "type": "info",
+      "title": "Major 2 Deficiency",
+      "body": "Major 2 Deficiency.\n\nCorrect prior to fleet introduction.\nCorrect prior to next program build/or software release.",
+      "effects": {
+        "set": {
+          "quantMissionLossRange": "25_49",
+          "quantSeverityInitial": "major2",
+          "quantSeverityFinal": "major2"
+        },
+        "appendTraceTags": ["f4:step2:deficiency=major2"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MAJOR2"
+    },
+
+    "F4_S2_Q_MISSIONLOSS_15_24": {
+      "type": "decision",
+      "title": "Mission Loss Range (Moderate Impact)",
+      "question": "Do you have a 15–24% loss of mission capability due to the Moderate SUT impact?",
+      "choices": {
+        "yes": "F4_S2_DEF_MAJOR3",
+        "no": "F4_S2_Q_MISSIONLOSS_0_14"
+      }
+    },
+
+    "F4_S2_DEF_MAJOR3": {
+      "type": "info",
+      "title": "Major 3 Deficiency",
+      "body": "Major 3 Deficiency.\n\nCorrect prior to next program build/or software release.\nCorrect as soon as possible.",
+      "effects": {
+        "set": {
+          "quantMissionLossRange": "15_24",
+          "quantSeverityInitial": "major3",
+          "quantSeverityFinal": "major3"
+        },
+        "appendTraceTags": ["f4:step2:deficiency=major3"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MAJOR3"
+    },
+
+    "F4_S2_Q_MISSIONLOSS_0_14": {
+      "type": "decision",
+      "title": "Mission Loss Range (Minor Impact)",
+      "question": "Do you have a 0–14% loss of mission capability due to the Minor SUT impact?",
+      "choices": {
+        "yes": "F4_S2_DEF_MINOR",
+        "no": "F4_S2_DEF_MINOR"
+      }
+    },
+
+    "F4_S2_DEF_MINOR": {
+      "type": "info",
+      "title": "Minor Deficiency",
+      "body": "Minor Deficiency.\n\nCorrect as soon as possible.\nCorrect as soon as practicable.",
+      "effects": {
+        "set": {
+          "quantMissionLossRange": "0_14",
+          "quantSeverityInitial": "minor",
+          "quantSeverityFinal": "minor"
+        },
+        "appendTraceTags": ["f4:step2:deficiency=minor"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MINOR"
+    },
+
+    /* =========================================================
+       SUPPORT EQUIPMENT PATH (Sheet 3)
+       ========================================================= */
+
+    "F4_SUP_S1_Q_NOT_EXISTENT": {
+      "type": "decision",
+      "title": "Step 1 — Support Item Not Existent",
+      "question": "The process/procedure/item is not existent as required to support SUT operation and/or use.",
+      "choices": {
+        "yes": "F4_SUP_S1_DEG_SEVERELY",
+        "no": "F4_SUP_S1_Q_AVAIL_5_25"
+      }
+    },
+
+    "F4_SUP_S1_DEG_SEVERELY": {
+      "type": "info",
+      "title": "Severely Degraded Use of Support System/Item",
+      "body": "Severely degraded use of the support system/item.",
+      "effects": {
+        "set": { "quantSupportDegradation": "severely_degraded" },
+        "appendTraceTags": ["f4:path=support", "f4:step1:support=severely_degraded"]
+      },
+      "next": "F4_SUP_S2_Q_LIMITS_LE_15"
+    },
+
+    "F4_SUP_S1_Q_AVAIL_5_25": {
+      "type": "decision",
+      "title": "Step 1 — 5–25% Available/Developed/Fielded",
+      "question": "The process/procedure/item is 5–25% available/developed/fielded as required to support SUT operation and/or use.",
+      "choices": {
+        "yes": "F4_SUP_S1_DEG_CRITICALLY",
+        "no": "F4_SUP_S1_Q_AVAIL_26_50"
+      }
+    },
+
+    "F4_SUP_S1_DEG_CRITICALLY": {
+      "type": "info",
+      "title": "Critically Degraded Use of Support System/Item",
+      "body": "Critically degraded use of the support system/item.",
+      "effects": {
+        "set": { "quantSupportDegradation": "critically_degraded" },
+        "appendTraceTags": ["f4:path=support", "f4:step1:support=critically_degraded"]
+      },
+      "next": "F4_SUP_S2_Q_LIMITS_16_25"
+    },
+
+    "F4_SUP_S1_Q_AVAIL_26_50": {
+      "type": "decision",
+      "title": "Step 1 — 26–50% Available/Developed/Fielded",
+      "question": "The process/procedure/item is 26–50% available/developed/fielded as required to support SUT operation and/or use.",
+      "choices": {
+        "yes": "F4_SUP_S1_DEG_SERIOUSLY",
+        "no": "F4_SUP_S1_Q_AVAIL_51_75"
+      }
+    },
+
+    "F4_SUP_S1_DEG_SERIOUSLY": {
+      "type": "info",
+      "title": "Seriously Degraded Use of Support System/Item",
+      "body": "Seriously degraded use of the support system/item.",
+      "effects": {
+        "set": { "quantSupportDegradation": "seriously_degraded" },
+        "appendTraceTags": ["f4:path=support", "f4:step1:support=seriously_degraded"]
+      },
+      "next": "F4_SUP_S2_Q_LIMITS_26_50"
+    },
+
+    "F4_SUP_S1_Q_AVAIL_51_75": {
+      "type": "decision",
+      "title": "Step 1 — 51–75% Available/Developed/Fielded",
+      "question": "The process/procedure/item is 51–75% available/developed/fielded as required to support SUT operation and/or use.",
+      "choices": {
+        "yes": "F4_SUP_S1_DEG_MODERATELY",
+        "no": "F4_SUP_S1_Q_AVAIL_76_95"
+      }
+    },
+
+    "F4_SUP_S1_DEG_MODERATELY": {
+      "type": "info",
+      "title": "Moderately Degraded Use of Support System/Item",
+      "body": "Moderately degraded use of the support system/item.",
+      "effects": {
+        "set": { "quantSupportDegradation": "moderately_degraded" },
+        "appendTraceTags": ["f4:path=support", "f4:step1:support=moderately_degraded"]
+      },
+      "next": "F4_SUP_S2_Q_LIMITS_51_75"
+    },
+
+    "F4_SUP_S1_Q_AVAIL_76_95": {
+      "type": "decision",
+      "title": "Step 1 — 76–95% Available/Developed/Fielded",
+      "question": "The process/procedure/item is 76–95% available/developed/fielded as required to support SUT operation and/or use.",
+      "choices": {
+        "yes": "F4_SUP_S1_DEG_MINOR",
+        "no": "F4_SUP_S1_DEG_MINOR"
+      }
+    },
+
+    "F4_SUP_S1_DEG_MINOR": {
+      "type": "info",
+      "title": "Minor Degraded Use of Support System/Item",
+      "body": "Minor degraded use of the support system/item.",
+      "effects": {
+        "set": { "quantSupportDegradation": "minor_degraded" },
+        "appendTraceTags": ["f4:path=support", "f4:step1:support=minor_degraded"]
+      },
+      "next": "F4_SUP_S2_Q_LIMITS_76_95"
+    },
+
+    "F4_SUP_S2_Q_LIMITS_LE_15": {
+      "type": "decision",
+      "title": "Step 2 — Intended Use Limited (≤ 15%)",
+      "question": "Deficiency precludes its intended use or limits intended use to ≤ 15% or only allows the operator/maintainer to execute/manage ≤ 15% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_SUP_S2_Q_SUBSTITUTE_FOR_SEVERE",
+        "no": "F4_SUP_S2_Q_LIMITS_16_25"
+      }
+    },
+
+    "F4_SUP_S2_Q_SUBSTITUTE_FOR_SEVERE": {
+      "type": "decision",
+      "title": "Substitute / Workaround Exists? (≤ 15%)",
+      "question": "Does a suitable substitute, workaround, procedure, or alternate means exist that allows the operator/maintainer to use the deficient support item? (Note 16)",
+      "choices": {
+        "no": "F4_SUP_S2_DEF_SEVERE",
+        "yes": "F4_SUP_S2_DEF_MAJOR1"
+      }
+    },
+
+    "F4_SUP_S2_Q_LIMITS_16_25": {
+      "type": "decision",
+      "title": "Step 2 — Intended Use Limited (16–25%)",
+      "question": "Deficiency limits intended use to 16–25% or only allows the operator/maintainer to execute/manage 16–25% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_SUP_S2_Q_SUBSTITUTE_FOR_MAJOR1",
+        "no": "F4_SUP_S2_Q_LIMITS_26_50"
+      }
+    },
+
+    "F4_SUP_S2_Q_SUBSTITUTE_FOR_MAJOR1": {
+      "type": "decision",
+      "title": "Substitute / Workaround Exists? (16–25%)",
+      "question": "Does a suitable substitute, workaround, procedure, or alternate means exist that allows the operator/maintainer to use the deficient support item? (Note 16)",
+      "choices": {
+        "no": "F4_SUP_S2_DEF_MAJOR1",
+        "yes": "F4_SUP_S2_DEF_MAJOR2"
+      }
+    },
+
+    "F4_SUP_S2_Q_LIMITS_26_50": {
+      "type": "decision",
+      "title": "Step 2 — Intended Use Limited (26–50%)",
+      "question": "Deficiency limits intended use to 26–50% or only allows the operator/maintainer to execute/manage 26–50% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_SUP_S2_Q_SUBSTITUTE_FOR_MAJOR2",
+        "no": "F4_SUP_S2_Q_LIMITS_51_75"
+      }
+    },
+
+    "F4_SUP_S2_Q_SUBSTITUTE_FOR_MAJOR2": {
+      "type": "decision",
+      "title": "Substitute / Workaround Exists? (26–50%)",
+      "question": "Does a suitable substitute, workaround, procedure, or alternate means exist that allows the operator/maintainer to use the deficient support item? (Note 16)",
+      "choices": {
+        "no": "F4_SUP_S2_DEF_MAJOR2",
+        "yes": "F4_SUP_S2_DEF_MAJOR3"
+      }
+    },
+
+    "F4_SUP_S2_Q_LIMITS_51_75": {
+      "type": "decision",
+      "title": "Step 2 — Intended Use Limited (51–75%)",
+      "question": "Deficiency limits intended use to 51–75% or only allows the operator/maintainer to execute/manage 51–75% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_SUP_S2_Q_SUBSTITUTE_FOR_MAJOR3",
+        "no": "F4_SUP_S2_Q_LIMITS_76_95"
+      }
+    },
+
+    "F4_SUP_S2_Q_SUBSTITUTE_FOR_MAJOR3": {
+      "type": "decision",
+      "title": "Substitute / Workaround Exists? (51–75%)",
+      "question": "Does a suitable substitute, workaround, procedure, or alternate means exist that allows the operator/maintainer to use the deficient support item? (Note 16)",
+      "choices": {
+        "no": "F4_SUP_S2_DEF_MAJOR3",
+        "yes": "F4_SUP_S2_DEF_MINOR"
+      }
+    },
+
+    "F4_SUP_S2_Q_LIMITS_76_95": {
+      "type": "decision",
+      "title": "Step 2 — Intended Use Limited (76–95%)",
+      "question": "Deficiency limits intended use to 76–95% or only allows the operator/maintainer to execute/manage 76–95% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_SUP_S2_Q_SUBSTITUTE_FOR_MINOR",
+        "no": "F4_SUP_S2_Q_ALLOWS_ABOVE_96"
+      }
+    },
+
+    "F4_SUP_S2_Q_SUBSTITUTE_FOR_MINOR": {
+      "type": "decision",
+      "title": "Substitute / Workaround Exists? (76–95%)",
+      "question": "Does a suitable substitute, workaround, procedure, or alternate means exist that allows the operator/maintainer to use the deficient support item? (Note 16)",
+      "choices": {
+        "no": "F4_SUP_S2_DEF_NONE",
+        "yes": "F4_SUP_S2_DEF_MINOR"
+      }
+    },
+
+    "F4_SUP_S2_Q_ALLOWS_ABOVE_96": {
+      "type": "decision",
+      "title": "Step 2 — Intended Use Above 96%",
+      "question": "Deficiency allows intended use to above 96% or allows the operator/maintainer to execute/manage above 96% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_SUP_S2_DEF_NONE",
+        "no": "F4_SUP_S2_DEF_NONE"
+      }
+    },
+
+    "F4_SUP_S2_DEF_SEVERE": {
+      "type": "info",
+      "title": "Severe Deficiency (Support Item)",
+      "body": "Severe Deficiency.\n\nCorrect prior to ship or system Deployment.",
+      "effects": {
+        "set": {
+          "quantSupportUsabilityRange": "le_15",
+          "quantSubstituteExists": false,
+          "quantSeverityInitial": "severe",
+          "quantSeverityFinal": "severe"
+        },
+        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=severe"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_SEVERE"
+    },
+
+    "F4_SUP_S2_DEF_MAJOR1": {
+      "type": "info",
+      "title": "Major 1 Deficiency (Support Item)",
+      "body": "Major 1 Deficiency.\n\nCorrect prior to ship or system Deployment.\nCorrect prior to fleet introduction.",
+      "effects": {
+        "set": {
+          "quantSupportUsabilityRange": "16_25_or_le_15_with_sub",
+          "quantSeverityInitial": "major1",
+          "quantSeverityFinal": "major1"
+        },
+        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=major1"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MAJOR1"
+    },
+
+    "F4_SUP_S2_DEF_MAJOR2": {
+      "type": "info",
+      "title": "Major 2 Deficiency (Support Item)",
+      "body": "Major 2 Deficiency.\n\nCorrect prior to fleet introduction.\nCorrect prior to next program build/or software release.",
+      "effects": {
+        "set": {
+          "quantSupportUsabilityRange": "26_50_or_16_25_with_sub",
+          "quantSeverityInitial": "major2",
+          "quantSeverityFinal": "major2"
+        },
+        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=major2"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MAJOR2"
+    },
+
+    "F4_SUP_S2_DEF_MAJOR3": {
+      "type": "info",
+      "title": "Major 3 Deficiency (Support Item)",
+      "body": "Major 3 Deficiency.\n\nCorrect prior to next program build/or software release.\nCorrect as soon as possible.",
+      "effects": {
+        "set": {
+          "quantSupportUsabilityRange": "51_75_or_26_50_with_sub",
+          "quantSeverityInitial": "major3",
+          "quantSeverityFinal": "major3"
+        },
+        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=major3"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MAJOR3"
+    },
+
+    "F4_SUP_S2_DEF_MINOR": {
+      "type": "info",
+      "title": "Minor Deficiency (Support Item)",
+      "body": "Minor Deficiency.\n\nCorrect as soon as possible.\nCorrect as soon as practicable.",
+      "effects": {
+        "set": {
+          "quantSupportUsabilityRange": "76_95_with_sub_or_51_75_with_sub",
+          "quantSeverityInitial": "minor",
+          "quantSeverityFinal": "minor"
+        },
+        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=minor"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_MINOR"
+    },
+
+    "F4_SUP_S2_DEF_NONE": {
+      "type": "info",
+      "title": "No Deficiency (Support Item)",
+      "body": "No Deficiency. (Note 15)",
+      "effects": {
+        "set": {
+          "quantSupportUsabilityRange": "ge_96_or_76_95_no_sub",
+          "quantSeverityInitial": "none",
+          "quantSeverityFinal": "none"
+        },
+        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=none"]
+      },
+      "next": "F4_S3_ENTRY_ROLLUP_NONE"
+    },
+
+    /* =========================================================
+       STEP 3 (Sheet 4): Roll-up Assessment
+       ========================================================= */
+
+    "F4_S3_ENTRY_ROLLUP_SEVERE": {
+      "type": "info",
+      "title": "Step 3 — Roll-up Assessment Entry",
+      "body": "If there are multiple similar/related deficiencies on the same equipment/system/subsystem, evaluate combined effect to determine whether a roll-up is appropriate.",
+      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=severe"] },
+      "next": "F4_S3_Q_ROLLUP_NEEDED_GENERIC"
+    },
+
+    "F4_S3_ENTRY_ROLLUP_MAJOR1": {
+      "type": "info",
+      "title": "Step 3 — Roll-up Assessment Entry (Major 1)",
+      "body": "Proceed to roll-up assessment for an existing Major 1 deficiency (if applicable).",
+      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=major1"] },
+      "next": "F4_S3_Q_HAS_2PLUS_FOR_MAJOR1"
+    },
+
+    "F4_S3_ENTRY_ROLLUP_MAJOR2": {
+      "type": "info",
+      "title": "Step 3 — Roll-up Assessment Entry (Major 2)",
+      "body": "Proceed to roll-up assessment for an existing Major 2 deficiency (if applicable).",
+      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=major2"] },
+      "next": "F4_S3_Q_HAS_2PLUS_FOR_MAJOR2"
+    },
+
+    "F4_S3_ENTRY_ROLLUP_MAJOR3": {
+      "type": "info",
+      "title": "Step 3 — Roll-up Assessment Entry (Major 3)",
+      "body": "Proceed to roll-up assessment for an existing Major 3 deficiency (if applicable).",
+      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=major3"] },
+      "next": "F4_S3_Q_HAS_2PLUS_FOR_MAJOR3"
+    },
+
+    "F4_S3_ENTRY_ROLLUP_MINOR": {
+      "type": "info",
+      "title": "Step 3 — Roll-up Assessment Entry (Minor)",
+      "body": "Proceed to roll-up assessment for an existing Minor deficiency (if applicable).",
+      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=minor"] },
+      "next": "F4_S3_Q_HAS_2PLUS_FOR_MINOR"
+    },
+
+    "F4_S3_ENTRY_ROLLUP_NONE": {
+      "type": "info",
+      "title": "Step 3 — Roll-up Assessment Entry (No Deficiency)",
+      "body": "Proceed to roll-up assessment for an existing No Deficiency support-item call (if applicable).",
+      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=none"] },
+      "next": "F4_S3_Q_HAS_2PLUS_FOR_NONE"
+    },
+
+    "F4_S3_Q_ROLLUP_NEEDED_GENERIC": {
+      "type": "decision",
+      "title": "Roll-up Needed?",
+      "question": "Are there multiple (similar/related) deficiencies on the same equipment/system/subsystem that should be assessed together for a potential roll-up?",
+      "choices": {
+        "yes": "F4_S3_INFO_EVAL_COMBINED_EFFECT",
+        "no": "F4_END_FINAL"
+      }
+    },
+
+    "F4_S3_Q_HAS_2PLUS_FOR_MAJOR1": {
+      "type": "decision",
+      "title": "Major 1 — Related Deficiencies Present?",
+      "question": "Are there two or more other Major 1, 2, 3, or Minor Deficiencies that are on/related to the existing Major 1 deficiency?",
+      "choices": {
+        "yes": "F4_S3_INFO_EVAL_COMBINED_EFFECT",
+        "no": "F4_END_FINAL"
+      }
+    },
+
+    "F4_S3_Q_HAS_2PLUS_FOR_MAJOR2": {
+      "type": "decision",
+      "title": "Major 2 — Related Deficiencies Present?",
+      "question": "Are there two or more other Major 2, 3, or Minor Deficiencies that are on/related to the existing Major 2 deficiency?",
+      "choices": {
+        "yes": "F4_S3_INFO_EVAL_COMBINED_EFFECT",
+        "no": "F4_END_FINAL"
+      }
+    },
+
+    "F4_S3_Q_HAS_2PLUS_FOR_MAJOR3": {
+      "type": "decision",
+      "title": "Major 3 — Related Deficiencies Present?",
+      "question": "Are there two or more other Major 3, or Minor Deficiencies that are on/related to the existing Major 3 deficiency?",
+      "choices": {
+        "yes": "F4_S3_INFO_EVAL_COMBINED_EFFECT",
+        "no": "F4_END_FINAL"
+      }
+    },
+
+    "F4_S3_Q_HAS_2PLUS_FOR_MINOR": {
+      "type": "decision",
+      "title": "Minor — Related Deficiencies Present?",
+      "question": "Are there two or more other Minor or No Deficiencies that are on/related to the existing Minor deficiency?",
+      "choices": {
+        "yes": "F4_S3_INFO_EVAL_COMBINED_EFFECT",
+        "no": "F4_END_FINAL"
+      }
+    },
+
+    "F4_S3_Q_HAS_2PLUS_FOR_NONE": {
+      "type": "decision",
+      "title": "No Deficiency — Related Deficiencies Present?",
+      "question": "Are there two or more other Minor or No Deficiencies that are on/related to the existing No Deficiency call?",
+      "choices": {
+        "yes": "F4_S3_INFO_EVAL_COMBINED_EFFECT",
+        "no": "F4_END_FINAL"
+      }
+    },
+
+    "F4_S3_INFO_EVAL_COMBINED_EFFECT": {
+      "type": "info",
+      "title": "Evaluate Combined Effect",
+      "body": "Evaluate the effect the combined deficiencies have on the operator/maintainer's ability to execute/manage the intended use/requirements and/or purpose to determine the combined rating.",
+      "effects": { "appendTraceTags": ["f4:step3:combined_effect_evaluation"] },
+      "next": "F4_S3_Q_COMBINED_76_95"
+    },
+
+    "F4_S3_Q_COMBINED_76_95": {
+      "type": "decision",
+      "title": "Combined Rating — 76–95%",
+      "question": "Combined Deficiency limits intended use to between 76–95% or allows the operator/maintainer to execute/manage between 76–95% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_S3_OUTCOME_LEAVE_SEPARATE",
+        "no": "F4_S3_Q_COMBINED_51_75"
+      }
+    },
+
+    "F4_S3_Q_COMBINED_51_75": {
+      "type": "decision",
+      "title": "Combined Rating — 51–75%",
+      "question": "Combined Deficiency limits intended use to between 51–75% or allows the operator/maintainer to execute/manage between 51–75% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_S3_OUTCOME_ROLLUP_MAJOR3",
+        "no": "F4_S3_Q_COMBINED_26_50"
+      }
+    },
+
+    "F4_S3_Q_COMBINED_26_50": {
+      "type": "decision",
+      "title": "Combined Rating — 26–50%",
+      "question": "Combined Deficiency limits intended use to between 26–50% or allows the operator/maintainer to execute/manage between 26–50% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_S3_OUTCOME_ROLLUP_MAJOR2",
+        "no": "F4_S3_Q_COMBINED_16_25"
+      }
+    },
+
+    "F4_S3_Q_COMBINED_16_25": {
+      "type": "decision",
+      "title": "Combined Rating — 16–25%",
+      "question": "Combined Deficiency limits intended use to between 16–25% or allows the operator/maintainer to execute/manage between 16–25% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_S3_OUTCOME_ROLLUP_MAJOR1",
+        "no": "F4_S3_Q_COMBINED_LE_15"
+      }
+    },
+
+    "F4_S3_Q_COMBINED_LE_15": {
+      "type": "decision",
+      "title": "Combined Rating — ≤ 15%",
+      "question": "Combined Deficiency precludes its intended use or limits intended use to ≤ 15% or only allows the operator/maintainer to execute/manage ≤ 15% of the intended use requirements and/or purpose.",
+      "choices": {
+        "yes": "F4_S3_OUTCOME_ROLLUP_SEVERE",
+        "no": "F4_S3_OUTCOME_LEAVE_SEPARATE"
+      }
+    },
+
+    "F4_S3_OUTCOME_LEAVE_SEPARATE": {
       "type": "outcome",
-      "title": "Outcome: Placeholder",
-      "outcome": { "status": "placeholder" },
-      "body": "Placeholder outcome for Figure 4."
+      "title": "Leave as Separate Deficiencies",
+      "outcome": { "rollup": "none" },
+      "body": "Based on the combined rating, leave these deficiencies as separate calls (no roll-up).",
+      "effects": {
+        "set": { "quantRollupApplied": false, "quantRollupResult": "separate" },
+        "appendTraceTags": ["f4:step3:rollup=separate"]
+      }
+    },
+
+    "F4_S3_OUTCOME_ROLLUP_MAJOR3": {
+      "type": "outcome",
+      "title": "Major 3 Deficiency Roll-Up",
+      "outcome": { "rollup": "major3" },
+      "body": "Roll up the related deficiencies to a single Major 3 deficiency.",
+      "effects": {
+        "set": { "quantRollupApplied": true, "quantRollupResult": "major3", "quantSeverityFinal": "major3" },
+        "appendTraceTags": ["f4:step3:rollup=major3"]
+      }
+    },
+
+    "F4_S3_OUTCOME_ROLLUP_MAJOR2": {
+      "type": "outcome",
+      "title": "Major 2 Deficiency Roll-Up",
+      "outcome": { "rollup": "major2" },
+      "body": "Roll up the related deficiencies to a single Major 2 deficiency.",
+      "effects": {
+        "set": { "quantRollupApplied": true, "quantRollupResult": "major2", "quantSeverityFinal": "major2" },
+        "appendTraceTags": ["f4:step3:rollup=major2"]
+      }
+    },
+
+    "F4_S3_OUTCOME_ROLLUP_MAJOR1": {
+      "type": "outcome",
+      "title": "Major 1 Deficiency Roll-Up",
+      "outcome": { "rollup": "major1" },
+      "body": "Roll up the related deficiencies to a single Major 1 deficiency.",
+      "effects": {
+        "set": { "quantRollupApplied": true, "quantRollupResult": "major1", "quantSeverityFinal": "major1" },
+        "appendTraceTags": ["f4:step3:rollup=major1"]
+      }
+    },
+
+    "F4_S3_OUTCOME_ROLLUP_SEVERE": {
+      "type": "outcome",
+      "title": "Severe Deficiency Roll-Up",
+      "outcome": { "rollup": "severe" },
+      "body": "Roll up the related deficiencies to a single Severe deficiency.",
+      "effects": {
+        "set": { "quantRollupApplied": true, "quantRollupResult": "severe", "quantSeverityFinal": "severe" },
+        "appendTraceTags": ["f4:step3:rollup=severe"]
+      }
+    },
+
+    /* =========================================================
+       END
+       ========================================================= */
+
+    "F4_END_FINAL": {
+      "type": "outcome",
+      "title": "Outcome: Figure 4 Complete",
+      "outcome": {
+        "quantSeverityInitial": "as-set",
+        "quantSeverityFinal": "as-set",
+        "quantRollupApplied": "as-set"
+      },
+      "body": "Figure 4 quantitative baseline assessment is complete."
     }
   }
 }
