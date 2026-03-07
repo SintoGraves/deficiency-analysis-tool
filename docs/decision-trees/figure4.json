@@ -5,7 +5,11 @@
   "entryNodeId": "F4_START",
   "meta": {
     "authoritativeSource": "Figure 4 (Sheets 1–4) Quantitative Baseline Deficiency Flow Diagram",
-    "wizard": { "oneQuestionPerScreen": true, "requireAckOnInfoNodes": true }
+    "wizard": {
+      "oneQuestionPerScreen": true,
+      "requireAckOnInfoNodes": true
+    },
+    "__note_format": "Keys beginning with __ are documentation-only metadata and should be ignored by the flow engine."
   },
   "caseStateSchema": {
     "quantCapabilityContext": "string",
@@ -22,11 +26,17 @@
     "traceTags": "array"
   },
   "nodes": {
+    "__section_sheet0_entry": "ENTRY / CONTEXT SELECTION",
+
     "F4_START": {
       "type": "info",
       "title": "Start",
       "body": "Begin quantitative baseline deficiency assessment (Figure 4).",
-      "effects": { "appendTraceTags": ["figure4:start"] },
+      "effects": {
+        "appendTraceTags": [
+          "figure4:start"
+        ]
+      },
       "next": "F4_S0_Q_ENTRY_TYPE"
     },
 
@@ -53,10 +63,15 @@
     "F4_S0_INFO_NEW_CAPABILITY": {
       "type": "info",
       "title": "New Equipment / New Capability",
+      "__note": "Entry to NEW capability path. Continue to Step 1 Capability Production Requirements Assessment.",
       "body": "New capability selected (NEW path). Continue to Step 1 (Capability Production Requirements Assessment).",
       "effects": {
-        "set": { "quantCapabilityContext": "new" },
-        "appendTraceTags": ["f4:context:capability=new"]
+        "set": {
+          "quantCapabilityContext": "new"
+        },
+        "appendTraceTags": [
+          "f4:context:capability=new"
+        ]
       },
       "next": "F4_NEW_S1_Q_TOTAL_LOSS"
     },
@@ -64,10 +79,15 @@
     "F4_S0_INFO_IPR_CAPABILITY": {
       "type": "info",
       "title": "Existing Capability Replacement / Improvement",
+      "__note": "Entry to IPR path. Continue to Step 1 Capability Production Requirements Assessment.",
       "body": "Replacing/improving an existing capability selected (IPR path). Continue to Step 1 (Capability Production Requirements Assessment).",
       "effects": {
-        "set": { "quantCapabilityContext": "ipr" },
-        "appendTraceTags": ["f4:context:capability=ipr"]
+        "set": {
+          "quantCapabilityContext": "ipr"
+        },
+        "appendTraceTags": [
+          "f4:context:capability=ipr"
+        ]
       },
       "next": "F4_IPR_S1_Q_TOTAL_LOSS"
     },
@@ -75,17 +95,20 @@
     "F4_S0_INFO_SUPPORT_ITEM": {
       "type": "info",
       "title": "Support Equipment / Support System Item",
+      "__note": "Entry to support-equipment baseline flow. Continue to Step 1 Support System/Item Development Assessment.",
       "body": "Support equipment baseline deficiency flow selected. Continue to Step 1 (Support System/Item Development Assessment).",
       "effects": {
-        "set": { "quantSupportContext": "support_item" },
-        "appendTraceTags": ["f4:context:support_item"]
+        "set": {
+          "quantSupportContext": "support_item"
+        },
+        "appendTraceTags": [
+          "f4:context:support_item"
+        ]
       },
       "next": "F4_SUP_S1_Q_NOT_EXISTENT"
     },
 
-    /* =========================================================
-       NEW PATH (Sheet 1): Step 1 — Operational Impact Determination
-       ========================================================= */
+    "__section_sheet1_new_path": "NEW PATH (Sheet 1) — Step 1 Operational Impact Determination",
 
     "F4_NEW_S1_Q_TOTAL_LOSS": {
       "type": "decision",
@@ -102,8 +125,13 @@
       "title": "Severe Impact to SUT Operation (NEW)",
       "body": "Severe Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "severe" },
-        "appendTraceTags": ["f4:path=new", "f4:step1:impact=severe"]
+        "set": {
+          "quantImpactLevel": "severe"
+        },
+        "appendTraceTags": [
+          "f4:path=new",
+          "f4:step1:impact=severe"
+        ]
       },
       "next": "F4_S2_ENTRY_FROM_SEVERE"
     },
@@ -123,8 +151,13 @@
       "title": "Critical Impact to SUT Operation (NEW)",
       "body": "Critical Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "critical" },
-        "appendTraceTags": ["f4:path=new", "f4:step1:impact=critical"]
+        "set": {
+          "quantImpactLevel": "critical"
+        },
+        "appendTraceTags": [
+          "f4:path=new",
+          "f4:step1:impact=critical"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_50_75"
     },
@@ -144,8 +177,13 @@
       "title": "Serious Impact to SUT Operation (NEW)",
       "body": "Serious Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "serious" },
-        "appendTraceTags": ["f4:path=new", "f4:step1:impact=serious"]
+        "set": {
+          "quantImpactLevel": "serious"
+        },
+        "appendTraceTags": [
+          "f4:path=new",
+          "f4:step1:impact=serious"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_25_49"
     },
@@ -165,8 +203,13 @@
       "title": "Moderate Impact to SUT Operation (NEW)",
       "body": "Moderate Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "moderate" },
-        "appendTraceTags": ["f4:path=new", "f4:step1:impact=moderate"]
+        "set": {
+          "quantImpactLevel": "moderate"
+        },
+        "appendTraceTags": [
+          "f4:path=new",
+          "f4:step1:impact=moderate"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_15_24"
     },
@@ -186,15 +229,18 @@
       "title": "Minor Impact to SUT Operation (NEW)",
       "body": "Minor Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "minor" },
-        "appendTraceTags": ["f4:path=new", "f4:step1:impact=minor"]
+        "set": {
+          "quantImpactLevel": "minor"
+        },
+        "appendTraceTags": [
+          "f4:path=new",
+          "f4:step1:impact=minor"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_0_14"
     },
 
-    /* =========================================================
-       IPR PATH (Sheet 2): Step 1 — Operational Impact Determination
-       ========================================================= */
+    "__section_sheet2_ipr_path": "IPR PATH (Sheet 2) — Step 1 Operational Impact Determination",
 
     "F4_IPR_S1_Q_TOTAL_LOSS": {
       "type": "decision",
@@ -211,8 +257,13 @@
       "title": "Severe Impact to SUT Operation (IPR)",
       "body": "Severe Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "severe" },
-        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=severe"]
+        "set": {
+          "quantImpactLevel": "severe"
+        },
+        "appendTraceTags": [
+          "f4:path=ipr",
+          "f4:step1:impact=severe"
+        ]
       },
       "next": "F4_S2_ENTRY_FROM_SEVERE"
     },
@@ -232,8 +283,13 @@
       "title": "Critical Impact to SUT Operation (IPR)",
       "body": "Critical Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "critical" },
-        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=critical"]
+        "set": {
+          "quantImpactLevel": "critical"
+        },
+        "appendTraceTags": [
+          "f4:path=ipr",
+          "f4:step1:impact=critical"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_50_75"
     },
@@ -253,8 +309,13 @@
       "title": "Serious Impact to SUT Operation (IPR)",
       "body": "Serious Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "serious" },
-        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=serious"]
+        "set": {
+          "quantImpactLevel": "serious"
+        },
+        "appendTraceTags": [
+          "f4:path=ipr",
+          "f4:step1:impact=serious"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_25_49"
     },
@@ -274,8 +335,13 @@
       "title": "Moderate Impact to SUT Operation (IPR)",
       "body": "Moderate Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "moderate" },
-        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=moderate"]
+        "set": {
+          "quantImpactLevel": "moderate"
+        },
+        "appendTraceTags": [
+          "f4:path=ipr",
+          "f4:step1:impact=moderate"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_15_24"
     },
@@ -285,21 +351,28 @@
       "title": "Minor Impact to SUT Operation (IPR)",
       "body": "Minor Impact to SUT Operation.",
       "effects": {
-        "set": { "quantImpactLevel": "minor" },
-        "appendTraceTags": ["f4:path=ipr", "f4:step1:impact=minor"]
+        "set": {
+          "quantImpactLevel": "minor"
+        },
+        "appendTraceTags": [
+          "f4:path=ipr",
+          "f4:step1:impact=minor"
+        ]
       },
       "next": "F4_S2_Q_MISSIONLOSS_0_14"
     },
 
-    /* =========================================================
-       Step 2 (Sheets 1–2): Mission Relation Assessment (shared)
-       ========================================================= */
+    "__section_step2_shared": "STEP 2 (Sheets 1–2) — Mission Relation Assessment (shared NEW/IPR path)",
 
     "F4_S2_ENTRY_FROM_SEVERE": {
       "type": "info",
       "title": "Step 2 — Mission Relation Assessment",
       "body": "Proceed to Step 2 (Mission Relation Assessment).",
-      "effects": { "appendTraceTags": ["f4:step2:entry"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step2:entry"
+        ]
+      },
       "next": "F4_S2_DEF_SEVERE"
     },
 
@@ -313,7 +386,9 @@
           "quantSeverityInitial": "severe",
           "quantSeverityFinal": "severe"
         },
-        "appendTraceTags": ["f4:step2:deficiency=severe"]
+        "appendTraceTags": [
+          "f4:step2:deficiency=severe"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_SEVERE"
     },
@@ -338,7 +413,9 @@
           "quantSeverityInitial": "major1",
           "quantSeverityFinal": "major1"
         },
-        "appendTraceTags": ["f4:step2:deficiency=major1"]
+        "appendTraceTags": [
+          "f4:step2:deficiency=major1"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MAJOR1"
     },
@@ -363,7 +440,9 @@
           "quantSeverityInitial": "major2",
           "quantSeverityFinal": "major2"
         },
-        "appendTraceTags": ["f4:step2:deficiency=major2"]
+        "appendTraceTags": [
+          "f4:step2:deficiency=major2"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MAJOR2"
     },
@@ -388,7 +467,9 @@
           "quantSeverityInitial": "major3",
           "quantSeverityFinal": "major3"
         },
-        "appendTraceTags": ["f4:step2:deficiency=major3"]
+        "appendTraceTags": [
+          "f4:step2:deficiency=major3"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MAJOR3"
     },
@@ -413,14 +494,14 @@
           "quantSeverityInitial": "minor",
           "quantSeverityFinal": "minor"
         },
-        "appendTraceTags": ["f4:step2:deficiency=minor"]
+        "appendTraceTags": [
+          "f4:step2:deficiency=minor"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MINOR"
     },
 
-    /* =========================================================
-       SUPPORT EQUIPMENT PATH (Sheet 3)
-       ========================================================= */
+    "__section_sheet3_support_path": "SUPPORT EQUIPMENT PATH (Sheet 3)",
 
     "F4_SUP_S1_Q_NOT_EXISTENT": {
       "type": "decision",
@@ -437,8 +518,13 @@
       "title": "Severely Degraded Use of Support System/Item",
       "body": "Severely degraded use of the support system/item.",
       "effects": {
-        "set": { "quantSupportDegradation": "severely_degraded" },
-        "appendTraceTags": ["f4:path=support", "f4:step1:support=severely_degraded"]
+        "set": {
+          "quantSupportDegradation": "severely_degraded"
+        },
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step1:support=severely_degraded"
+        ]
       },
       "next": "F4_SUP_S2_Q_LIMITS_LE_15"
     },
@@ -458,8 +544,13 @@
       "title": "Critically Degraded Use of Support System/Item",
       "body": "Critically degraded use of the support system/item.",
       "effects": {
-        "set": { "quantSupportDegradation": "critically_degraded" },
-        "appendTraceTags": ["f4:path=support", "f4:step1:support=critically_degraded"]
+        "set": {
+          "quantSupportDegradation": "critically_degraded"
+        },
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step1:support=critically_degraded"
+        ]
       },
       "next": "F4_SUP_S2_Q_LIMITS_16_25"
     },
@@ -479,8 +570,13 @@
       "title": "Seriously Degraded Use of Support System/Item",
       "body": "Seriously degraded use of the support system/item.",
       "effects": {
-        "set": { "quantSupportDegradation": "seriously_degraded" },
-        "appendTraceTags": ["f4:path=support", "f4:step1:support=seriously_degraded"]
+        "set": {
+          "quantSupportDegradation": "seriously_degraded"
+        },
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step1:support=seriously_degraded"
+        ]
       },
       "next": "F4_SUP_S2_Q_LIMITS_26_50"
     },
@@ -500,8 +596,13 @@
       "title": "Moderately Degraded Use of Support System/Item",
       "body": "Moderately degraded use of the support system/item.",
       "effects": {
-        "set": { "quantSupportDegradation": "moderately_degraded" },
-        "appendTraceTags": ["f4:path=support", "f4:step1:support=moderately_degraded"]
+        "set": {
+          "quantSupportDegradation": "moderately_degraded"
+        },
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step1:support=moderately_degraded"
+        ]
       },
       "next": "F4_SUP_S2_Q_LIMITS_51_75"
     },
@@ -521,8 +622,13 @@
       "title": "Minor Degraded Use of Support System/Item",
       "body": "Minor degraded use of the support system/item.",
       "effects": {
-        "set": { "quantSupportDegradation": "minor_degraded" },
-        "appendTraceTags": ["f4:path=support", "f4:step1:support=minor_degraded"]
+        "set": {
+          "quantSupportDegradation": "minor_degraded"
+        },
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step1:support=minor_degraded"
+        ]
       },
       "next": "F4_SUP_S2_Q_LIMITS_76_95"
     },
@@ -648,7 +754,10 @@
           "quantSeverityInitial": "severe",
           "quantSeverityFinal": "severe"
         },
-        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=severe"]
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step2:deficiency=severe"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_SEVERE"
     },
@@ -663,7 +772,10 @@
           "quantSeverityInitial": "major1",
           "quantSeverityFinal": "major1"
         },
-        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=major1"]
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step2:deficiency=major1"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MAJOR1"
     },
@@ -678,7 +790,10 @@
           "quantSeverityInitial": "major2",
           "quantSeverityFinal": "major2"
         },
-        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=major2"]
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step2:deficiency=major2"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MAJOR2"
     },
@@ -693,7 +808,10 @@
           "quantSeverityInitial": "major3",
           "quantSeverityFinal": "major3"
         },
-        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=major3"]
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step2:deficiency=major3"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MAJOR3"
     },
@@ -708,7 +826,10 @@
           "quantSeverityInitial": "minor",
           "quantSeverityFinal": "minor"
         },
-        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=minor"]
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step2:deficiency=minor"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_MINOR"
     },
@@ -723,20 +844,26 @@
           "quantSeverityInitial": "none",
           "quantSeverityFinal": "none"
         },
-        "appendTraceTags": ["f4:path=support", "f4:step2:deficiency=none"]
+        "appendTraceTags": [
+          "f4:path=support",
+          "f4:step2:deficiency=none"
+        ]
       },
       "next": "F4_S3_ENTRY_ROLLUP_NONE"
     },
 
-    /* =========================================================
-       STEP 3 (Sheet 4): Roll-up Assessment
-       ========================================================= */
+    "__section_sheet4_rollup": "STEP 3 (Sheet 4) — Roll-up Assessment",
 
     "F4_S3_ENTRY_ROLLUP_SEVERE": {
       "type": "info",
       "title": "Step 3 — Roll-up Assessment Entry",
       "body": "If there are multiple similar/related deficiencies on the same equipment/system/subsystem, evaluate combined effect to determine whether a roll-up is appropriate.",
-      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=severe"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step3:entry",
+          "f4:entry=severe"
+        ]
+      },
       "next": "F4_S3_Q_ROLLUP_NEEDED_GENERIC"
     },
 
@@ -744,7 +871,12 @@
       "type": "info",
       "title": "Step 3 — Roll-up Assessment Entry (Major 1)",
       "body": "Proceed to roll-up assessment for an existing Major 1 deficiency (if applicable).",
-      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=major1"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step3:entry",
+          "f4:entry=major1"
+        ]
+      },
       "next": "F4_S3_Q_HAS_2PLUS_FOR_MAJOR1"
     },
 
@@ -752,7 +884,12 @@
       "type": "info",
       "title": "Step 3 — Roll-up Assessment Entry (Major 2)",
       "body": "Proceed to roll-up assessment for an existing Major 2 deficiency (if applicable).",
-      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=major2"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step3:entry",
+          "f4:entry=major2"
+        ]
+      },
       "next": "F4_S3_Q_HAS_2PLUS_FOR_MAJOR2"
     },
 
@@ -760,7 +897,12 @@
       "type": "info",
       "title": "Step 3 — Roll-up Assessment Entry (Major 3)",
       "body": "Proceed to roll-up assessment for an existing Major 3 deficiency (if applicable).",
-      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=major3"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step3:entry",
+          "f4:entry=major3"
+        ]
+      },
       "next": "F4_S3_Q_HAS_2PLUS_FOR_MAJOR3"
     },
 
@@ -768,7 +910,12 @@
       "type": "info",
       "title": "Step 3 — Roll-up Assessment Entry (Minor)",
       "body": "Proceed to roll-up assessment for an existing Minor deficiency (if applicable).",
-      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=minor"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step3:entry",
+          "f4:entry=minor"
+        ]
+      },
       "next": "F4_S3_Q_HAS_2PLUS_FOR_MINOR"
     },
 
@@ -776,7 +923,12 @@
       "type": "info",
       "title": "Step 3 — Roll-up Assessment Entry (No Deficiency)",
       "body": "Proceed to roll-up assessment for an existing No Deficiency support-item call (if applicable).",
-      "effects": { "appendTraceTags": ["f4:step3:entry", "f4:entry=none"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step3:entry",
+          "f4:entry=none"
+        ]
+      },
       "next": "F4_S3_Q_HAS_2PLUS_FOR_NONE"
     },
 
@@ -844,7 +996,11 @@
       "type": "info",
       "title": "Evaluate Combined Effect",
       "body": "Evaluate the effect the combined deficiencies have on the operator/maintainer's ability to execute/manage the intended use/requirements and/or purpose to determine the combined rating.",
-      "effects": { "appendTraceTags": ["f4:step3:combined_effect_evaluation"] },
+      "effects": {
+        "appendTraceTags": [
+          "f4:step3:combined_effect_evaluation"
+        ]
+      },
       "next": "F4_S3_Q_COMBINED_76_95"
     },
 
@@ -901,61 +1057,98 @@
     "F4_S3_OUTCOME_LEAVE_SEPARATE": {
       "type": "outcome",
       "title": "Leave as Separate Deficiencies",
-      "outcome": { "rollup": "none" },
+      "outcome": {
+        "rollup": "none"
+      },
       "body": "Based on the combined rating, leave these deficiencies as separate calls (no roll-up).",
       "effects": {
-        "set": { "quantRollupApplied": false, "quantRollupResult": "separate" },
-        "appendTraceTags": ["f4:step3:rollup=separate"]
+        "set": {
+          "quantRollupApplied": false,
+          "quantRollupResult": "separate"
+        },
+        "appendTraceTags": [
+          "f4:step3:rollup=separate"
+        ]
       }
     },
 
     "F4_S3_OUTCOME_ROLLUP_MAJOR3": {
       "type": "outcome",
       "title": "Major 3 Deficiency Roll-Up",
-      "outcome": { "rollup": "major3" },
+      "outcome": {
+        "rollup": "major3"
+      },
       "body": "Roll up the related deficiencies to a single Major 3 deficiency.",
       "effects": {
-        "set": { "quantRollupApplied": true, "quantRollupResult": "major3", "quantSeverityFinal": "major3" },
-        "appendTraceTags": ["f4:step3:rollup=major3"]
+        "set": {
+          "quantRollupApplied": true,
+          "quantRollupResult": "major3",
+          "quantSeverityFinal": "major3"
+        },
+        "appendTraceTags": [
+          "f4:step3:rollup=major3"
+        ]
       }
     },
 
     "F4_S3_OUTCOME_ROLLUP_MAJOR2": {
       "type": "outcome",
       "title": "Major 2 Deficiency Roll-Up",
-      "outcome": { "rollup": "major2" },
+      "outcome": {
+        "rollup": "major2"
+      },
       "body": "Roll up the related deficiencies to a single Major 2 deficiency.",
       "effects": {
-        "set": { "quantRollupApplied": true, "quantRollupResult": "major2", "quantSeverityFinal": "major2" },
-        "appendTraceTags": ["f4:step3:rollup=major2"]
+        "set": {
+          "quantRollupApplied": true,
+          "quantRollupResult": "major2",
+          "quantSeverityFinal": "major2"
+        },
+        "appendTraceTags": [
+          "f4:step3:rollup=major2"
+        ]
       }
     },
 
     "F4_S3_OUTCOME_ROLLUP_MAJOR1": {
       "type": "outcome",
       "title": "Major 1 Deficiency Roll-Up",
-      "outcome": { "rollup": "major1" },
+      "outcome": {
+        "rollup": "major1"
+      },
       "body": "Roll up the related deficiencies to a single Major 1 deficiency.",
       "effects": {
-        "set": { "quantRollupApplied": true, "quantRollupResult": "major1", "quantSeverityFinal": "major1" },
-        "appendTraceTags": ["f4:step3:rollup=major1"]
+        "set": {
+          "quantRollupApplied": true,
+          "quantRollupResult": "major1",
+          "quantSeverityFinal": "major1"
+        },
+        "appendTraceTags": [
+          "f4:step3:rollup=major1"
+        ]
       }
     },
 
     "F4_S3_OUTCOME_ROLLUP_SEVERE": {
       "type": "outcome",
       "title": "Severe Deficiency Roll-Up",
-      "outcome": { "rollup": "severe" },
+      "outcome": {
+        "rollup": "severe"
+      },
       "body": "Roll up the related deficiencies to a single Severe deficiency.",
       "effects": {
-        "set": { "quantRollupApplied": true, "quantRollupResult": "severe", "quantSeverityFinal": "severe" },
-        "appendTraceTags": ["f4:step3:rollup=severe"]
+        "set": {
+          "quantRollupApplied": true,
+          "quantRollupResult": "severe",
+          "quantSeverityFinal": "severe"
+        },
+        "appendTraceTags": [
+          "f4:step3:rollup=severe"
+        ]
       }
     },
 
-    /* =========================================================
-       END
-       ========================================================= */
+    "__section_end": "END / FINAL OUTCOME",
 
     "F4_END_FINAL": {
       "type": "outcome",
